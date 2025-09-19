@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Planes de Pago</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="p-4">
+
+<!-- 📌 Navbar -->
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">ISDM Pagos</a>
+        <div>
+        <a href="/planes/" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-list"></i> Planes</a>
+        <a href="/cuotas/" class="btn btn-outline-light btn-sm"><i class="bi bi-cash-stack"></i> Cuotas</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <h3 class="mb-3"><i class="bi bi-credit-card"></i> Planes de Pago</h3>
+
+    <!-- 📌 Botón Nuevo Plan -->
+    <button id="btnNuevo" class="btn btn-primary mb-3" 
+            data-bs-toggle="modal" data-bs-target="#modalForm">
+        <i class="bi bi-plus-circle"></i> Nuevo Plan
+    </button>
+
+    <!-- 📌 La tabla -->
+    <table id="tablaPlanes" class="table table-striped table-hover align-middle" style="width:100%">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Carrera</th>
+            <th>Cohorte</th>
+            <th>Modalidad</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+
+<!-- 📌 Modal -->
+<div class="modal fade" id="modalForm" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="formPlan" class="modal-content">
+        {% csrf_token %}
+        <input type="hidden" name="id">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Plan</h5>
+        </div>
+        <div class="modal-body">
+            <input name="nombre" class="form-control mb-2" placeholder="Nombre" required>
+            <input name="carrera" class="form-control mb-2" placeholder="Carrera" required>
+            <input name="cohorte" class="form-control mb-2" placeholder="Cohorte" required>
+            <input name="modalidad" class="form-control mb-2" placeholder="Modalidad" required>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Guardar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+        </form>
+    </div>
+</div>
+
+<!-- 📌 Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+
+<script>
+const tabla = $('#tablaPlanes').DataTable({
+    ajax: "{% url 'planes_data' %}",
+    dom: 'Bfrtip',
+    buttons: ['excel', 'pdf', 'print'],
+    columns: [
+        {data: 'id'},
+        {data: 'nombre'},
+        {data: 'carrera'},
+        {data: 'cohorte'},
+        {data: 'modalidad'},
+        {
+        data: null,
+        orderable: false,
+        render: row => `
+            <button class="btn btn-sm btn-info btn-editar"
+            data-id="${row.id}" data-nombre="${row.nombre}" 
+            data-carrera="${row.carrera}" data-cohorte="${row.cohorte}" 
+            data-modalidad="${row.modalidad}">
+            <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-danger btn-borrar" data-id="${row.id}">
+            <i class="bi bi-trash"></i> Eliminar
+            </button>`
+        }
+    ]
+});
+
+// Guardar (crear/editar)
+$('#formPlan').on('submit', e => {
+    e.preventDefault();
+    $.post("{% url 'plan_guardar' %}", $('#formPlan').serialize(), () => {
+        $('#modalForm').modal('hide');
+        tabla.ajax.reload();
+    });
+});
+
+// Nuevo Plan → limpiar el formulario
+$('#btnNuevo').on('click', function() {
+    $('#formPlan')[0].reset();
+    $('#formPlan input[name=id]').val('');
+});
+
+// Editar
+$('#tablaPlanes').on('click', '.btn-editar', function() {
+    const b = $(this);
+    $('#formPlan input[name=id]').val(b.data('id'));
+    $('#formPlan input[name=nombre]').val(b.data('nombre'));
+    $('#formPlan input[name=carrera]').val(b.data('carrera'));
+    $('#formPlan input[name=cohorte]').val(b.data('cohorte'));
+    $('#formPlan input[name=modalidad]').val(b.data('modalidad'));
+    $('#modalForm').modal('show');
+});
+
+// Eliminar
+$('#tablaPlanes').on('click', '.btn-borrar', function() {
+    const id = $(this).data('id');
+    $.post(`/planes/eliminar/${id}/`, {'csrfmiddlewaretoken': '{{ csrf_token }}'}, () => tabla.ajax.reload());
+});
+</script>
+
+</body>
+</html>
