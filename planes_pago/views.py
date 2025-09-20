@@ -1,9 +1,14 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import PlanPago
+from django.views.decorators.http import require_POST
+from .models import PlanPago, Cuota
+
+# -------------------------------
+# Vistas de Planes
+# -------------------------------
 
 def planes_list(request):
-    return render(request, "planes_pago/planes_list.html")
+    return render(request, "planes_list.html")   # ya no usa prefijo
 
 def planes_data(request):
     data = [
@@ -17,8 +22,6 @@ def planes_data(request):
         for p in PlanPago.objects.filter(iEstado=True)
     ]
     return JsonResponse({"data": data})
-
-from django.views.decorators.http import require_POST
 
 @require_POST
 def plan_guardar(request):
@@ -55,11 +58,13 @@ def plan_borrar(request, pk):
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
 
-from .models import Cuota
+# -------------------------------
+# Vistas de Cuotas
+# -------------------------------
 
 def cuotas_list(request):
     plans = PlanPago.objects.filter(iEstado=True)  # solo planes activos
-    return render(request, "planes_pago/cuotas_list.html", {"plans": plans})
+    return render(request, "cuotas_list.html", {"plans": plans})   # ya no usa prefijo
 
 def cuotas_data(request):
     data = [
@@ -108,3 +113,10 @@ def cuota_borrar(request, pk):
         return JsonResponse({"ok": True, "msg": "Cuota eliminada"})
     except Cuota.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Cuota no encontrada"}, status=404)
+
+# -------------------------------
+# Página de inicio
+# -------------------------------
+
+def home(request):
+    return render(request, "index.html")
