@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Registro{% endblock %}
+{% block content %}
+    <h2 class="mb-3">Registrarse</h2>
+    <form method="post" novalidate class="col-12 col-md-8 col-lg-6">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            <div class="text-danger small">{{ field.errors }}</div>
+        </div>
+        {% endfor %}
+        <button class="btn btn-success">Crear cuenta</button>
+    </form>
+{% endblock %}

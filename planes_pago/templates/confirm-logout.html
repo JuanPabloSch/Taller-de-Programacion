@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Salir{% endblock %}
+{% block content %}
+    <h2 class="mb-3">¿Seguro que querés salir?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger">Confirmar logout</button>
+        <a class="btn btn-secondary ms-2" href="{% url 'home' %}">Cancelar</a>
+    </form>
+{% endblock %}

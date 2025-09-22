@@ -2,6 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('planes_pago.urls')),  # usa las rutas de la app (home, planes, cuotas)
-    path('admin/', admin.site.urls),
+    # Autenticación (login/logout/registro)
+    path("accounts/", include("accounts.urls")),
+
+    # Home, planes y cuotas
+    path("", include("planes_pago.urls")),
+
+    # Admin de Django
+    path("admin/", admin.site.urls),
 ]

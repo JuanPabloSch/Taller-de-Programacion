@@ -1,15 +1,26 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from .models import PlanPago, Cuota
+
+
+# -------------------------------
+# Página de inicio (Home)
+# -------------------------------
+@login_required
+def home(request):
+    return render(request, "index.html")
+
 
 # -------------------------------
 # Vistas de Planes
 # -------------------------------
-
+@login_required
 def planes_list(request):
-    return render(request, "planes_list.html")   # ya no usa prefijo
+    return render(request, "planes_list.html")
 
+@login_required
 def planes_data(request):
     data = [
         {
@@ -24,6 +35,7 @@ def planes_data(request):
     return JsonResponse({"data": data})
 
 @require_POST
+@login_required
 def plan_guardar(request):
     datos = request.POST
     plan_id = datos.get("id")
@@ -49,6 +61,7 @@ def plan_guardar(request):
         return JsonResponse({"ok": True, "msg": "Plan creado"})
 
 @require_POST
+@login_required
 def plan_borrar(request, pk):
     try:
         plan = PlanPago.objects.get(pk=pk)
@@ -58,14 +71,16 @@ def plan_borrar(request, pk):
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
 
+
 # -------------------------------
 # Vistas de Cuotas
 # -------------------------------
-
+@login_required
 def cuotas_list(request):
     plans = PlanPago.objects.filter(iEstado=True)  # solo planes activos
-    return render(request, "cuotas_list.html", {"plans": plans})   # ya no usa prefijo
+    return render(request, "cuotas_list.html", {"plans": plans})
 
+@login_required
 def cuotas_data(request):
     data = [
         {
@@ -80,6 +95,7 @@ def cuotas_data(request):
     return JsonResponse({"data": data})
 
 @require_POST
+@login_required
 def cuota_guardar(request):
     datos = request.POST
     cuota_id = datos.get("id")
@@ -105,6 +121,7 @@ def cuota_guardar(request):
         return JsonResponse({"ok": True, "msg": "Cuota creada"})
 
 @require_POST
+@login_required
 def cuota_borrar(request, pk):
     try:
         cuota = Cuota.objects.get(pk=pk)
@@ -113,10 +130,3 @@ def cuota_borrar(request, pk):
         return JsonResponse({"ok": True, "msg": "Cuota eliminada"})
     except Cuota.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Cuota no encontrada"}, status=404)
-
-# -------------------------------
-# Página de inicio
-# -------------------------------
-
-def home(request):
-    return render(request, "index.html")

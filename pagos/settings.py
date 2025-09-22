@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'planes_pago',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = 'pagos.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,6 +67,12 @@ TEMPLATES = [
         },
     },
 ]
+
+# settings.py
+
+LOGIN_URL = 'login'              # si no hay sesión, redirige acá
+LOGIN_REDIRECT_URL = 'home'      # a dónde va después de un login correcto
+LOGOUT_REDIRECT_URL = 'login'    # opcional: tras logout vuelve al login
 
 WSGI_APPLICATION = 'pagos.wsgi.application'
 
@@ -127,6 +134,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+import os
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

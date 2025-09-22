@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h2>¿Seguro que querés cerrar sesión?</h2>
+
+    <!-- Logout por POST con confirmación -->
+<form method="get" action="{% url 'logout' %}" style="display:inline">
+    <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
+</form>
+</div>
+{% endblock %}
