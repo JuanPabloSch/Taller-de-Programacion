@@ -5,8 +5,10 @@
     <h2>¿Seguro que querés cerrar sesión?</h2>
 
     <!-- Logout por POST con confirmación -->
-<form method="get" action="{% url 'logout' %}" style="display:inline">
-    <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
-</form>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, salir</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
 </div>
 {% endblock %}

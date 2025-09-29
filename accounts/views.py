@@ -18,9 +18,8 @@ def login_view(request):
 
 # Vista de confirmación de logout (GET muestra la página, POST confirma y cierra sesión)
 def logout_view(request):
-    if request.method == "POST":  # Si el usuario confirma
-        logout(request)
-        return redirect("login")
+    logout(request)  # Cierra la sesión
+    return redirect("login")  # Te manda al login
     return render(request, "accounts/confirm_logout.html")  # Muestra la confirmación
 
 def register_view(request):
