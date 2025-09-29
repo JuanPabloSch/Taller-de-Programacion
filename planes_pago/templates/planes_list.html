@@ -3,138 +3,135 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-    {% endblock %}
+{% endblock %}
 
-    {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Planes de Pago</h2>
-        <button id="btnNuevo" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPlan">+ Nuevo Plan</button>
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Planes de Pago</h2>
+    <div>
+        <!-- Botones de exportación -->
+        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm me-1">📄 PDF</a>
+        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm me-1">🟢 CSV</a>
+        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm me-1">📊 Excel</a>
+        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+        <button id="btnNuevo" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalPlan">+ Nuevo Plan</button>
     </div>
+</div>
 
-    <table id="tablaPlanes" class="table table-striped table-bordered w-100">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Carrera</th>
-            <th>Cohorte</th>
-            <th>Modalidad</th>
-            <th>Acciones</th>
-        </tr>
-        </thead>
-    </table>
+<table id="tablaPlanes" class="table table-striped table-bordered w-100">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Carrera</th>
+        <th>Cohorte</th>
+        <th>Modalidad</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+</table>
 
-    <!-- Modal Plan -->
-    <div class="modal fade" id="modalPlan" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-        <form id="formPlan" class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="tituloModal">Nuevo Plan</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-            <input type="hidden" name="id" id="plan_id">
-            <div class="mb-3">
-                <label class="form-label">Nombre</label>
-                <input name="nombre" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Carrera</label>
-                <input name="carrera" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Cohorte</label>
-                <input name="cohorte" type="number" class="form-control" required>
-            </div>
-            <div class="mb-1">
-                <label class="form-label">Modalidad</label>
-                <input name="modalidad" class="form-control" placeholder="Virtual / Presencial" required>
-            </div>
-            </div>
-            <div class="modal-footer">
-            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Guardar</button>
-            </div>
-        </form>
+<!-- Modal Plan -->
+<div class="modal fade" id="modalPlan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <form id="formPlan" class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="tituloModal">Nuevo Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
+        <div class="modal-body">
+        <input type="hidden" name="id" id="plan_id">
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input name="nombre" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Carrera</label>
+            <input name="carrera" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Cohorte</label>
+            <input name="cohorte" type="number" class="form-control" required>
+        </div>
+        <div class="mb-1">
+            <label class="form-label">Modalidad</label>
+            <input name="modalidad" class="form-control" placeholder="Virtual / Presencial" required>
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+    </form>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}
 
-    {% block extra_scripts %}
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+{% block extra_scripts %}
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
-    <script>
-        $(function () {
-        const tabla = $('#tablaPlanes').DataTable({
-            ajax: '{% url "planes_data" %}',
-            columns: [
-            { data: 'id' },
-            { data: 'nombre' },
-            { data: 'carrera' },
-            { data: 'cohorte' },
-            { data: 'modalidad' },
-            {
-                data: null,
-                orderable: false,
-                render: (data) => `
-                <button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>
-                <button class="btn btn-sm btn-danger btn-del">Eliminar</button>
-                `
-            },
-            ],
-            language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-            dom: 'Bfrtip',
-            buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-            pageLength: 10
-        });
+<script>
+    $(function () {
+    const tabla = $('#tablaPlanes').DataTable({
+        ajax: '{% url "planes_data" %}',
+        columns: [
+        { data: 'id' },
+        { data: 'nombre' },
+        { data: 'carrera' },
+        { data: 'cohorte' },
+        { data: 'modalidad' },
+        {
+            data: null,
+            orderable: false,
+            render: (data) => `
+            <button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>
+            <button class="btn btn-sm btn-danger btn-del">Eliminar</button>
+            `
+        },
+        ],
+        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+        pageLength: 10
+    });
 
-        const modal = new bootstrap.Modal(document.getElementById('modalPlan'));
+    const modal = new bootstrap.Modal(document.getElementById('modalPlan'));
 
-        // Nuevo
-        $('#btnNuevo').on('click', function () {
-            $('#tituloModal').text('Nuevo Plan');
-            $('#formPlan')[0].reset();
-            $('#plan_id').val('');
-        });
+    // Nuevo
+    $('#btnNuevo').on('click', function () {
+        $('#tituloModal').text('Nuevo Plan');
+        $('#formPlan')[0].reset();
+        $('#plan_id').val('');
+    });
 
-        // Editar
-        $('#tablaPlanes').on('click', '.btn-edit', function () {
-            const data = tabla.row($(this).closest('tr')).data();
-            $('#tituloModal').text('Editar Plan');
-            $('#plan_id').val(data.id);
-            $('[name="nombre"]').val(data.nombre);
-            $('[name="carrera"]').val(data.carrera);
-            $('[name="cohorte"]').val(data.cohorte);
-            $('[name="modalidad"]').val(data.modalidad);
-            modal.show();
-        });
+    // Editar
+    $('#tablaPlanes').on('click', '.btn-edit', function () {
+        const data = tabla.row($(this).closest('tr')).data();
+        $('#tituloModal').text('Editar Plan');
+        $('#plan_id').val(data.id);
+        $('[name="nombre"]').val(data.nombre);
+        $('[name="carrera"]').val(data.carrera);
+        $('[name="cohorte"]').val(data.cohorte);
+        $('[name="modalidad"]').val(data.modalidad);
+        modal.show();
+    });
 
-        // Guardar (crear/editar)
-        $('#formPlan').on('submit', function (e) {
-            e.preventDefault();
-            $.post('{% url "plan_guardar" %}', $(this).serialize())
-            .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
-            .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
-        });
+    // Guardar (crear/editar)
+    $('#formPlan').on('submit', function (e) {
+        e.preventDefault();
+        $.post('{% url "plan_guardar" %}', $(this).serialize())
+        .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
+        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
+    });
 
-        // Eliminar (borrado lógico)
-        $('#tablaPlanes').on('click', '.btn-del', function () {
-            const data = tabla.row($(this).closest('tr')).data();
-            if (!confirm(`¿Eliminar plan #${data.id}?`)) return;
-            $.post(`{% url "plan_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
-            .done(() => tabla.ajax.reload(null, false))
-            .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
-        });
-        });
-    </script>
+    // Eliminar (borrado lógico)
+    $('#tablaPlanes').on('click', '.btn-del', function () {
+        const data = tabla.row($(this).closest('tr')).data();
+        if (!confirm(`¿Eliminar plan #${data.id}?`)) return;
+        $.post(`{% url "plan_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
+        .done(() => tabla.ajax.reload(null, false))
+        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
+    });
+    });
+</script>
 {% endblock %}

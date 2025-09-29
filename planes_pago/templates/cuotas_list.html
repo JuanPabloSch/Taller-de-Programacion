@@ -3,143 +3,140 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
-    {% endblock %}
+{% endblock %}
 
-    {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Cuotas</h2>
-        <button id="btnNuevaCuota" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCuota">+ Nueva Cuota</button>
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Cuotas</h2>
+    <div>
+        <!-- Botones de exportación -->
+        <a href="{% url 'exportar_cuotas_pdf' %}" class="btn btn-danger btn-sm me-1">📄 PDF</a>
+        <a href="{% url 'exportar_cuotas_csv' %}" class="btn btn-success btn-sm me-1">🟢 CSV</a>
+        <a href="{% url 'exportar_cuotas_excel' %}" class="btn btn-primary btn-sm me-1">📊 Excel</a>
+        <a href="{% url 'imprimir_cuotas' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+        <button id="btnNuevaCuota" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalCuota">+ Nueva Cuota</button>
     </div>
+</div>
 
-    <table id="tablaCuotas" class="table table-striped table-bordered w-100">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Plan</th>
-            <th>Número</th>
-            <th>Vencimiento</th>
-            <th>Monto</th>
-            <th>Acciones</th>
-        </tr>
-        </thead>
-    </table>
+<table id="tablaCuotas" class="table table-striped table-bordered w-100">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Plan</th>
+        <th>Número</th>
+        <th>Vencimiento</th>
+        <th>Monto</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+</table>
 
-    <!-- Modal Cuota -->
-    <div class="modal fade" id="modalCuota" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-        <form id="formCuota" class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="tituloModalCuota">Nueva Cuota</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-            <input type="hidden" name="id" id="cuota_id">
-            <div class="mb-3">
-                <label class="form-label">Plan</label>
-                <select name="plan" class="form-select" required>
-                <option value="">-- Seleccionar Plan --</option>
-                {% for p in plans %}
-                    <option value="{{ p.id }}">{{ p.nombre }}</option>
-                {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Número</label>
-                <input name="numero" type="number" min="1" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Vencimiento</label>
-                <input name="vencimiento" type="date" class="form-control" required>
-            </div>
-            <div class="mb-1">
-                <label class="form-label">Monto</label>
-                <input name="monto" type="number" step="0.01" min="0" class="form-control" required>
-            </div>
-            </div>
-            <div class="modal-footer">
-            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Guardar</button>
-            </div>
-        </form>
+<!-- Modal Cuota -->
+<div class="modal fade" id="modalCuota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <form id="formCuota" class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="tituloModalCuota">Nueva Cuota</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
+        <div class="modal-body">
+        <input type="hidden" name="id" id="cuota_id">
+        <div class="mb-3">
+            <label class="form-label">Plan</label>
+            <select name="plan" class="form-select" required>
+            <option value="">-- Seleccionar Plan --</option>
+            {% for p in plans %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Número</label>
+            <input name="numero" type="number" min="1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Vencimiento</label>
+            <input name="vencimiento" type="date" class="form-control" required>
+        </div>
+        <div class="mb-1">
+            <label class="form-label">Monto</label>
+            <input name="monto" type="number" step="0.01" min="0" class="form-control" required>
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        </div>
+    </form>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}
 
-    {% block extra_scripts %}
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+{% block extra_scripts %}
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
-    <script>
-        $(function () {
-        const tabla = $('#tablaCuotas').DataTable({
-            ajax: '{% url "cuotas_data" %}',
-            columns: [
-            { data: 'id' },
-            { data: 'plan' },
-            { data: 'numero' },
-            { data: 'vencimiento' },
-            { data: 'monto' },
-            {
-                data: null,
-                orderable: false,
-                render: (data) => `
-                <button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>
-                <button class="btn btn-sm btn-danger btn-del">Eliminar</button>
-                `
-            },
-            ],
-            language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-            dom: 'Bfrtip',
-            buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-            pageLength: 10
-        });
+<script>
+    $(function () {
+    const tabla = $('#tablaCuotas').DataTable({
+        ajax: '{% url "cuotas_data" %}',
+        columns: [
+        { data: 'id' },
+        { data: 'plan' },
+        { data: 'numero' },
+        { data: 'vencimiento' },
+        { data: 'monto' },
+        {
+            data: null,
+            orderable: false,
+            render: (data) => `
+            <button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>
+            <button class="btn btn-sm btn-danger btn-del">Eliminar</button>
+            `
+        },
+        ],
+        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+        pageLength: 10
+    });
 
-        const modal = new bootstrap.Modal(document.getElementById('modalCuota'));
+    const modal = new bootstrap.Modal(document.getElementById('modalCuota'));
 
-        // Nueva
-        $('#btnNuevaCuota').on('click', function () {
-            $('#tituloModalCuota').text('Nueva Cuota');
-            $('#formCuota')[0].reset();
-            $('#cuota_id').val('');
-        });
+    // Nueva
+    $('#btnNuevaCuota').on('click', function () {
+        $('#tituloModalCuota').text('Nueva Cuota');
+        $('#formCuota')[0].reset();
+        $('#cuota_id').val('');
+    });
 
-        // Editar
-        $('#tablaCuotas').on('click', '.btn-edit', function () {
-            const data = tabla.row($(this).closest('tr')).data();
-            $('#tituloModalCuota').text('Editar Cuota');
-            $('#cuota_id').val(data.id);
-            $('[name="plan"]').val($('[name="plan"] option').filter(function(){ return $(this).text() === data.plan; }).val());
-            $('[name="numero"]').val(data.numero);
-            $('[name="vencimiento"]').val(data.vencimiento);
-            $('[name="monto"]').val(data.monto);
-            modal.show();
-        });
+    // Editar
+    $('#tablaCuotas').on('click', '.btn-edit', function () {
+        const data = tabla.row($(this).closest('tr')).data();
+        $('#tituloModalCuota').text('Editar Cuota');
+        $('#cuota_id').val(data.id);
+        $('[name="plan"]').val($('[name="plan"] option').filter(function(){ return $(this).text() === data.plan; }).val());
+        $('[name="numero"]').val(data.numero);
+        $('[name="vencimiento"]').val(data.vencimiento);
+        $('[name="monto"]').val(data.monto);
+        modal.show();
+    });
 
-        // Guardar (crear/editar)
-        $('#formCuota').on('submit', function (e) {
-            e.preventDefault();
-            $.post('{% url "cuota_guardar" %}', $(this).serialize())
-            .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
-            .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
-        });
+    // Guardar
+    $('#formCuota').on('submit', function (e) {
+        e.preventDefault();
+        $.post('{% url "cuota_guardar" %}', $(this).serialize())
+        .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
+        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
+    });
 
-        // Eliminar (borrado lógico)
-        $('#tablaCuotas').on('click', '.btn-del', function () {
-            const data = tabla.row($(this).closest('tr')).data();
-            if (!confirm(`¿Eliminar cuota #${data.id}?`)) return;
-            $.post(`{% url "cuota_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
-            .done(() => tabla.ajax.reload(null, false))
-            .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
-        });
-        });
-    </script>
+    // Eliminar
+    $('#tablaCuotas').on('click', '.btn-del', function () {
+        const data = tabla.row($(this).closest('tr')).data();
+        if (!confirm(`¿Eliminar cuota #${data.id}?`)) return;
+        $.post(`{% url "cuota_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
+        .done(() => tabla.ajax.reload(null, false))
+        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
+    });
+    });
+</script>
 {% endblock %}

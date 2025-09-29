@@ -16,4 +16,16 @@ urlpatterns = [
     path("cuotas/data/", views.cuotas_data, name="cuotas_data"),
     path("cuotas/guardar/", views.cuota_guardar, name="cuota_guardar"),
     path("cuotas/eliminar/<int:pk>/", views.cuota_borrar, name="cuota_borrar"),
+
+    # Exportar Planes
+    path("planes/exportar/pdf/", views.exportar_planes_pdf, name="exportar_planes_pdf"),
+    path("planes/exportar/csv/", views.exportar_planes_csv, name="exportar_planes_csv"),
+    path("planes/exportar/excel/", views.exportar_planes_excel, name="exportar_planes_excel"),
+    path("planes/imprimir/", views.imprimir_planes, name="imprimir_planes"),
+
+    # Exportar Cuotas
+    path("cuotas/exportar/pdf/", views.exportar_cuotas_pdf, name="exportar_cuotas_pdf"),
+    path("cuotas/exportar/csv/", views.exportar_cuotas_csv, name="exportar_cuotas_csv"),
+    path("cuotas/exportar/excel/", views.exportar_cuotas_excel, name="exportar_cuotas_excel"),
+    path("cuotas/imprimir/", views.imprimir_cuotas, name="imprimir_cuotas"),
 ]
