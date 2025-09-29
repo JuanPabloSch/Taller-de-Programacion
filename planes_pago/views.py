@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -97,6 +97,50 @@ def plan_borrar(request, pk):
         return JsonResponse({"ok": True, "msg": "Plan eliminado"})
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+# -------------------------------
+# FORMULARIOS DE PLANES (páginas separadas)
+# -------------------------------
+@login_required
+def plan_crear(request):
+    if request.method == "POST":
+        PlanPago.objects.create(
+            nombre=request.POST["nombre"],
+            carrera=request.POST["carrera"],
+            cohorte=request.POST["cohorte"],
+            modalidad=request.POST["modalidad"],
+            iEstado=True,
+        )
+        return redirect("planes_list")
+    return render(request, "planes/plan_form.html", {"accion": "Crear"})
+
+@login_required
+def plan_editar(request, pk):
+    plan = get_object_or_404(PlanPago, pk=pk)
+    if request.method == "POST":
+        plan.nombre = request.POST["nombre"]
+        plan.carrera = request.POST["carrera"]
+        plan.cohorte = request.POST["cohorte"]
+        plan.modalidad = request.POST["modalidad"]
+        plan.save()
+        return redirect("planes_list")
+    return render(request, "planes/plan_form.html", {"accion": "Editar", "plan": plan})
+
+@login_required
+def plan_clonar(request, pk):
+    original = get_object_or_404(PlanPago, pk=pk)
+    if request.method == "POST":
+        PlanPago.objects.create(
+            nombre=request.POST["nombre"],
+            carrera=request.POST["carrera"],
+            cohorte=request.POST["cohorte"],
+            modalidad=request.POST["modalidad"],
+            iEstado=True,
+        )
+        return redirect("planes_list")
+    return render(request, "planes/plan_form.html", {
+        "accion": "Clonar",
+        "plan": original
+    })
 
 
 # -------------------------------

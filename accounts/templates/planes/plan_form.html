@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow p-4" style="width: 400px; max-width: 95%;">
+        <h3 class="text-center mb-3">{{ accion }} Plan de Pago</h3>
+
+        <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" name="nombre" class="form-control"
+                value="{{ plan.nombre|default_if_none:'' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Carrera</label>
+            <input type="text" name="carrera" class="form-control"
+                value="{{ plan.carrera|default_if_none:'' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Cohorte</label>
+            <input type="number" name="cohorte" class="form-control"
+                value="{{ plan.cohorte|default_if_none:'' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Modalidad</label>
+            <input type="text" name="modalidad" class="form-control"
+                value="{{ plan.modalidad|default_if_none:'' }}">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">{{ accion }}</button>
+        <a href="{% url 'planes_list' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -5,11 +5,19 @@ urlpatterns = [
     # Landing page protegida
     path("", views.home, name="home"),
 
-    # CRUD de planes
+    # Lista y CRUD Planes
     path("planes/", views.planes_list, name="planes_list"),
     path("planes/data/", views.planes_data, name="planes_data"),
-    path("planes/guardar/", views.plan_guardar, name="plan_guardar"),
+
+    path("planes/nuevo/", views.plan_crear, name="plan_crear"),
+    path("planes/editar/<int:pk>/", views.plan_editar, name="plan_editar"),
+    path("planes/clonar/<int:pk>/", views.plan_clonar, name="plan_clonar"),
     path("planes/eliminar/<int:pk>/", views.plan_borrar, name="plan_borrar"),
+
+    # Formularios de Planes (páginas separadas)
+    path("planes/nuevo/", views.plan_crear, name="plan_crear"),
+    path("planes/editar/<int:pk>/", views.plan_editar, name="plan_editar"),
+    path("planes/clonar/<int:pk>/", views.plan_clonar, name="plan_clonar"),
 
     # CRUD de cuotas
     path("cuotas/", views.cuotas_list, name="cuotas_list"),

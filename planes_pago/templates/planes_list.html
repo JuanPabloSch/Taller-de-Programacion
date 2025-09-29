@@ -2,78 +2,62 @@
 {% load static %}
 {% block title %}Planes de Pago{% endblock %}
 
-{# Si tu base.html tiene un bloque navbar, esto la vacía en esta página #}
 {% block navbar %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 <style>
-  /* ⚠️ No tocamos <body>. Maquetamos dentro de .layout */
     .layout {
-    display: flex;
-    gap: 0;
-    min-height: calc(100vh - 0px);
-    background: #f8f9fa;
+        display: flex;
+        min-height: 100vh;
+        background: #f8f9fa;
     }
 
-  /* Fallback por si la navbar no está en un bloque overrideable */
-    .navbar, header.navbar, nav.navbar, #navbar, #mainNavbar { display: none !important; }
-
-  /* SIDEBAR */
+    /* SIDEBAR */
     .sidebar {
-    width: 220px;
-    background: #14213d;
-    color: #fff;
-    min-height: 100%;
-    padding: 1rem;
+        width: 220px;
+        background: #14213d;
+        color: #fff;
+        padding: 1rem;
     }
     .sidebar .user-info {
-    text-align: center;
-    margin-bottom: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
     }
     .sidebar .user-info img {
-    width: 70px;
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
+        width: 70px;
+        border-radius: 50%;
+        margin-bottom: 0.5rem;
     }
-    .sidebar nav button,
     .sidebar nav a {
         display: block;
         width: 100%;
-        background: transparent;
-        border: none;
         color: #fff;
         text-align: left;
         padding: 10px;
         margin: 5px 0;
-        cursor: pointer;
         border-radius: 5px;
         text-decoration: none;
     }
-    .sidebar nav button.active,
-    .sidebar nav button:hover,
+    .sidebar nav a.active,
     .sidebar nav a:hover {
         background: #3a86ff;
     }
 
-  /* MAIN CONTENT */
+    /* MAIN CONTENT */
     .main-content {
         flex: 1;
         padding: 2rem;
     }
     header.page-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    }
-    header.page-head h2 {
-        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
     }
     .actions {
         display: flex;
         gap: 10px;
-        position: relative;
         flex-wrap: wrap;
     }
     .btn-new {
@@ -82,13 +66,12 @@
         border: none;
         padding: 10px 15px;
         border-radius: 5px;
-        cursor: pointer;
+        text-decoration: none;
     }
 
     /* TABLE */
     table.dataTable {
         width: 100% !important;
-        border-collapse: collapse;
         margin-top: 20px;
     }
     table.dataTable th,
@@ -96,14 +79,15 @@
         padding: 10px;
     }
 
-    /* BUTTONS CRUD */
-    .acciones button {
+    /* BOTONES CRUD */
+    .acciones a, .acciones button {
         margin: 0 2px;
         border: none;
         border-radius: 4px;
         padding: 5px 8px;
         cursor: pointer;
         color: #fff;
+        text-decoration: none;
     }
     .btn-edit  { background: #3a86ff; }
     .btn-clone { background: #8338ec; }
@@ -117,20 +101,20 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="user-info">
-        <img src="{% static 'img/tipito.png' %}" alt="admin" class="rounded-circle" style="width:70px; height:70px;">
+        <img src="{% static 'img/tipito.png' %}" alt="admin">
         <p>{{ user.username }}</p>
         <p>{% now "d/m/Y H:i" %}</p>
         </div>
         <nav>
-    <a href="{% url 'planes_list' %}" class="btn w-100 text-start {% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
-    <a href="{% url 'cuotas_list' %}" class="btn w-100 text-start {% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
-    <button class="btn w-100 text-start">Historial</button>
-    <button class="btn w-100 text-start">Reglas de mora</button>
-    <a href="{% url 'logout' %}" class="btn w-100 text-start text-danger">🚪 Salir</a>
-    </nav>
+        <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
+        <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+        <a href="#" class="">Historial</a>
+        <a href="#" class="">Reglas de mora</a>
+        <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+        </nav>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN -->
     <main class="main-content">
         <header class="page-head">
         <div>
@@ -138,12 +122,13 @@
             <p>Recientes</p>
         </div>
         <div class="actions">
-            <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
-            <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
-            <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
-            <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
-            <button id="btnNuevo" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalPlan">+ Nuevo Plan</button>
-        </div>
+        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
+        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
+        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
+        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+        <a href="{% url 'plan_crear' %}" class="btn-new">+ Nuevo Plan</a>
+    </div>
+
         </header>
 
         <table id="tablaPlanes" class="display">
@@ -161,131 +146,48 @@
         </table>
     </main>
     </div>
-
-    <!-- Modal Plan -->
-    <div class="modal fade" id="modalPlan" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-    <form id="formPlan" class="modal-content">
-        <div class="modal-header">
-        <h5 class="modal-title" id="tituloModal">Nuevo Plan</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-        <input type="hidden" name="id" id="plan_id">
-        <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <input name="nombre" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Carrera</label>
-            <input name="carrera" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Cohorte</label>
-            <input name="cohorte" type="number" class="form-control" required>
-        </div>
-        <div class="mb-1">
-            <label class="form-label">Modalidad</label>
-            <input name="modalidad" class="form-control" placeholder="Virtual / Presencial" required>
-        </div>
-        </div>
-        <div class="modal-footer">
-        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" type="submit">Guardar</button>
-        </div>
-    </form>
-    </div>
-    </div>
     {% endblock %}
 
     {% block extra_scripts %}
-    <!-- Aseguramos jQuery antes que DataTables -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
     <script>
     $(function () {
-        const tabla = $('#tablaPlanes').DataTable({
+    const tabla = $('#tablaPlanes').DataTable({
         ajax: '{% url "planes_data" %}',
         columns: [
-            { data: 'id' },
-            { data: 'nombre' },
-            { data: 'carrera' },
-            { data: 'cohorte' },
-            { data: 'modalidad' },
-            {
+        { data: 'id' },
+        { data: 'nombre' },
+        { data: 'carrera' },
+        { data: 'cohorte' },
+        { data: 'modalidad' },
+        {
             data: null,
             orderable: false,
             render: (data) => `
-                <div class="acciones">
-                <button class="btn-edit">Editar</button>
-                <button class="btn-clone">Clonar</button>
-                <button class="btn-enter">Entrar</button>
-                <button class="btn-del">Eliminar</button>
-                </div>
+            <div class="acciones">
+                <a href="/planes/editar/${data.id}/" class="btn-edit">Editar</a>
+                <a href="/planes/clonar/${data.id}/" class="btn-clone">Clonar</a>
+                <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
+                <button class="btn-del" data-id="${data.id}">Eliminar</button>
+            </div>
             `
-            },
+
+        },
         ],
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
         pageLength: 10
-        });
+    });
 
-        const modal = new bootstrap.Modal(document.getElementById('modalPlan'));
-
-        // Nuevo
-        $('#btnNuevo').on('click', function () {
-        $('#tituloModal').text('Nuevo Plan');
-        $('#formPlan')[0].reset();
-        $('#plan_id').val('');
-        });
-
-        // Editar
-        $('#tablaPlanes').on('click', '.btn-edit', function () {
-        const data = tabla.row($(this).closest('tr')).data();
-        $('#tituloModal').text('Editar Plan');
-        $('#plan_id').val(data.id);
-        $('[name="nombre"]').val(data.nombre);
-        $('[name="carrera"]').val(data.carrera);
-        $('[name="cohorte"]').val(data.cohorte);
-        $('[name="modalidad"]').val(data.modalidad);
-        modal.show();
-        });
-
-        // Clonar: abre modal con los datos, pero sin id (crea uno nuevo)
-        $('#tablaPlanes').on('click', '.btn-clone', function () {
-        const data = tabla.row($(this).closest('tr')).data();
-        $('#tituloModal').text('Clonar Plan');
-        $('#plan_id').val(''); // sin id -> crear
-        $('[name="nombre"]').val(data.nombre + ' (copia)');
-        $('[name="carrera"]').val(data.carrera);
-        $('[name="cohorte"]').val(data.cohorte);
-        $('[name="modalidad"]').val(data.modalidad);
-        modal.show();
-        });
-
-        // Entrar: redirige a cuotas (si querés, podés pasar el plan por querystring)
-        $('#tablaPlanes').on('click', '.btn-enter', function () {
-        const data = tabla.row($(this).closest('tr')).data();
-        window.location.href = '{% url "cuotas_list" %}?plan=' + data.id;
-        });
-
-        // Guardar
-        $('#formPlan').on('submit', function (e) {
-        e.preventDefault();
-        $.post('{% url "plan_guardar" %}', $(this).serialize())
-        .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
-        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
-        });
-
-        // Eliminar
-        $('#tablaPlanes').on('click', '.btn-del', function () {
+    // Eliminar
+    $('#tablaPlanes').on('click', '.btn-del', function () {
         const data = tabla.row($(this).closest('tr')).data();
         if (!confirm(`¿Eliminar plan #${data.id}?`)) return;
         $.post(`{% url "plan_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
         .done(() => tabla.ajax.reload(null, false))
         .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
-        });
     });
+});
 </script>
 {% endblock %}
