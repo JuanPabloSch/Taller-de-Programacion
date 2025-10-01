@@ -1,6 +1,35 @@
+# Entorno virtual
 venv/
+.env/
+*.env
+
+# Archivos compilados de Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Base de datos local
 db.sqlite3
+
+# Archivos de migraciones (si querés ignorarlas, opcional)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Archivos estáticos y media generados
 /staticfiles/
 /media/
+
+# Archivos de logs
+*.log
+
+# Archivos de sistema/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archivos de pruebas/coverage
+htmlcov/
+.coverage
+.tox/
+pytest_cache/
