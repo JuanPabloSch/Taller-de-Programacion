@@ -1,6 +1,18 @@
+# Python / Entornos Virtuales
 venv/
+.venv/
+Lib/
+venv/Scripts/
+
+# Archivos de Django y Python temporales
 __pycache__/
 *.pyc
 db.sqlite3
+
+# Archivos estáticos y media (archivos subidos por usuarios)
 /staticfiles/
 /media/
+
+# Archivos IDEs (si usas PyCharm, VSCode, etc.)
+.vscode/
+.idea/

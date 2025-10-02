@@ -87,12 +87,24 @@ WSGI_APPLICATION = 'pagos.wsgi.application'
 #     }
 # }
 
+#DATABASES = {
+#   'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'isdm_pagos',
+#        'USER': 'root',
+#        'PASSWORD': '',      # si root no tiene clave en XAMPP
+#        'HOST': '127.0.0.1',
+#        'PORT': '3306',
+#    }
+#}
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'isdm_pagos',
         'USER': 'root',
-        'PASSWORD': '',      # si root no tiene clave en XAMPP
+        'PASSWORD': 'quesoyjamon20',    
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
