@@ -60,6 +60,12 @@
         gap: 10px;
         flex-wrap: wrap;
     }
+
+    .acciones {
+    display: flex;      
+    gap: 5px;        
+    width: fit-content;  
+}
     .btn-new {
         background: #3a86ff;
         color: #fff;
@@ -81,18 +87,20 @@
 
     /* BOTONES CRUD */
     .acciones a, .acciones button {
-        margin: 0 2px;
-        border: none;
-        border-radius: 4px;
-        padding: 5px 8px;
-        cursor: pointer;
-        color: #fff;
-        text-decoration: none;
-    }
-    .btn-edit  { background: #3a86ff; }
-    .btn-clone { background: #8338ec; }
-    .btn-enter { background: #06d6a0; }
-    .btn-del   { background: #ff006e; }
+    margin: 0 2px;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    color: #fff;
+    text-decoration: none;
+    /* Unifica el color de fondo a tu azul oscuro */
+    background: #021f4d; 
+    transition: background 0.3s ease; /* Transición suave para el efecto */
+}
+    .acciones a:hover, .acciones button:hover {
+    background: #3a86ff; /* <-- Color azul más claro para el hover */
+}
     </style>
     {% endblock %}
 
@@ -139,6 +147,7 @@
             <th>Carrera</th>
             <th>Cohorte</th>
             <th>Modalidad</th>
+            <th>Estado</th>
             <th>Acciones</th>
             </tr>
         </thead>
@@ -162,6 +171,7 @@
         { data: 'carrera' },
         { data: 'cohorte' },
         { data: 'modalidad' },
+        { data: 'estado' },
         {
             data: null,
             orderable: false,
@@ -170,7 +180,7 @@
                 <a href="/planes/editar/${data.id}/" class="btn-edit">Editar</a>
                 <a href="/planes/clonar/${data.id}/" class="btn-clone">Clonar</a>
                 <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
-                <button class="btn-del" data-id="${data.id}">Eliminar</button>
+                <button class="btn-del" data-id="${data.id}">Desactivar</button>
             </div>
             `
 

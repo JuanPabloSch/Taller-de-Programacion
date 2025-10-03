@@ -54,6 +54,7 @@ def planes_data(request):
             "carrera": p.carrera,
             "cohorte": p.cohorte,
             "modalidad": p.modalidad,
+            "estado": "Activo"
         }
         for p in PlanPago.objects.filter(iEstado=True)
     ]
