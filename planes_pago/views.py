@@ -206,6 +206,46 @@ def cuota_borrar(request, pk):
     except Cuota.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Cuota no encontrada"}, status=404)
 
+# -------------------------------
+# Historial de Planes de Pago
+# -------------------------------
+@login_required
+def historial_list(request):
+    """
+    Muestra la lista de registros del historial de planes de pago.
+    
+    NOTA: Cuando el modelo 'Historial' esté listo, reemplazar 'historial_data' 
+    con la consulta real a la base de datos, por ejemplo:
+    historial_registros = Historial.objects.all().order_by('-fecha') 
+    """
+    
+    # Datos temporales para prueba. Se usa datetime para el formato de fecha en la plantilla.
+    historial_data = [
+        {'id_historial': 1, 'fecha': datetime(2025, 9, 26, 10, 30), 'accion': 'Editado', 'id_plan': 103, 'administrador_id': request.user.username, 'descripcion': 'Actualización de vigencia del plan mensual (ID 103).'},
+        {'id_historial': 2, 'fecha': datetime(2025, 9, 26, 9, 15), 'accion': 'Desactivado', 'id_plan': 104, 'administrador_id': 'Admin_Sistemas', 'descripcion': 'Plan desactivado por solicitud de gerencia (ID 104).'},
+        {'id_historial': 3, 'fecha': datetime(2025, 9, 25, 15, 0), 'accion': 'Dado de alta', 'id_plan': 102, 'administrador_id': request.user.username, 'descripcion': 'Creación inicial del nuevo plan anual (ID 102).'},
+    ]
+
+    context = {
+        # Esta variable coincide con el bucle en historial.html
+        'historial_registros': historial_data, 
+    }
+    
+    return render(request, 'historial.html', context)
+
+
+@login_required
+def historial_detalle(request, pk):
+    """
+    Muestra el detalle y la auditoría completa de un registro de historial específico.
+    (Esta función aún necesita implementación completa.)
+    
+    Cuando el modelo 'Historial' esté listo, se usará:
+    registro = get_object_or_404(Historial, pk=pk)
+    
+    Por ahora, solo redirecciona para que la URL del botón 'Entrar' no falle.
+    """
+    return redirect('historial_list') 
 
 # -------------------------------
 # EXPORTAR PLANES

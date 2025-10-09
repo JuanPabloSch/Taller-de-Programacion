@@ -116,7 +116,7 @@
         <nav>
         <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
         <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
-        <a href="#" class="">Historial</a>
+        <a href="{% url 'historial_list' %}" class="{% if request.resolver_match.url_name == 'historial_list' %}active{% endif %}">Historial</a>
         <a href="#" class="">Reglas de mora</a>
         <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
         </nav>

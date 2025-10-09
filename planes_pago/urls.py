@@ -25,6 +25,12 @@ urlpatterns = [
     path("cuotas/guardar/", views.cuota_guardar, name="cuota_guardar"),
     path("cuotas/eliminar/<int:pk>/", views.cuota_borrar, name="cuota_borrar"),
 
+    # -----------------------------------
+    # Nuevas Rutas de Historial de Planes
+    # -----------------------------------
+    path("historial/", views.historial_list, name="historial_list"),
+    path("historial/detalle/<int:pk>/", views.historial_detalle, name="historial_detalle"),
+
     # Exportar Planes
     path("planes/exportar/pdf/", views.exportar_planes_pdf, name="exportar_planes_pdf"),
     path("planes/exportar/csv/", views.exportar_planes_csv, name="exportar_planes_csv"),

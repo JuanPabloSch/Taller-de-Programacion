@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Historial de Planes{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<style>
+    /* Estilos del layout copiados de planes_list.html */
+    .layout {
+        display: flex;
+        min-height: 100vh;
+        background: #f8f9fa;
+    }
+    .sidebar {
+        width: 220px;
+        background: #14213d;
+        color: #fff;
+        padding: 1rem;
+    }
+    .sidebar .user-info {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .sidebar .user-info img {
+        width: 70px;
+        border-radius: 50%;
+        margin-bottom: 0.5rem;
+    }
+    .sidebar nav a {
+        display: block;
+        width: 100%;
+        color: #fff;
+        text-align: left;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+    .sidebar nav a.active,
+    .sidebar nav a:hover {
+        background: #3a86ff;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 2rem;
+    }
+    header.page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .acciones {
+        display: flex;      
+        gap: 5px;         
+        width: fit-content;   
+    }
+
+    /* TABLE */
+    table.dataTable {
+        width: 100% !important;
+        margin-top: 20px;
+    }
+    table.dataTable th,
+    table.dataTable td {
+        padding: 10px;
+        border: 1px solid #dee2e6; /* Añadido borde para mejor visualización */
+    }
+
+    /* BOTONES CRUD (detalles) */
+    .acciones a, .acciones button {
+        margin: 0 2px;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 8px;
+        cursor: pointer;
+        color: #fff;
+        text-decoration: none;
+        background: #021f4d; 
+        transition: background 0.3s ease;
+    }
+    .acciones a:hover, .acciones button:hover {
+        background: #3a86ff;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: .35em .65em;
+        font-size: .75em;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: .25rem;
+    }
+    .badge-created { background-color: #28a745; } /* Verde */
+    .badge-edited { background-color: #007bff; }  /* Azul */
+    .badge-deactivated { background-color: #dc3545; } /* Rojo */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- SIDEBAR (Copiado de planes_list.html) -->
+    <aside class="sidebar">
+        <div class="user-info">
+            <img src="{% static 'img/tipito.png' %}" alt="admin">
+            <p>{{ user.username }}</p>
+            <p>{% now "d/m/Y H:i" %}</p>
+        </div>
+        <nav>
+            <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
+            <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <a href="{% url 'historial_list' %}" class="{% if request.resolver_match.url_name == 'historial_list' %}active{% endif %}">Historial</a>
+            <a href="#" class="">Reglas de mora</a>
+            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="page-head">
+            <div>
+                <h2>Historial de Auditoría de Planes</h2>
+                <p>Registro de cambios en los planes de pago</p>
+            </div>
+            <!-- Acciones de exportación si las hubiera para historial -->
+            <div class="actions">
+                <a href="#" class="btn btn-secondary btn-sm" disabled>🖨 Imprimir (Pronto)</a>
+            </div>
+        </header>
+
+        <table id="tablaHistorial" class="display table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID Reg.</th>
+                    <th>Fecha y Hora</th>
+                    <th>Acción</th>
+                    <th>ID Plan Afectado</th>
+                    <th>Administrador</th>
+                    <th>Descripción</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in historial_registros %}
+                <tr>
+                    <td>{{ registro.id_historial }}</td>
+                    <td>{{ registro.fecha|date:"d/m/Y H:i:s" }}</td>
+                    <td>
+                        {% if 'Editado' in registro.accion %}
+                            <span class="status-badge badge-edited">{{ registro.accion }}</span>
+                        {% elif 'Desactivado' in registro.accion %}
+                            <span class="status-badge badge-deactivated">{{ registro.accion }}</span>
+                        {% elif 'alta' in registro.accion %}
+                            <span class="status-badge badge-created">{{ registro.accion }}</span>
+                        {% else %}
+                            {{ registro.accion }}
+                        {% endif %}
+                    </td>
+                    <td>{{ registro.id_plan }}</td>
+                    <td>{{ registro.administrador_id }}</td>
+                    <td>{{ registro.descripcion }}</td>
+                    <td>
+                        <div class="acciones">
+                            <!-- Enlaza a la vista de detalle con el PK del registro -->
+                            <a href="{% url 'historial_detalle' pk=registro.id_historial %}" class="btn-enter">Entrar</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No hay registros de historial disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(function () {
+    // Inicializar DataTables para la tabla de Historial
+    $('#tablaHistorial').DataTable({
+        // No necesitamos AJAX, ya que los datos se cargan directamente con Django
+        // Solo necesitamos la configuración básica y el idioma
+        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+        order: [[1, 'desc']], // Ordenar por fecha por defecto (columna 1)
+        pageLength: 10
+    });
+});
+</script>
+{% endblock %}
