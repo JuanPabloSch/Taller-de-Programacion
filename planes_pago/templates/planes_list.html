@@ -6,14 +6,20 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- Íconos de Font Awesome para el avatar y la impresión -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
 <style>
+    /* ----------------------------------- */
+    /* ESTILOS DE LAYOUT UNIFICADOS (SIDEBAR) */
+    /* ----------------------------------- */
     .layout {
         display: flex;
         min-height: 100vh;
         background: #f8f9fa;
     }
 
-    /* SIDEBAR */
+    /* SIDEBAR (Estilo de Historial/ysa) */
     .sidebar {
         width: 220px;
         background: #14213d;
@@ -25,7 +31,7 @@
         margin-bottom: 2rem;
     }
     .sidebar .user-info img {
-        width: 70px;
+        width: 70px; /* Mantener si usas imagen, pero usaremos ícono */
         border-radius: 50%;
         margin-bottom: 0.5rem;
     }
@@ -39,8 +45,10 @@
         border-radius: 5px;
         text-decoration: none;
     }
-    .sidebar nav a.active,
-    .sidebar nav a:hover {
+    .sidebar nav a.active {
+        background: #3a86ff; /* Azul más claro para el item seleccionado */
+    }
+    .sidebar nav a:hover:not(.text-danger) {
         background: #3a86ff;
     }
 
@@ -54,6 +62,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
     }
     .actions {
         display: flex;
@@ -61,108 +71,208 @@
         flex-wrap: wrap;
     }
 
-    .acciones {
-    display: flex;      
-    gap: 5px;        
-    width: fit-content;  
-}
-    .btn-new {
-        background: #3a86ff;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
+    /* Títulos */
+    .page-title {
+        font-size: 2rem;
+        font-weight: 300;
+        margin-bottom: 0;
+    }
+    .page-subtitle {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #555;
+        margin-top: 0;
     }
 
-    /* TABLE */
+    /* ----------------------------------- */
+    /* ESTILOS ESPECÍFICOS DE TABLA Y BOTONES */
+    /* ----------------------------------- */
+
+    /* TABLE: Estilos generales */
     table.dataTable {
         width: 100% !important;
         margin-top: 20px;
+        border-collapse: collapse;
+        border: 1px solid #ddd; 
     }
-    table.dataTable th,
+    table.dataTable th {
+        padding: 12px 10px;
+        font-weight: 600;
+        text-align: left;
+        color: #14213d; 
+        background-color: #e9ecef; 
+    }
     table.dataTable td {
         padding: 10px;
+        border-top: 1px solid #dee2e6;
+        vertical-align: middle;
     }
 
-    /* BOTONES CRUD */
-    .acciones a, .acciones button {
-    margin: 0 2px;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 8px;
-    cursor: pointer;
-    color: #fff;
-    text-decoration: none;
-    /* Unifica el color de fondo a tu azul oscuro */
-    background: #021f4d; 
-    transition: background 0.3s ease; /* Transición suave para el efecto */
-}
-    .acciones a:hover, .acciones button:hover {
-    background: #3a86ff; /* <-- Color azul más claro para el hover */
-}
-    </style>
-    {% endblock %}
+    /* Acciones (Botones CRUD + Ícono Imprimir) */
+    .acciones {
+        display: flex;
+        /* IMPORTANTE: Eliminamos 'flex-wrap: wrap;' para forzar una sola línea */
+        gap: 5px; 
+        align-items: center;
+        /* Añadimos un flex-direction para mantener horizontalidad explícita */
+        flex-direction: row; 
+    }
+    /* Contenedor de Botones - Usado para la primera fila de botones */
+    .acciones-row {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 5px; /* Pequeño margen para separar la fila de Desactivar */
+    }
 
-    {% block content %}
-    <div class="layout">
-    <!-- SIDEBAR -->
+    /* Botones de Acción (Editar, Clonar, Entrar, Desactivar) */
+    .acciones a, .acciones button {
+        border: none;
+        border-radius: 4px;
+        padding: 5px 8px;
+        cursor: pointer;
+        color: #fff;
+        text-decoration: none;
+        background: #021f4d; 
+        font-size: 0.8rem;
+        transition: background 0.3s ease; 
+        white-space: nowrap; /* Evita que el texto del botón se rompa */
+    }
+    .acciones a:hover, .acciones button:hover {
+        background: #3a86ff; 
+    }
+    
+    /* Ícono Imprimir Individual */
+    .btn-print-individual {
+        color: #021f4d; /* Azul oscuro */
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-left: 5px; /* Separación de los botones */
+        transition: color 0.2s ease;
+    }
+    .btn-print-individual:hover {
+        color: #3a86ff;
+    }
+    
+    /* Para el botón Desactivar en su propia línea */
+    .btn-desactivar-container {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 5px; /* Separación de la fila superior */
+    }
+
+    /* Estilos de Botones de Exportación */
+    .btn-export {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #fff;
+        border: none;
+        transition: opacity 0.2s ease;
+    }
+    .btn-export:hover {
+        opacity: 0.8;
+    }
+    .btn-danger { background: #28517e; }
+    .btn-success { background: #28517e; } /* Verde ajustado */
+    .btn-primary { background: #28517e; }
+    .btn-secondary { background: #28517e; }
+    .btn-new {
+        background: #3a86ff;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s ease;
+    }
+    .btn-new:hover { background: #0056b3; }
+
+    /* Estilos específicos de DataTables (para corregir el pie de página) */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current, 
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #021f4d !important;
+        color: white !important;
+        border: 1px solid #021f4d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- SIDEBAR - UNIFICADO -->
     <aside class="sidebar">
         <div class="user-info">
-        <img src="{% static 'img/tipito.png' %}" alt="admin">
-        <p>{{ user.username }}</p>
-        <p>{% now "d/m/Y H:i" %}</p>
+            <!-- Ícono de persona grande y estático como en la maqueta de historial -->
+            <i class="fas fa-user-circle fa-3x" style="color: #fff; margin-bottom: 10px;"></i>
+            <p style="font-size: 1.1rem; font-weight: 500;">{{ user.username|default:"ysa" }}</p>
+            <!-- Formato de fecha y hora unificado -->
+            <p style="font-size: 0.9rem; opacity: 0.8;">{% now "d/m/Y H:i" %}</p>
         </div>
         <nav>
-        <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
-        <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
-        <a href="{% url 'historial_list' %}" class="{% if request.resolver_match.url_name == 'historial_list' %}active{% endif %}">Historial</a>
-        <a href="#" class="">Reglas de mora</a>
-        <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+            <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
+            <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <a href="{% url 'historial_list' %}" class="{% if request.resolver_match.url_name == 'historial_list' %}active{% endif %}">Historial</a>
+            <a href="#" class="">Reglas de mora</a>
+            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
         </nav>
     </aside>
 
     <!-- MAIN -->
     <main class="main-content">
         <header class="page-head">
-        <div>
-            <h2>Planes de Pago</h2>
-            <p>Recientes</p>
-        </div>
-        <div class="actions">
-        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
-        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
-        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
-        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
-        <a href="{% url 'plan_crear' %}" class="btn-new">+ Nuevo Plan</a>
-    </div>
+            <div>
+                <!-- Títulos grandes y pequeños unificados -->
+                <h1 class="page-title">Planes de Pago</h1>
+                <h2 class="page-subtitle">Recientes</h2>
+            </div>
+            <div class="actions">
+                <a href="{% url 'exportar_planes_pdf' %}" class="btn-export btn-danger">📄 PDF</a>
+                <a href="{% url 'exportar_planes_csv' %}" class="btn-export btn-success">🟢 CSV</a>
+                <a href="{% url 'exportar_planes_excel' %}" class="btn-export btn-primary">📊 Excel</a>
+                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn-export btn-secondary">🖨 Imprimir</a>
+                <a href="{% url 'plan_crear' %}" class="btn-new">+ Nuevo Plan</a>
+            </div>
 
         </header>
 
-        <table id="tablaPlanes" class="display">
-        <thead>
-            <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Carrera</th>
-            <th>Cohorte</th>
-            <th>Modalidad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+        <table id="tablaPlanes" class="display table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Carrera</th>
+                    <th>Cohorte</th>
+                    <th>Modalidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
         </table>
     </main>
-    </div>
-    {% endblock %}
+</div>
+{% endblock %}
 
-    {% block extra_scripts %}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<!-- Necesario para DataTables con Bootstrap 5 -->
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script> 
 
-    <script>
-    $(function () {
+<script>
+$(function () {
+    // Definimos las URLs base fuera del render para evitar el TemplateSyntaxError
+    const URL_BASE_EDITAR = "{% url 'plan_editar' pk=0 %}";
+    const URL_BASE_CLONAR = "{% url 'plan_clonar' pk=0 %}";
+    const URL_BASE_BORRAR = "{% url 'plan_borrar' pk=0 %}";
+    const URL_BASE_CUOTAS = "{% url 'cuotas_list' %}";
+    const URL_BASE_IMPRIMIR_INDIVIDUAL = "{% url 'exportar_planes_pdf' %}";
+
+
+    // Configuración completa de DataTables para asegurar la paginación unificada
     const tabla = $('#tablaPlanes').DataTable({
         ajax: '{% url "planes_data" %}',
         columns: [
@@ -175,29 +285,44 @@
         {
             data: null,
             orderable: false,
+            // RENDER: Se divide en dos filas para forzar la estructura de la maqueta
             render: (data) => `
             <div class="acciones">
-                <a href="/planes/editar/${data.id}/" class="btn-edit">Editar</a>
-                <a href="/planes/clonar/${data.id}/" class="btn-clone">Clonar</a>
-                <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
-                <button class="btn-del" data-id="${data.id}">Desactivar</button>
+                <!-- Primera Fila: Editar, Clonar, Entrar -->
+                <div class="acciones-row">
+                    <a href="${URL_BASE_EDITAR.replace('/0/', '/' + data.id + '/')}" class="btn-edit">Editar</a>
+                    <a href="${URL_BASE_CLONAR.replace('/0/', '/' + data.id + '/')}" class="btn-clone">Clonar</a>
+                    <a href="${URL_BASE_CUOTAS}?plan=${data.id}" class="btn-enter">Entrar</a>
+                </div>
+                <!-- Segunda Fila: Desactivar + Ícono Imprimir -->
+                <div class="btn-desactivar-container">
+                    <button class="btn-del" data-id="${data.id}">Desactivar</button>
+                    <!-- Ícono de Imprimir Individual (Papelito) -->
+                    <a href="${URL_BASE_IMPRIMIR_INDIVIDUAL}?plan_id=${data.id}" target="_blank" class="btn-print-individual" title="Imprimir Plan">
+                        <i class="far fa-file-alt"></i> 
+                    </a>
+                </div>
             </div>
             `
-
         },
         ],
+        // CONFIGURACIÓN DE DATA TABLES UNIFICADA
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-        pageLength: 10
+        pageLength: 10,
     });
 
-    // Eliminar
+    // Eliminar (Lógica de desactivación)
     $('#tablaPlanes').on('click', '.btn-del', function () {
         const data = tabla.row($(this).closest('tr')).data();
-        if (!confirm(`¿Eliminar plan #${data.id}?`)) return;
-        $.post(`{% url "plan_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
+        // Usar confirmación básica ya que se evita alert()
+        if (!confirm(`¿Desactivar plan #${data.id} - ${data.nombre}? Esta acción es irreversible.`)) return; 
+        
+        // Uso de la constante URL_BASE_BORRAR
+        $.post(URL_BASE_BORRAR.replace('/0/', `/${data.id}/`))
         .done(() => tabla.ajax.reload(null, false))
-        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
+        .fail((xhr) => console.error(xhr.responseJSON?.msg || 'Error al desactivar'));
     });
 });
 </script>
 {% endblock %}
+

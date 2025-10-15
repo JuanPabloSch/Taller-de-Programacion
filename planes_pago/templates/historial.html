@@ -6,13 +6,19 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- Íconos de Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <style>
-    /* Estilos del layout copiados de planes_list.html */
+    /* ----------------------------------- */
+    /* ESTILOS DE LAYOUT (COPIADO DE planes_list.html) */
+    /* ----------------------------------- */
     .layout {
         display: flex;
         min-height: 100vh;
         background: #f8f9fa;
     }
+
+    /* SIDEBAR (Estilo del diseño 'ysa') */
     .sidebar {
         width: 220px;
         background: #14213d;
@@ -38,11 +44,15 @@
         border-radius: 5px;
         text-decoration: none;
     }
-    .sidebar nav a.active,
-    .sidebar nav a:hover {
+    /* Estilo Activo: Color de fondo diferente para el item seleccionado (Historial) */
+    .sidebar nav a.active {
+        background: #3a86ff; /* Azul más claro */
+    }
+    .sidebar nav a:hover:not(.text-danger) {
         background: #3a86ff;
     }
 
+    /* MAIN CONTENT */
     .main-content {
         flex: 1;
         padding: 2rem;
@@ -52,45 +62,81 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-    }
-    .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .acciones {
-        display: flex;      
-        gap: 5px;         
-        width: fit-content;   
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
     }
 
-    /* TABLE */
+    /* Títulos */
+    .page-title {
+        font-size: 2rem;
+        font-weight: 300;
+        margin-bottom: 0;
+    }
+    .page-subtitle {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #555;
+        margin-top: 0;
+    }
+    
+    /* ----------------------------------- */
+    /* ESTILOS ESPECÍFICOS DE TABLA Y BOTONES */
+    /* ----------------------------------- */
+
+    /* TABLE: Estilos generales */
     table.dataTable {
         width: 100% !important;
         margin-top: 20px;
+        border-collapse: collapse;
+        border: 1px solid #ddd; /* Borde general de la tabla */
     }
-    table.dataTable th,
+    table.dataTable th {
+        padding: 12px 10px;
+        font-weight: 600;
+        text-align: left;
+        color: #14213d; /* Color de encabezado */
+        background-color: #e9ecef; /* Gris muy claro para encabezados */
+    }
     table.dataTable td {
         padding: 10px;
-        border: 1px solid #dee2e6; /* Añadido borde para mejor visualización */
+        border-top: 1px solid #dee2e6;
+        vertical-align: middle;
     }
 
-    /* BOTONES CRUD (detalles) */
-    .acciones a, .acciones button {
-        margin: 0 2px;
-        border: none;
-        border-radius: 4px;
-        padding: 5px 8px;
-        cursor: pointer;
-        color: #fff;
-        text-decoration: none;
-        background: #021f4d; 
-        transition: background 0.3s ease;
+    /* ACCIONES (Botón Entrar + Ícono Imprimir) */
+    .acciones {
+        display: flex;
+        gap: 8px; /* Espacio entre el botón Entrar y el ícono Imprimir */
+        align-items: center;
     }
-    .acciones a:hover, .acciones button:hover {
+    /* Botón Entrar */
+    .btn-enter {
+        background: #021f4d; /* Azul oscuro */
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+    .btn-enter:hover {
         background: #3a86ff;
     }
-    
+    /* Ícono Imprimir Individual */
+    .btn-print-individual {
+        color: #021f4d; /* Azul oscuro */
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: color 0.2s ease;
+    }
+    .btn-print-individual:hover {
+        color: #3a86ff;
+    }
+
+
+    /* ESTADO (Insignias) */
     .status-badge {
         display: inline-block;
         padding: .35em .65em;
@@ -103,24 +149,48 @@
         vertical-align: baseline;
         border-radius: .25rem;
     }
-    .badge-created { background-color: #28a745; } /* Verde */
-    .badge-edited { background-color: #007bff; }  /* Azul */
-    .badge-deactivated { background-color: #dc3545; } /* Rojo */
+    .badge-created { background-color: #007bff; }       /* Verde */
+    .badge-edited { background-color: #007bff; }        /* Azul primario */
+    .badge-deactivated { background-color: #007bff; }   /* Rojo */
+
+
+    /* Pie de página y botón de reporte completo */
+    .reporte-completo-container {
+        margin-top: 30px;
+        text-align: center;
+        padding-top: 20px;
+    }
+    .btn-reporte {
+        background: #28517e; /* Gris secundario para imprimir reporte */
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s ease;
+    }
+    .btn-reporte:hover {
+        background: #5a6268;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="layout">
-    <!-- SIDEBAR (Copiado de planes_list.html) -->
+    <!-- SIDEBAR (Menú Lateral, Copiado de planes_list.html y diseño de 'ysa') -->
     <aside class="sidebar">
         <div class="user-info">
-            <img src="{% static 'img/tipito.png' %}" alt="admin">
-            <p>{{ user.username }}</p>
-            <p>{% now "d/m/Y H:i" %}</p>
+            <!-- Icono de persona, como en la imagen 'ysa' -->
+            <i class="fas fa-user-circle fa-3x" style="color: #fff; margin-bottom: 10px;"></i>
+            <p style="font-size: 1.1rem; font-weight: 500;">{{ user.username|default:"ysa" }}</p>
+            <!-- Formato de fecha y hora: 14/10/2025 21:50 -->
+            <p style="font-size: 0.9rem; opacity: 0.8;">{% now "d/m/Y H:i" %}</p>
         </div>
         <nav>
             <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
             <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <!-- Historial ACTIVO -->
             <a href="{% url 'historial_list' %}" class="{% if request.resolver_match.url_name == 'historial_list' %}active{% endif %}">Historial</a>
             <a href="#" class="">Reglas de mora</a>
             <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
@@ -131,32 +201,34 @@
     <main class="main-content">
         <header class="page-head">
             <div>
-                <h2>Historial de Auditoría de Planes</h2>
-                <p>Registro de cambios en los planes de pago</p>
+                <!-- Títulos tal como en la maqueta -->
+                <h1 class="page-title">Planes de pago</h1>
+                <h2 class="page-subtitle">Historial</h2>
             </div>
-            <!-- Acciones de exportación si las hubiera para historial -->
-            <div class="actions">
-                <a href="#" class="btn btn-secondary btn-sm" disabled>🖨 Imprimir (Pronto)</a>
-            </div>
+            <!-- Botón Imprimir (que antes estaba aquí y ahora eliminamos) -->
         </header>
 
         <table id="tablaHistorial" class="display table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>ID Reg.</th>
-                    <th>Fecha y Hora</th>
+                    <th>ID Historial</th>
+                    <th>Fecha</th>
                     <th>Acción</th>
-                    <th>ID Plan Afectado</th>
+                    <th>ID Plan de pago</th>
                     <th>Administrador</th>
                     <th>Descripción</th>
-                    <th>Detalle</th>
+                    <th style="width: 100px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for registro in historial_registros %}
                 <tr>
                     <td>{{ registro.id_historial }}</td>
-                    <td>{{ registro.fecha|date:"d/m/Y H:i:s" }}</td>
+                    <!-- Formato de Fecha/Hora D/M/A H:I:S -->
+                    <td>
+                        {{ registro.fecha|date:"d/m/Y" }}<br>
+                        {{ registro.fecha|date:"H:i:s" }}
+                    </td>
                     <td>
                         {% if 'Editado' in registro.accion %}
                             <span class="status-badge badge-edited">{{ registro.accion }}</span>
@@ -173,8 +245,12 @@
                     <td>{{ registro.descripcion }}</td>
                     <td>
                         <div class="acciones">
-                            <!-- Enlaza a la vista de detalle con el PK del registro -->
+                            <!-- Botón Entrar (como en la maqueta) -->
                             <a href="{% url 'historial_detalle' pk=registro.id_historial %}" class="btn-enter">Entrar</a>
+                            <!-- Ícono Imprimir Individual (como en la maqueta) -->
+                            <a href="{% url 'exportar_cuotas_pdf' %}?historial_id={{ registro.id_historial }}" target="_blank" class="btn-print-individual" title="Imprimir Registro">
+                                <i class="far fa-file-alt"></i> <!-- Ícono de documento/impresión -->
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -185,6 +261,14 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- BOTÓN IMPRIMIR REPORTE COMPLETO (Abajo, como en la maqueta) -->
+        <div class="reporte-completo-container">
+            <a href="{% url 'exportar_cuotas_pdf' %}?type=historial_full" class="btn-reporte">
+                <i class="fas fa-print"></i> Imprimir reporte completo
+            </a>
+        </div>
+        
     </main>
 </div>
 {% endblock %}
@@ -192,16 +276,19 @@
 {% block extra_scripts %}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
 $(function () {
     // Inicializar DataTables para la tabla de Historial
     $('#tablaHistorial').DataTable({
         // No necesitamos AJAX, ya que los datos se cargan directamente con Django
-        // Solo necesitamos la configuración básica y el idioma
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
         order: [[1, 'desc']], // Ordenar por fecha por defecto (columna 1)
-        pageLength: 10
+        pageLength: 10,
+        info: false, // Ocultar "Showing 1 of X"
+        paging: true,
+        searching: true
     });
 });
 </script>
