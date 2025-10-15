@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from .models import PlanPago, Cuota
 from fpdf import FPDF
 from datetime import datetime
+from .forms import PlanPagoForm
 import csv
 import openpyxl
 from openpyxl.utils import get_column_letter
@@ -100,48 +101,69 @@ def plan_borrar(request, pk):
 # -------------------------------
 # FORMULARIOS DE PLANES (páginas separadas)
 # -------------------------------
+from .forms import PlanPagoForm  # asegúrate de tener esto entre los imports
+
+# -------------------------------
+# FORMULARIOS DE PLANES (modal AJAX)
+# -------------------------------
 @login_required
 def plan_crear(request):
     if request.method == "POST":
-        PlanPago.objects.create(
-            nombre=request.POST["nombre"],
-            carrera=request.POST["carrera"],
-            cohorte=request.POST["cohorte"],
-            modalidad=request.POST["modalidad"],
-            iEstado=True,
-        )
-        return redirect("planes_list")
-    return render(request, "planes/plan_form.html", {"accion": "Crear"})
+        form = PlanPagoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"success": True})
+            return redirect("planes_list")
+    else:
+        form = PlanPagoForm()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "planes/plan_form.html", {"form": form})
+    return render(request, "planes/plan_form.html", {"form": form})
+
 
 @login_required
 def plan_editar(request, pk):
     plan = get_object_or_404(PlanPago, pk=pk)
     if request.method == "POST":
-        plan.nombre = request.POST["nombre"]
-        plan.carrera = request.POST["carrera"]
-        plan.cohorte = request.POST["cohorte"]
-        plan.modalidad = request.POST["modalidad"]
-        plan.save()
-        return redirect("planes_list")
-    return render(request, "planes/plan_form.html", {"accion": "Editar", "plan": plan})
+        form = PlanPagoForm(request.POST, instance=plan)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"success": True})
+            return redirect("planes_list")
+    else:
+        form = PlanPagoForm(instance=plan)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "planes/plan_form.html", {"form": form})
+    return render(request, "planes/plan_form.html", {"form": form})
+
 
 @login_required
 def plan_clonar(request, pk):
     original = get_object_or_404(PlanPago, pk=pk)
     if request.method == "POST":
-        PlanPago.objects.create(
-            nombre=request.POST["nombre"],
-            carrera=request.POST["carrera"],
-            cohorte=request.POST["cohorte"],
-            modalidad=request.POST["modalidad"],
-            iEstado=True,
-        )
-        return redirect("planes_list")
-    return render(request, "planes/plan_form.html", {
-        "accion": "Clonar",
-        "plan": original
-    })
+        form = PlanPagoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"success": True})
+            return redirect("planes_list")
+    else:
+        data_inicial = {
+            "nombre": f"{original.nombre} (Copia)",
+            "carrera": original.carrera,
+            "cohorte": original.cohorte,
+            "modalidad": original.modalidad,
+            "iEstado": True,
+        }
+        form = PlanPagoForm(initial=data_inicial)
 
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "planes/plan_form.html", {"form": form})
+    return render(request, "planes/plan_form.html", {"form": form})
 
 # -------------------------------
 # CRUD Cuotas
