@@ -453,3 +453,13 @@ def exportar_cuotas_excel(request):
 def imprimir_cuotas(request):
     cuotas = Cuota.objects.filter(iEstado=True)
     return render(request, "imprimir_cuotas.html", {"cuotas": cuotas})
+
+# Planes suspendidos
+@login_required
+def planes_suspendidos(request):
+    suspendidos = PlanPago.objects.filter(iEstado=False)
+    desactivados = []  # Más adelante los filtramos distinto
+    return render(request, "planes_suspendidos.html", {
+        "suspendidos": suspendidos,
+        "desactivados": desactivados
+    })

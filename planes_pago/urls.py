@@ -36,4 +36,7 @@ urlpatterns = [
     path("cuotas/exportar/csv/", views.exportar_cuotas_csv, name="exportar_cuotas_csv"),
     path("cuotas/exportar/excel/", views.exportar_cuotas_excel, name="exportar_cuotas_excel"),
     path("cuotas/imprimir/", views.imprimir_cuotas, name="imprimir_cuotas"),
+
+    # Planes suspendidos
+    path('suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
 ]

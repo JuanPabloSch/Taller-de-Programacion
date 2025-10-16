@@ -111,6 +111,10 @@
         <nav>
             <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
             <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <a href="{% url 'planes_suspendidos' %}" 
+            class="{% if request.resolver_match.url_name == 'planes_suspendidos' %}active{% endif %}">
+            Suspendidos
+            </a>
             <a href="#" class="">Historial</a>
             <a href="#" class="">Reglas de mora</a>
             <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
@@ -149,17 +153,17 @@
 
         <!-- Modal genérico para Crear/Editar/Clonar -->
         <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-              </div>
-              <div class="modal-body" id="modalBody">
-                <!-- El formulario se carga aquí por AJAX -->
-              </div>
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- El formulario se carga aquí por AJAX -->
+                </div>
+                </div>
             </div>
-          </div>
         </div>
 
     </main>
