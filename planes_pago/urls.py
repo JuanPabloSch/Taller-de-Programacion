@@ -39,4 +39,6 @@ urlpatterns = [
 
     # Planes suspendidos
     path('suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
+    path("planes/suspender/<int:pk>/", views.plan_suspendido, name="plan_suspendido"),
+
 ]

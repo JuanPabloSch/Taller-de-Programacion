@@ -463,3 +463,17 @@ def planes_suspendidos(request):
         "suspendidos": suspendidos,
         "desactivados": desactivados
     })
+    
+    # Suspender plan (desde la vista principal)
+# Suspender plan (desde la vista principal)
+@require_POST
+@login_required
+def plan_suspendido(request, pk):
+    try:
+        plan = PlanPago.objects.get(pk=pk)
+        plan.iEstado = False  # Marcamos el plan como suspendido
+        plan.save()
+        return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
+    except PlanPago.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+
