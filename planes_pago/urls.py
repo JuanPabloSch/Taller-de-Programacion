@@ -38,7 +38,9 @@ urlpatterns = [
     path("cuotas/imprimir/", views.imprimir_cuotas, name="imprimir_cuotas"),
 
     # Planes suspendidos
-    path('suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
-    path("planes/suspender/<int:pk>/", views.plan_suspendido, name="plan_suspendido"),
+    path('planes/suspender/<int:pk>/', views.plan_suspender, name='plan_suspender'),
+path('planes/desactivar/<int:pk>/', views.plan_desactivar, name='plan_desactivar'),
+path('planes/reactivar/<int:pk>/', views.plan_reactivar, name='plan_reactivar'),
+path('planes/suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
 
 ]

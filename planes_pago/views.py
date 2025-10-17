@@ -477,3 +477,67 @@ def plan_suspendido(request, pk):
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
 
+# -------------------------------
+# DESACTIVAR / REACTIVAR PLANES
+# -------------------------------
+
+@login_required
+def planes_suspendidos(request):
+    """
+    Vista de planes suspendidos y desactivados.
+    Muestra dos listas separadas: suspendidos (estado='S') y desactivados (estado='D').
+    """
+    suspendidos = PlanPago.objects.filter(estado='S')
+    desactivados = PlanPago.objects.filter(estado='D')
+    return render(request, "planes_suspendidos.html", {
+        "suspendidos": suspendidos,
+        "desactivados": desactivados
+    })
+
+
+@require_POST
+@login_required
+def plan_suspender(request, pk):
+    """
+    Marca un plan como suspendido (estado='S').
+    """
+    try:
+        plan = PlanPago.objects.get(pk=pk)
+        plan.estado = 'S'
+        plan.save()
+        return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
+    except PlanPago.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+
+
+@require_POST
+@login_required
+def plan_desactivar(request, pk):
+    """
+    Desactiva un plan (estado='D' y iEstado=False).
+    No se elimina, simplemente deja de estar disponible.
+    """
+    try:
+        plan = PlanPago.objects.get(pk=pk)
+        plan.estado = 'D'
+        plan.iEstado = False
+        plan.save()
+        return JsonResponse({"ok": True, "msg": "Plan desactivado correctamente"})
+    except PlanPago.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+
+
+@require_POST
+@login_required
+def plan_reactivar(request, pk):
+    """
+    Reactiva un plan desactivado o suspendido (estado='A' y iEstado=True).
+    """
+    try:
+        plan = PlanPago.objects.get(pk=pk)
+        plan.estado = 'A'
+        plan.iEstado = True
+        plan.save()
+        return JsonResponse({"ok": True, "msg": "Plan reactivado correctamente"})
+    except PlanPago.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
