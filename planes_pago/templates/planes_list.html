@@ -92,10 +92,20 @@
         color: #fff;
         text-decoration: none;
     }
+    /*ALERT*/
+    #suspenderModal .modal-header {
+    background-color: #00163a !important; 
+    }
+    #suspenderModalLabel{ text-align: center;
+        color: rgb(255, 255, 255);
+        font-weight: bold;
+        width: 100%;
+    }
     .btn-edit  { background: #3a86ff; }
     .btn-clone { background: #8338ec; }
     .btn-enter { background: #06d6a0; }
     .btn-del   { background: #ff006e; }
+    .btn-susp { background-color: grey;}
 </style>
 {% endblock %}
 
@@ -165,6 +175,25 @@
                 </div>
             </div>
         </div>
+<!-- Modal confirmacion suspender -->
+<div class="modal fade" id="suspenderModal" tabindex="-1" aria-labelledby="suspenderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold" id="suspenderModalLabel">Suspender Plan de Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="fs-5">¿Estás seguro de que querés suspender este plan?</p>
+        <p class="text-muted" id="suspenderPlanInfo"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmSuspenderBtn">Sí, suspender</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     </main>
 </div>
@@ -176,7 +205,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// ✅ Configurar CSRF correctamente para Django y AJAX
+//  Configurar CSRF correctamente para Django y AJAX
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -193,7 +222,7 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// ⚡ Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
+// Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
@@ -232,31 +261,53 @@ $(function () {
     });
 
     
-    // Suspender plan
-$('#tablaPlanes').on('click', '.btn-susp', function () {
-    const data = tabla.row($(this).closest('tr')).data();
-    if (!confirm(`¿Suspender el plan #${data.id}?`)) return;
+// MODAL
+const suspenderModal = new bootstrap.Modal(document.getElementById('suspenderModal'));
+let planSeleccionado = null;
 
-    fetch(`/planes/suspender/${data.id}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Error en la respuesta del servidor');
-        return response.json();
-    })
-    .then(data => {
-        alert(data.msg || 'Plan suspendido correctamente');
-        tabla.ajax.reload(null, false);
-    })
-    .catch(error => {
-        console.error(error);
-        alert('Error al suspender el plan');
-    });
+// clickear modal
+$('#tablaPlanes').on('click', '.btn-susp', function () {
+  const data = tabla.row($(this).closest('tr')).data();
+  planSeleccionado = data; 
+  $('#suspenderPlanInfo').text(`Plan ID ${data.id}: ${data.nombre}`);
+  suspenderModal.show();
 });
+
+// Confirmar 
+$('#confirmSuspenderBtn').on('click', function () {
+  if (!planSeleccionado) return;
+
+  fetch(`/planes/suspender/${planSeleccionado.id}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Error en la respuesta del servidor');
+    return response.json();
+  })
+  .then(data => {
+    suspenderModal.hide();
+    tabla.ajax.reload(null, false);
+    // AVISO 
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow';
+    alertDiv.innerHTML = `
+      <strong>✔</strong> ${data.msg || 'Plan suspendido correctamente'}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 3000);
+  })
+  .catch(error => {
+    suspenderModal.hide();
+    console.error(error);
+    alert('Error al suspender el plan');
+  });
+});
+
 
 
     // Modal de Bootstrap
