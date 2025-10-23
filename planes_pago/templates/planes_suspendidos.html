@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Planes Suspendidos y Desactivados{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="user-info">
+        <img src="{% static 'img/tipito.png' %}" alt="admin">
+        <p>{{ user.username }}</p>
+        <p>{% now "d/m/Y H:i" %}</p>
+        </div>
+        <nav>
+        <a href="{% url 'planes_list' %}">Planes</a>
+        <a href="{% url 'planes_suspendidos' %}" class="active">Suspendidos</a>
+        <a href="{% url 'cuotas_list' %}">Cuotas</a>
+        <a href="#" class="">Historial</a>
+        <a href="#" class="">Reglas de mora</a>
+        <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <h2>Planes de Pago</h2>
+
+        <section class="mt-4">
+        <h4 class="mb-3">Suspendidos</h4>
+        <table class="table table-bordered table-sm align-middle text-center">
+            <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Carrera</th>
+                <th>Cohorte</th>
+                <th>Modalidad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for plan in suspendidos %}
+            <tr>
+                <td>{{ plan.id }}</td>
+                <td>{{ plan.nombre }}</td>
+                <td>{{ plan.carrera }}</td>
+                <td>{{ plan.cohorte }}</td>
+                <td>{{ plan.modalidad }}</td>
+                <td>Suspendido</td>
+                <td>
+                <button class="btn btn-sm btn-warning">Desactivar</button>
+                <button class="btn btn-sm btn-success">Reactivar</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-muted">No hay planes suspendidos</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </section>
+
+        <section class="mt-5">
+        <h4 class="mb-3">Desactivados</h4>
+        <table class="table table-bordered table-sm align-middle text-center">
+            <thead class="table-secondary">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Carrera</th>
+                <th>Cohorte</th>
+                <th>Modalidad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for plan in desactivados %}
+            <tr>
+                <td>{{ plan.id }}</td>
+                <td>{{ plan.nombre }}</td>
+                <td>{{ plan.carrera }}</td>
+                <td>{{ plan.cohorte }}</td>
+                <td>{{ plan.modalidad }}</td>
+                <td>Desactivado</td>
+                <td>
+                <button class="btn btn-sm btn-success">Reactivar</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-muted">No hay planes desactivados</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </section>
+    </main>
+</div>
+{% endblock %}

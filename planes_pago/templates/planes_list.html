@@ -6,6 +6,9 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- Bootstrap para el modal -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
     .layout {
         display: flex;
@@ -93,100 +96,213 @@
     .btn-clone { background: #8338ec; }
     .btn-enter { background: #06d6a0; }
     .btn-del   { background: #ff006e; }
-    </style>
-    {% endblock %}
+</style>
+{% endblock %}
 
-    {% block content %}
-    <div class="layout">
+{% block content %}
+<div class="layout">
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="user-info">
-        <img src="{% static 'img/tipito.png' %}" alt="admin">
-        <p>{{ user.username }}</p>
-        <p>{% now "d/m/Y H:i" %}</p>
+            <img src="{% static 'img/tipito.png' %}" alt="admin">
+            <p>{{ user.username }}</p>
+            <p>{% now "d/m/Y H:i" %}</p>
         </div>
         <nav>
-        <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
-        <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
-        <a href="#" class="">Historial</a>
-        <a href="#" class="">Reglas de mora</a>
-        <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+            <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
+            <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <a href="{% url 'planes_suspendidos' %}" 
+            class="{% if request.resolver_match.url_name == 'planes_suspendidos' %}active{% endif %}">
+            Suspendidos
+            </a>
+            <a href="#" class="">Historial</a>
+            <a href="#" class="">Reglas de mora</a>
+            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
         </nav>
     </aside>
 
     <!-- MAIN -->
     <main class="main-content">
         <header class="page-head">
-        <div>
-            <h2>Planes de Pago</h2>
-            <p>Recientes</p>
-        </div>
-        <div class="actions">
-        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
-        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
-        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
-        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
-        <a href="{% url 'plan_crear' %}" class="btn-new">+ Nuevo Plan</a>
-    </div>
-
+            <div>
+                <h2>Planes de Pago</h2>
+                <p>Recientes</p>
+            </div>
+            <div class="actions">
+                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
+                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
+                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
+                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+                <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
+            </div>
         </header>
 
         <table id="tablaPlanes" class="display">
-        <thead>
-            <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Carrera</th>
-            <th>Cohorte</th>
-            <th>Modalidad</th>
-            <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Carrera</th>
+                    <th>Cohorte</th>
+                    <th>Modalidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
         </table>
+
+        <!-- Modal genérico para Crear/Editar/Clonar -->
+        <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- El formulario se carga aquí por AJAX -->
+                </div>
+                </div>
+            </div>
+        </div>
+
     </main>
-    </div>
-    {% endblock %}
+</div>
+{% endblock %}
 
-    {% block extra_scripts %}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-    $(function () {
+<script>
+// ✅ Configurar CSRF correctamente para Django y AJAX
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// ⚡ Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+
+</script>
+<script>
+$(function () {
     const tabla = $('#tablaPlanes').DataTable({
         ajax: '{% url "planes_data" %}',
         columns: [
-        { data: 'id' },
-        { data: 'nombre' },
-        { data: 'carrera' },
-        { data: 'cohorte' },
-        { data: 'modalidad' },
-        {
-            data: null,
-            orderable: false,
-            render: (data) => `
-            <div class="acciones">
-                <a href="/planes/editar/${data.id}/" class="btn-edit">Editar</a>
-                <a href="/planes/clonar/${data.id}/" class="btn-clone">Clonar</a>
-                <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
-                <button class="btn-del" data-id="${data.id}">Eliminar</button>
-            </div>
-            `
-
-        },
+            { data: 'id' },
+            { data: 'nombre' },
+            { data: 'carrera' },
+            { data: 'cohorte' },
+            { data: 'modalidad' },
+            
+            {
+                data: null,
+                orderable: false,
+                render: (data) => `
+                <div class="acciones">
+                    <button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>
+                    <button class="btn-clone" data-id="${data.id}" data-action="clonar">Clonar</button>
+                    <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
+                    <button class="btn-susp" data-id="${data.id}">Suspender</button>
+                </div>
+                `
+            },
         ],
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
         pageLength: 10
     });
 
-    // Eliminar
-    $('#tablaPlanes').on('click', '.btn-del', function () {
-        const data = tabla.row($(this).closest('tr')).data();
-        if (!confirm(`¿Eliminar plan #${data.id}?`)) return;
-        $.post(`{% url "plan_borrar" 0 %}`.replace('/0/', `/${data.id}/`))
-        .done(() => tabla.ajax.reload(null, false))
-        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al eliminar'));
+    
+    // Suspender plan
+$('#tablaPlanes').on('click', '.btn-susp', function () {
+    const data = tabla.row($(this).closest('tr')).data();
+    if (!confirm(`¿Suspender el plan #${data.id}?`)) return;
+
+    fetch(`/planes/suspender/${data.id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        return response.json();
+    })
+    .then(data => {
+        alert(data.msg || 'Plan suspendido correctamente');
+        tabla.ajax.reload(null, false);
+    })
+    .catch(error => {
+        console.error(error);
+        alert('Error al suspender el plan');
+    });
+});
+
+
+    // Modal de Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('planModal'));
+
+    // Función genérica para abrir el formulario en modal
+    function abrirModal(titulo, url) {
+        $('#modalTitle').text(titulo);
+        $('#modalBody').html('<div class="text-center p-5">Cargando...</div>');
+        modal.show();
+
+        // AJAX con header explícito
+        $.ajax({
+            url: url,
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(html) {
+                $('#modalBody').html(html);
+            },
+            error: function() {
+                $('#modalBody').html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
+            }
+        });
+    }
+
+    // Nuevo Plan
+    $('#btnNuevo').on('click', function() {
+        abrirModal('Nuevo Plan', '{% url "plan_crear" %}');
+    });
+
+    // Editar / Clonar Plan
+    $('#tablaPlanes').on('click', 'button[data-action]', function() {
+        const id = $(this).data('id');
+        const action = $(this).data('action');
+        let url = '';
+        let titulo = '';
+
+        if (action === 'editar') {
+            url = `/planes/editar/${id}/`;
+            titulo = 'Editar Plan';
+        } else if (action === 'clonar') {
+            url = `/planes/clonar/${id}/`;
+            titulo = 'Clonar Plan';
+        }
+
+        abrirModal(titulo, url);
     });
 });
 </script>

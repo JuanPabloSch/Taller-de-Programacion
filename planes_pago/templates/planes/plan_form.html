@@ -1,0 +1,48 @@
+<form id="planForm" method="post" action="{{ request.path }}">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.nombre.label_tag }}
+        {{ form.nombre }}
+    </div>
+    <div class="mb-3">
+        {{ form.carrera.label_tag }}
+        {{ form.carrera }}
+    </div>
+    <div class="mb-3">
+        {{ form.cohorte.label_tag }}
+        {{ form.cohorte }}
+    </div>
+    <div class="mb-3">
+        {{ form.modalidad.label_tag }}
+        {{ form.modalidad }}
+    </div>
+    <div class="form-check mb-3">
+        {{ form.iEstado }}
+        {{ form.iEstado.label_tag }}
+    </div>
+
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    </div>
+    </form>
+
+    <script>
+$('#planForm').on('submit', function(e) {
+    e.preventDefault();
+    const form = $(this);
+    $.ajax({
+        url: form.attr('action'),
+        method: 'POST',
+        data: form.serialize(),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        success: function() {
+        $('#planModal').modal('hide');
+        $('#tablaPlanes').DataTable().ajax.reload(null, false);
+        },
+        error: function(xhr) {
+        alert(xhr.responseJSON?.msg || 'Error al guardar el plan.');
+        }
+    });
+});
+</script>
