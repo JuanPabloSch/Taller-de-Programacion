@@ -11,17 +11,32 @@
 
 <style>
     .layout {
-        display: flex;
-        min-height: 100vh;
-        background: #f8f9fa;
+    display: flex;
+    min-height: 100vh;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    }
+    .big-titles{
+        font-size: 3rem;
+  display: block;
+  width: 100%;
+  text-align: center;
     }
 
     /* SIDEBAR */
     .sidebar {
-        width: 220px;
-        background: #14213d;
-        color: #fff;
-        padding: 1rem;
+    position: fixed;         /* 🔹 Fijo al costado izquierdo */
+    top: 0;
+    left: 0;
+    height: 100vh;           /* 🔹 Ocupa toda la altura */
+    width: 220px;
+    background: #14213d;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     }
     .sidebar .user-info {
         text-align: center;
@@ -49,11 +64,12 @@
 
     /* MAIN CONTENT */
     .main-content {
-        flex: 1;
-        padding: 2rem;
+    flex: 1;
+    padding: 2rem;
+    background-color: #e7e6e6;
+    margin-left:10rem;
     }
     header.page-head {
-        display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
@@ -127,7 +143,7 @@
             </a>
             <a href="#" class="">Historial</a>
             <a href="#" class="">Reglas de mora</a>
-            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+            <a href="{% url 'logout' %}" class="text-danger"> Salir</a>
         </nav>
     </aside>
 
@@ -135,9 +151,10 @@
     <main class="main-content">
         <header class="page-head">
             <div>
-                <h2>Planes de Pago</h2>
+                <span><h2 class="big-titles">Planes de Pago</h2><hr></span>
                 <p>Recientes</p>
             </div>
+            <br>
             <div class="actions">
                 <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
                 <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
@@ -175,7 +192,7 @@
                 </div>
             </div>
         </div>
-<!-- Modal confirmacion suspender -->
+<!-- Modal Suspender -->
 <div class="modal fade" id="suspenderModal" tabindex="-1" aria-labelledby="suspenderModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
@@ -205,7 +222,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-//  Configurar CSRF correctamente para Django y AJAX
+// ✅ Configurar CSRF correctamente para Django y AJAX
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -222,7 +239,7 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
+// ⚡ Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
