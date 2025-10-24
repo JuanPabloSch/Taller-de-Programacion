@@ -15,7 +15,7 @@
 <body>
 
     <!-- CONTENIDO -->
-    <div class="container mt-4">
+    <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
@@ -51,4 +51,24 @@
 
     {% block extra_scripts %}{% endblock %}
 </body>
+<style>
+/* 🔹 Hace que el contenido tome todo el ancho restante */
+.main-content {
+    margin-left: 220px; /* ancho del sidebar */
+    background: #e7e6e6;
+    min-height: 100vh;
+    padding: 2rem;
+    width: calc(100% - 220px);
+}
+
+/* Quitar márgenes/paddings sobrantes de Bootstrap */
+.main-content .container,
+.main-content .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+
+</style>
 </html>
