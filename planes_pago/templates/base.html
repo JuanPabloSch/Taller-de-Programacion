@@ -1,4 +1,5 @@
 {% load static %}
+{% load permisos_tags %}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -52,12 +53,19 @@
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}">Planes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}">Cuotas</a></li>
+                    {% if user|has_group:"Administrador" %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_usuarios' %}">Usuarios</a></li>
+                    {% endif %}
                 {% endif %}
                 </ul>
                 <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
+                    {% user_role user as rol %}
                     <li class="nav-item">
-                        <span class="navbar-text text-white me-2">Hola, {{ user.username }}</span>
+                        <span class="navbar-text text-white me-3">
+                            <strong>{{ user.username }}</strong>
+                            <span class="badge bg-secondary">{{ rol }}</span>
+                        </span>
                     </li>
                     <li class="nav-item">
                         <form method="post" action="{% url 'logout' %}" style="display:inline">
