@@ -1,48 +1,72 @@
-<form id="planForm" method="post" action="{{ request.path }}">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.nombre.label_tag }}
-        {{ form.nombre }}
-    </div>
-    <div class="mb-3">
-        {{ form.carrera.label_tag }}
-        {{ form.carrera }}
-    </div>
-    <div class="mb-3">
-        {{ form.cohorte.label_tag }}
-        {{ form.cohorte }}
-    </div>
-    <div class="mb-3">
-        {{ form.modalidad.label_tag }}
-        {{ form.modalidad }}
-    </div>
-    <div class="form-check mb-3">
-        {{ form.iEstado }}
-        {{ form.iEstado.label_tag }}
-    </div>
+<!-- Formulario para crear un nuevo plan -->
+<form id="formEstructura" method="post" action="{% url 'plan_crear' %}">
+  {% csrf_token %}
+  <div class="mb-3">
+    {{ form.nombre.label_tag }}
+    {{ form.nombre }}
+  </div>
+  <div class="mb-3">
+    {{ form.carrera.label_tag }}
+    {{ form.carrera }}
+  </div>
+  <div class="mb-3">
+    {{ form.cohorte.label_tag }}
+    {{ form.cohorte }}
+  </div>
+  <div class="mb-3">
+    {{ form.modalidad.label_tag }}
+    {{ form.modalidad }}
+  </div>
+  <div class="mb-3">
+    {{ form.tipo_plan.label_tag }}
+    {{ form.tipo_plan }}
+  </div>
 
-    <div class="text-end">
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    </div>
-    </form>
+  <!-- No mostramos iEstado porque siempre será Suspendido -->
+  <input type="hidden" name="iEstado" value="False">
 
-    <script>
-$('#planForm').on('submit', function(e) {
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <button class="btn btn-success" id="btnGuardarPlan">Guardar Plan</button>
+    <a href="{% url 'planes_list' %}" class="btn btn-secondary" id="btnVolverListado">Cancelar / Volver al Listado</a>
+  </div>
+</form>
+
+<!-- Placeholder para el mensaje de éxito -->
+<div id="saveAlertPlaceholder" class="mt-3"></div>
+
+<script>
+$(document).ready(function() {
+  // Acción del botón Guardar
+  $('#btnGuardarPlan').on('click', function(e) {
     e.preventDefault();
-    const form = $(this);
+    const form = $('#formEstructura');
+
     $.ajax({
-        url: form.attr('action'),
-        method: 'POST',
-        data: form.serialize(),
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        success: function() {
-        $('#planModal').modal('hide');
-        $('#tablaPlanes').DataTable().ajax.reload(null, false);
-        },
-        error: function(xhr) {
-        alert(xhr.responseJSON?.msg || 'Error al guardar el plan.');
+      url: form.attr('action'),
+      method: 'POST',
+      data: form.serialize(),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      success: function(response) {
+        // Mensaje de éxito
+        const alertHtml = `
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>✔</strong> Plan guardado correctamente en "Suspendidos".
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>`;
+        $('#saveAlertPlaceholder').html(alertHtml);
+
+        // Limpia el formulario
+        form.trigger('reset');
+
+        // Recarga la tabla de planes (si existe en la página)
+        if ($('#tablaPlanes').length) {
+          $('#tablaPlanes').DataTable().ajax.reload(null, false);
         }
+      },
+      error: function(xhr) {
+        alert(xhr.responseJSON?.msg || 'Error al guardar el plan.');
+      }
     });
+  });
 });
 </script>

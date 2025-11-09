@@ -107,20 +107,17 @@ from .forms import PlanPagoForm  # asegúrate de tener esto entre los imports
 # FORMULARIOS DE PLANES (modal AJAX)
 # -------------------------------
 @login_required
+@require_POST
 def plan_crear(request):
-    if request.method == "POST":
-        form = PlanPagoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"success": True})
-            return redirect("planes_list")
-    else:
-        form = PlanPagoForm()
+    form = PlanPagoForm(request.POST)
+    if form.is_valid():
+        plan = form.save(commit=False)
+        plan.iEstado = False  # lo guarda directamente como “Suspendido”
+        plan.save()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False, "msg": "Error al guardar el plan."}, status=400)
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, "planes/plan_form.html", {"form": form})
-    return render(request, "planes/plan_form.html", {"form": form})
+
 
 
 @login_required

@@ -15,36 +15,6 @@
 <body>
 
 <div class="layout">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="user-info">
-            <img src="{% static 'img/tipito.png' %}" alt="admin">
-            <p>{{ user.username }}</p>
-            <p>{% now "d/m/Y H:i" %}</p>
-        </div>
-
-        <nav>
-            <a href="{% url 'planes_list' %}"
-               class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">
-               Planes
-            </a>
-
-            <a href="{% url 'cuotas_list' %}"
-               class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">
-               Cuotas
-            </a>
-
-            <a href="{% url 'planes_suspendidos' %}"
-               class="{% if request.resolver_match.url_name == 'planes_suspendidos' %}active{% endif %}">
-               Suspendidos
-            </a>
-
-            <a href="#">Historial</a>
-            <a href="#">Reglas de mora</a>
-            <a href="{% url 'logout' %}" class="text-danger">Salir</a>
-        </nav>
-    </aside>
-
     <!-- MAIN CONTENT -->
     <main class="main-content">
         {% block content %}{% endblock %}
@@ -88,61 +58,19 @@
 /* Layout general */
 body {
     margin: 0;
-    overflow-x: hidden;
 }
 
 .layout {
     display: flex;
-    width: 100vw;
-}
-
-/************ SIDEBAR ************/
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 220px;
-    background: #14213d;
-    color: #fff;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.sidebar .user-info {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.sidebar .user-info img {
-    width: 70px;
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
-}
-
-.sidebar nav a {
-    display: block;
     width: 100%;
-    color: #fff;
-    text-align: left;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    text-decoration: none;
 }
-.sidebar nav a.active,
-.sidebar nav a:hover {
-    background: #3a86ff;
-}
+
 
 /************ MAIN CONTENT ************/
 .main-content {
-    margin-left: 220px;
-    padding: 2rem;
     background: #e7e6e6;
     min-height: 100vh;
-    width: calc(100% - 220px) !important;
+    width: 100%;
 }
 
 /* Quitar márgenes Bootstrap dentro del contenido */

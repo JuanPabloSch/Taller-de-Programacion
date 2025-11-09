@@ -1,353 +1,681 @@
-{% extends "base.html" %}
 {% load static %}
-{% block title %}Planes de Pago{% endblock %}
-
 {% block navbar %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-<!-- Bootstrap para el modal -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
+    /* -------------------------------------- */
+    /* 1. LAYOUT Y TIPOGRAFÍA BASE */
+    /* -------------------------------------- */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: rgb(210, 226, 236);
+        padding: 1rem;
+    }
     .layout {
-    display: flex;
-    min-height: 100vh;
-    background: #f8f9fa;
-    margin: 0;
-    padding: 0;
+        display: flex;
+        min-height: 100vh;
+        background: #ffffff;
+        margin: 0;
+        padding: 1rem;
     }
-    .big-titles{
-        font-size: 3rem;
-  display: block;
-  width: 100%;
-  text-align: center;
+    .main {
+        flex: 1;
+        padding: 1rem 1.5rem;
     }
-
-
-    /* MAIN CONTENT */
-    .main{
-    flex: 1;
-    padding: 2rem;
-    margin-left:1rem;
+    .big-titles {
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: block;
+        width: 100%;
+        text-align: left;
+        color: #00163a;
+        margin-bottom: 0.5rem;
     }
     header.page-head {
+        display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-    }
-    .actions {
-        display: flex;
-        gap: 10px;
+        margin-bottom: 30px;
         flex-wrap: wrap;
-        display: flex;
-        justify-content: center;
-        align-items: center; 
+        gap: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dee2e6;
     }
+    .page-head > div:first-child { flex-grow: 1; }
+    .page-head b { display: none; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
     .btn-new {
-        background: #3a86ff;
+        background: #00163a;
         color: #fff;
         border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background-color .3s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
     }
+    .btn-new:hover { background:#003366; color:#fff; }
 
-    /* TABLE */
-    table.dataTable {
-        width: 100% !important;
-        margin-top: 20px;
+    #toggleSidebarBtn { margin-right: 15px;  }
+
+    /* DATATABLES */
+    #tablaPlanes_wrapper {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
-    table.dataTable th,
-    table.dataTable td {
-        padding: 10px;
+    table.dataTable thead th {
+        background-color: #f1f1f1;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #00163a;
     }
+    table.dataTable.display tbody tr:nth-child(even) { background-color: #f8f9fa; }
+    table.dataTable td { vertical-align: middle; }
 
     /* BOTONES CRUD */
+    .acciones { white-space: nowrap; }
     .acciones a, .acciones button {
-        margin: 0 2px;
+        margin: 2px 3px;
         border: none;
-        border-radius: 4px;
-        padding: 5px 8px;
+        border-radius: 5px;
+        padding: 7px 10px;
         cursor: pointer;
         color: #fff;
         text-decoration: none;
+        font-size: .85rem;
+        transition: .15s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     }
-    /*ALERT*/
-    #suspenderModal .modal-header {
-    background-color: #00163a !important; 
-    }
-    #suspenderModalLabel{ text-align: center;
-        color: rgb(255, 255, 255);
-        font-weight: bold;
-        width: 100%;
-    }
-    .btn-edit  { background: #3a86ff; }
+    .acciones a:hover, .acciones button:hover { transform: translateY(-2px); opacity: .95; }
+    .btn-edit { background: #3a86ff; }
     .btn-clone { background: #8338ec; }
     .btn-enter { background: #06d6a0; }
-    .btn-del   { background: #ff006e; }
-    .btn-susp { background-color: grey;}
+    .btn-susp { background: #ffb703; color: #222; }
+    .btn-susp:hover { background: #fb8500; color: #fff; }
+
+    /* SIDEBAR */
+    #sidebarMenu { background-color: #00163a !important; width:280px; }
+    #sidebarMenu .nav-link { color: #adb5bd; padding: 10px 15px; border-radius: 5px; }
+    #sidebarMenu .nav-link.active { color: white; background-color: #3a86ff; font-weight: 600; }
+    #sidebarMenu .nav-link:hover { color:white; background-color: rgba(255,255,255,0.08); }
+
+    /* MODALES */
+    .modal-content { border-radius: 10px; }
+
+    /* RESPONSIVE */
+    @media (min-width: 992px) {
+        .layout { padding: 1rem; }
+        .main { padding: 2rem; }
+        header.page-head { grid-template-areas: "toggle title new-plan" "actions actions actions"; grid-template-columns: max-content 1fr max-content; column-gap: 15px; row-gap: 10px; }
+        #toggleSidebarBtn { grid-area: toggle; display:flex; align-items:center; }
+        .page-head > div:first-child { grid-area: title; margin-bottom: 0 !important; }
+        .actions { grid-area: actions; }
+        .page-head > .btn-new { grid-area: new-plan; justify-self:end; align-self:start; }
+    }
+
+    /* TAB VISUALIZACION (tabla pequeña) */
+    #tablaSimulacion th, #tablaSimulacion td { font-size: .95rem; }
 </style>
 {% endblock %}
 
 {% block content %}
-    <!-- MAIN -->
-    <main class="main">
-        <header class="page-head">
-            <div>
-                <span><h2 class="big-titles">Planes de Pago</h2><hr></span>
-            </div>
-            <b><p class="actions">Exportar como:</p></b><br>
-            <div class="actions">
-                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
-                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
-                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
-                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
-            </div><br>
-            <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
-        </header>
-        <p><b>Recientes</b></p>
-        <table id="tablaPlanes" class="display">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Carrera</th>
-                    <th>Cohorte</th>
-                    <th>Modalidad</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-bs-scroll="true">
+  <div class="offcanvas-header">
+<div class="d-flex flex-column align-items-center text-center mb-3">
+  <img src="{% static 'img/logo.png' %}" 
+       alt="Logo" 
+       class="mb-2" 
+       style="max-height: 90px;">
+  <h5 class="offcanvas-title text-white" id="sidebarMenuLabel">
+    Instituto Superior del Milagro
+  </h5>
+</div>
 
-        <!-- Modal genérico para Crear/Editar/Clonar -->
-        <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <br>
+  <br>
+  <hr class="text-white">
+
+  <div class="offcanvas-body d-flex flex-column p-3">
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li><a href="{% url 'planes_list' %}" class="nav-link">Planes de Pago (Actual)</a></li> 
+      <li><a href="{% url 'planes_suspendidos' %}" class="nav-link">Planes Suspendidos</a></li>
+    </ul>
+
+
+
+    <div class="dropdown dropup mt-auto">
+      <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown">
+        <img src="{% static 'img/tipito.png' %}" alt="user" width="32" height="32" class="rounded-circle me-2">
+        <strong>Mi Cuenta</strong>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+        <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<button id="toggleSidebarBtn" class="btn btn-dark mb-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm0-4a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11zm0-4a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11z"/></svg>
+</button>
+
+<div class="layout">
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <h2 class="big-titles">Planes Activos</h2>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">
+        <i class="bi bi-filetype-pdf me-1" aria-hidden="true"></i> PDF
+        </a>
+
+        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">CSV
+            <i class="bi bi-filetype-csv"></i>
+        </a>
+
+        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">Excel
+        <i class="bi bi-file-earmark-spreadsheet"></i>
+        </a>
+
+        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"> Imprimir
+            <i class="bi bi-printer-fill"></i>
+        </a>
+      </div>
+
+      <button id="btnNuevo" class="btn-new"><i class="bi bi-plus-circle"></i> Nuevo Plan</button>
+    </header>
+
+    <p><b>Recientes</b></p>
+    <table id="tablaPlanes" class="display table table-striped" style="width:100%">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Carrera</th>
+          <th>Cohorte</th>
+          <th>Modalidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Modal: Nuevo / Editar Plan -->
+    <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold" id="modalTitle">Nuevo Plan</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs mb-3" id="planTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos" type="button" role="tab">Datos</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab">Estructura</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab">Visualización</button>
+              </li>
+            </ul>
+
+            <!-- Tabs content -->
+            <div class="tab-content">
+              <!-- TAB 1: DATOS -->
+              <div class="tab-pane fade show active" id="datos" role="tabpanel" aria-labelledby="datos-tab">
+                <form id="nuevoPlanFormDatos" class="needs-validation" novalidate>
+                  <div class="row mb-3">
+                    <div class="col-md-9">
+                      <label class="form-label">Nombre del plan</label>
+                      <input type="text" name="nombre" class="form-control" required>
+                      <div class="invalid-feedback">Ingrese el nombre del plan.</div>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Carrera</label>
+                      <select name="carrera" class="form-select" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Analista de Sistemas">Analista de Sistemas</option>
+                        <option value="Profesorado de Inglés">Profesorado de Inglés</option>
+                        <option value="Psicopedagogía">Psicopedagogía</option>
+                        <option value="Profesorado de Inicial">Profesorado de Inicial</option>
+                      </select>
+                      <div class="invalid-feedback">Seleccione la carrera.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label">Modalidad</label>
+                      <select name="modalidad" class="form-select" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Virtual">Virtual</option>
+                        <option value="Mixta">Mixta</option>
+                      </select>
+                      <div class="invalid-feedback">Seleccione la modalidad.</div>
+                    </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Cohorte</label>
+                      <input type="text" name="cohorte" class="form-control" placeholder="Ej: 2025" required>
+                      <div class="invalid-feedback">Ingrese la cohorte.</div>
+                    </div>
+                  </div>
+
+                  <button type="button" class="btn btn-success" id="btnGuardarDatos">Guardar y continuar</button>
+                </form>
+              </div>
+
+              <!-- TAB 2: ESTRUCTURA -->
+              <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
+                <form id="formEstructura" class="needs-validation" novalidate>
+                  <h5 class="card-title mb-4 text-primary">Estructura Financiera del Plan</h5>
+
+                  <div class="mb-3">
+                    <label class="form-label">Precio base</label>
+                    <input type="number" step="0.01" id="precio_base" class="form-control" min="0" required>
+                    <div class="invalid-feedback">Ingrese el precio base.</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Nro de cuotas</label>
+                    <input type="number" id="nro_cuotas" class="form-control" min="1" required>
+                    <div class="invalid-feedback">Ingrese la cantidad de cuotas.</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Frecuencia de pago</label>
+                    <select id="frecuencia_pago" class="form-select" required>
+                      <option value="">-- Seleccione --</option>
+                      <option value="mensual">Mensual</option>
+                      <option value="bimestral">Bimestral</option>
+                      <option value="trimestral">Trimestral</option>
+                    </select>
+                    <div class="invalid-feedback">Seleccione la frecuencia.</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Día de vcto</label>
+                    <input type="number" id="dia_vcto" class="form-control" placeholder="Inserte nro de días POST asignación" min="1" max="31" required>
+                    <div class="invalid-feedback">Ingrese el día de vencimiento (1-31).</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Intereses por recargo</label>
+                    <div class="row g-2">
+                      <div class="col-5">
+                        <select id="interes_tipo" class="form-select" required>
+                          <option value="mensual">Mensual</option>
+                          <option value="anual">Anual</option>
+                        </select>
+                      </div>
+                      <div class="col-7">
+                        <input type="number" step="0.01" id="interes_valor" class="form-control" placeholder="Tasa (%)" min="0" required>
+                      </div>
+                    </div>
+                    <div class="form-text mt-1">Seleccione tipo y porcentaje del recargo.</div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Días de gracia</label>
+                    <select id="dias_gracia" class="form-select" required>
+                      <option value="5">5 días</option>
+                      <option value="10">10 días</option>
+                      <option value="15">15 días</option>
+                    </select>
+                  </div>
+
+                  <button type="button" class="btn btn-success" id="btnGenerarTabla">Generar Simulación</button>
+                </form>
+              </div>
+
+              <!-- TAB 3: VISUALIZACION -->
+              <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
+                <h5 class="card-title mb-3 text-primary">Simulación de Cuotas</h5>
+
+                <div class="table-responsive">
+                  <table class="table table-sm table-striped" id="tablaSimulacion">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Nro de cuota</th>
+                        <th>Base ($)</th>
+                        <th>Interés ($)</th>
+                        <th>Monto cuota ($)</th>
+                        <th>Vcto estimado</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
                 </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- El formulario se carga aquí por AJAX -->
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                  <button class="btn btn-success" id="btnGuardarPlan">Guardar Plan</button>
+
+<script>
+$('#btnGuardarPlan').on('click', function() {
+    $('#planForm').submit();  // Esto dispara el evento AJAX que ya tenés
+});
+</script>
+
+                  <a href="{% url 'planes_list' %}" class="btn btn-secondary" id="btnVolverListado">Cancelar / Volver al Listado</a>
                 </div>
-                </div>
+
+                <!-- espacio para mensaje de éxito -->
+                <div id="saveAlertPlaceholder" class="mt-3"></div>
+              </div>
             </div>
+          </div>
+
         </div>
-<!-- Modal Suspender -->
-<div class="modal fade" id="suspenderModal" tabindex="-1" aria-labelledby="suspenderModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title fw-bold" id="suspenderModalLabel">Suspender Plan de Pago</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body text-center">
-        <p class="fs-5">¿Estás seguro de que querés suspender este plan?<br>
-        Debes tener un plan de respaldo antes de suspenderlo</p>
-        <p class="text-muted" id="suspenderPlanInfo"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmSuspenderBtn">Sí, suspender</button>
       </div>
     </div>
-  </div>
-</div>
-<!-- Modal Confirmación Final -->
-<div class="modal fade" id="confirmacionFinalModal" tabindex="-1" aria-labelledby="confirmacionFinalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title fw-bold" id="confirmacionFinalLabel">¡Plan Suspendido!</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body text-center">
-        <p class="fs-5">
-          Este plan ha sido suspendido.<br>
-          Tenés <strong>3 días</strong> para revertir esta acción si fue un error.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-bs-dismiss="modal">
-          Entiendo
-        </button>
+
+    <!-- Modal Suspender -->
+    <div class="modal fade" id="suspenderModal" tabindex="-1" aria-labelledby="suspenderModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title fw-bold" id="suspenderModalLabel">Suspender Plan de Pago</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="fs-5">¿Estás seguro de que querés suspender este plan?<br>Debes tener un plan de respaldo antes de suspenderlo</p>
+            <p class="text-muted" id="suspenderPlanInfo"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmSuspenderBtn">Sí, suspender</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- Modal confirmacion final -->
+    <div class="modal fade" id="confirmacionFinalModal" tabindex="-1" aria-labelledby="confirmacionFinalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title fw-bold" id="confirmacionFinalLabel">¡Plan Suspendido!</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="fs-5">Este plan ha sido suspendido.<br>Tenés <strong>3 días</strong> para revertir esta acción si fue un error.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Entiendo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
-
-    </main>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-// Configurar CSRF correctamente para Django y AJAX
+/* ========================
+   CSRF helper (Django)
+   ======================== */
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i=0;i<cookies.length;i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length+1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+        break;
+      }
     }
-    return cookieValue;
+  }
+  return cookieValue;
 }
 const csrftoken = getCookie('csrftoken');
-
-// Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
-    beforeSend: function(xhr, settings) {
-        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
+  beforeSend: function(xhr, settings) {
+    if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
+      xhr.setRequestHeader("X-CSRFToken", csrftoken);
     }
+  }
+});
+
+
+$(function() {
+  /* ---------------------------
+     DataTable inicialización
+     --------------------------- */
+  const tabla = $('#tablaPlanes').DataTable({
+    ajax: '{% url "planes_data" %}',
+    columns: [
+      { data: 'id' },
+      { data: 'nombre' },
+      { data: 'tipo_plan' },
+      { data: 'carrera' },
+      { data: 'cohorte' },
+      { data: 'modalidad' },
+      {
+        data: null,
+        orderable: false,
+        render: function(data) {
+          return `
+            <div class="acciones">
+              <button class="btn-edit btn btn-sm" data-id="${data.id}" data-action="editar"><i class="bi bi-pencil"></i>Editar</button>
+              <button class="btn-clone btn btn-sm" data-id="${data.id}" data-action="clonar"><i class="bi bi-copy"></i>Clonar</button>
+              <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter btn btn-sm"><i class="bi bi-eye"></i>Entrar</a>
+              <button class="btn-susp btn btn-sm" data-id="${data.id}"><i class="bi bi-pause-fill"></i>Suspender</button>
+            </div>
+          `;
+        }
+      }
+    ],
+    language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+    pageLength: 10,
+    responsive: true
+  });
+
+  /* ---------------------------
+     Manejo Suspend/Confirm
+     --------------------------- */
+  const suspenderModal = new bootstrap.Modal(document.getElementById('suspenderModal'));
+  let planSeleccionado = null;
+
+  $('#tablaPlanes').on('click', '.btn-susp', function() {
+    const data = tabla.row($(this).closest('tr')).data();
+    planSeleccionado = data;
+    $('#suspenderPlanInfo').text(`Plan ID ${data.id}: ${data.nombre}`);
+    suspenderModal.show();
+  });
+
+  $('#confirmSuspenderBtn').on('click', function() {
+    if (!planSeleccionado) return;
+    fetch(`/planes/suspender/${planSeleccionado.id}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(resp => {
+      if (!resp.ok) throw new Error('Error servidor');
+      return resp.json();
+    })
+    .then(data => {
+      suspenderModal.hide();
+      tabla.ajax.reload(null, false);
+      // alerta pequeña
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow';
+      alertDiv.innerHTML = `<strong>✔</strong> ${data.msg || 'Plan suspendido correctamente'} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+      document.body.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 3000);
+      // mostrar modal de confirmación final
+      const confirmFinal = new bootstrap.Modal(document.getElementById('confirmacionFinalModal'));
+      confirmFinal.show();
+    })
+    .catch(err => {
+      suspenderModal.hide();
+      console.error(err);
+      alert('Error al suspender el plan.');
+    });
+  });
+
+  /* ---------------------------
+     Modal principal + tabs
+     --------------------------- */
+  const planModalEl = document.getElementById('planModal');
+  const planModal = new bootstrap.Modal(planModalEl);
+
+  // abrir modal Nuevo Plan: limpia formularios y muestra modal
+  $('#btnNuevo').on('click', function() {
+    // resetear formularios internos
+    $('#nuevoPlanFormDatos')[0].reset();
+    $('#formEstructura')[0].reset();
+    $('#tablaSimulacion tbody').empty();
+    $('#saveAlertPlaceholder').empty();
+    // forzar volver a pestaña datos
+    const datosTab = new bootstrap.Tab(document.getElementById('datos-tab'));
+    datosTab.show();
+    $('#modalTitle').text('Nuevo Plan');
+    planModal.show();
+  });
+
+  // abrir modal para Editar/Clonar por AJAX (usar abrirModal)
+  function abrirModal(titulo, url) {
+    $('#modalTitle').text(titulo);
+    // mostrar modal y colocar spinner mientras carga
+    planModal.show();
+    const modalBody = planModalEl.querySelector('.modal-body');
+    modalBody.scrollTop = 0;
+    // si querés cargar por AJAX, aquí va la llamada. Por ahora mostramos placeholder
+    // ejemplo: $.get(url).done(html => { $(modalBody).html(html); });
+    // Mantengo el contenido actual (inline) para editar si usas AJAX reemplaza el innerHTML.
+  }
+
+  // Editar / Clonar (usa abrirModal para AJAX si corresponde)
+  $('#tablaPlanes').on('click', 'button[data-action]', function() {
+    const id = $(this).data('id');
+    const action = $(this).data('action');
+    let titulo = (action === 'editar') ? 'Editar Plan' : 'Clonar Plan';
+    // aquí podrías pedir al servidor el HTML del formulario (editar/clonar)
+    abrirModal(titulo, `/planes/${action}/${id}/`);
+  });
+
+  /* ---------------------------
+     Navegación entre tabs (Datos -> Estructura)
+     --------------------------- */
+  $('#btnGuardarDatos').on('click', function() {
+    const form = document.getElementById('nuevoPlanFormDatos');
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+    const estructuraTab = new bootstrap.Tab(document.getElementById('estructura-tab'));
+    estructuraTab.show();
+  });
+
+  /* ---------------------------
+     Generar simulación y mostrar Visualización
+     --------------------------- */
+  $('#btnGenerarTabla').on('click', function() {
+    const form = document.getElementById('formEstructura');
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+
+    const precioBase = parseFloat($('#precio_base').val());
+    const cuotas = parseInt($('#nro_cuotas').val(), 10);
+    const interesValor = parseFloat($('#interes_valor').val());
+    const interesTipo = $('#interes_tipo').val(); // 'mensual' | 'anual'
+    const frecuencia = $('#frecuencia_pago').val(); // mensual, bimestral, trimestral
+    const diaVcto = parseInt($('#dia_vcto').val(), 10);
+
+    // cálculos
+    const tbody = $('#tablaSimulacion tbody');
+    tbody.empty();
+
+    const basePorCuota = precioBase / cuotas;
+    // tasa en decimal por periodo (si anual, se divide por 12 para aproximar mensual)
+    for (let i = 1; i <= cuotas; i++) {
+      let tasaPeriodo;
+      if (interesTipo === 'mensual') tasaPeriodo = interesValor / 100;
+      else tasaPeriodo = (interesValor / 100) / 12; // anual -> mensual aproximado
+
+      // interés aplicado a la cuota (se aplica sobre la base de la cuota)
+      const interesMonto = basePorCuota * tasaPeriodo;
+      const montoCuota = basePorCuota + interesMonto;
+
+      // fecha de vencimiento estimada
+      const hoy = new Date();
+      const mesesAgregar = (frecuencia === 'mensual' ? 1 : frecuencia === 'bimestral' ? 2 : 3) * (i - 1);
+      const fechaVcto = new Date(hoy);
+      fechaVcto.setMonth(hoy.getMonth() + mesesAgregar);
+      // ajustar día del mes (si día elegido > días del mes, JS lo ajusta automáticamente)
+      fechaVcto.setDate(diaVcto);
+
+      const fila = `<tr>
+        <td>Cuota ${i}</td>
+        <td>${basePorCuota.toFixed(2)}</td>
+        <td>${interesMonto.toFixed(2)}</td>
+        <td>${montoCuota.toFixed(2)}</td>
+        <td>${fechaVcto.toLocaleDateString()}</td>
+      </tr>`;
+      tbody.append(fila);
+    }
+
+    // cambiar a pestaña visualización
+    const visTab = new bootstrap.Tab(document.getElementById('visualizacion-tab'));
+    visTab.show();
+  });
+
+  /* ---------------------------
+     Guardar Plan (solo mensaje de éxito)
+     --------------------------- */
+  $('#btnGuardarPlan').on('click', function() {
+    // Mostrar solo mensaje de éxito (no hace POST real aquí).
+    const placeholder = $('#saveAlertPlaceholder');
+    placeholder.html(`<div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>✔</strong> El plan se guardó correctamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>`);
+    // si querés cerrar el modal automáticamente:
+    // setTimeout(() => planModal.hide(), 900);
+  });
+
+  /* ---------------------------
+     Botón Volver listado (dentro modal) -> redirige o cierra
+     --------------------------- */
+  $('#btnVolverListado').on('click', function() {
+    // Si querés cerrar modal en lugar de redirigir, descomenta:
+    // planModal.hide();
+    // Aquí dejamos como enlace a la vista de listado (url en el href).
+  });
+
 });
 
 </script>
-<script>
-$(function () {
-    const tabla = $('#tablaPlanes').DataTable({
-        ajax: '{% url "planes_data" %}',
-        columns: [
-            { data: 'id' },
-            { data: 'nombre' },
-            { data: 'carrera' },
-            { data: 'cohorte' },
-            { data: 'modalidad' },
-            
-            {
-                data: null,
-                orderable: false,
-                render: (data) => `
-                <div class="acciones">
-                    <button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>
-                    <button class="btn-clone" data-id="${data.id}" data-action="clonar">Clonar</button>
-                    <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>
-                    <button class="btn-susp" data-id="${data.id}">Suspender</button>
-                </div>
-                `
-            },
-        ],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-        pageLength: 10
-    });
-
-    
-// MODAL
-const suspenderModal = new bootstrap.Modal(document.getElementById('suspenderModal'));
-let planSeleccionado = null;
-
-// clickear modal
-$('#tablaPlanes').on('click', '.btn-susp', function () {
-  const data = tabla.row($(this).closest('tr')).data();
-  planSeleccionado = data; 
-  $('#suspenderPlanInfo').text(`Plan ID ${data.id}: ${data.nombre}`);
-  suspenderModal.show();
-});
-
-// Confirmar 
-$('#confirmSuspenderBtn').on('click', function () {
-  if (!planSeleccionado) return;
-
-  fetch(`/planes/suspender/${planSeleccionado.id}/`, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken'),
-      'X-Requested-With': 'XMLHttpRequest'
-    }
-  })
-  .then(response => {
-    if (!response.ok) throw new Error('Error en la respuesta del servidor');
-    return response.json();
-  })
-  .then(data => {
-    suspenderModal.hide();
-    tabla.ajax.reload(null, false);
-    // AVISO 
-    const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow';
-    alertDiv.innerHTML = `
-      <strong>✔</strong> ${data.msg || 'Plan suspendido correctamente'}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(alertDiv);
-    setTimeout(() => alertDiv.remove(), 3000);
-  })
-  .catch(error => {
-    suspenderModal.hide();
-    console.error(error);
-    alert('Error al suspender el plan');
-  });
-});
-
-
-    // Modal de Bootstrap
-    const modal = new bootstrap.Modal(document.getElementById('planModal'));
-
-    // Función genérica para abrir el formulario en modal
-    function abrirModal(titulo, url) {
-        $('#modalTitle').text(titulo);
-        $('#modalBody').html('<div class="text-center p-5">Cargando...</div>');
-        modal.show();
-
-        // AJAX con header explícito
-        $.ajax({
-            url: url,
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            success: function(html) {
-                $('#modalBody').html(html);
-            },
-            error: function() {
-                $('#modalBody').html('<div class="alert alert-danger">Error al cargar el formulario.</div>');
-            }
-        });
-    }
-
-    // Nuevo Plan
-    $('#btnNuevo').on('click', function() {
-        abrirModal('Nuevo Plan', '{% url "plan_crear" %}');
-    });
-
-    // Editar / Clonar Plan
-    $('#tablaPlanes').on('click', 'button[data-action]', function() {
-        const id = $(this).data('id');
-        const action = $(this).data('action');
-        let url = '';
-        let titulo = '';
-
-        if (action === 'editar') {
-            url = `/planes/editar/${id}/`;
-            titulo = 'Editar Plan';
-        } else if (action === 'clonar') {
-            url = `/planes/clonar/${id}/`;
-            titulo = 'Clonar Plan';
-        }
-
-        abrirModal(titulo, url);
-    });
-}); 
-//SUSPENDER 2DA CONFIRMACION
-$(document).ready(function () {
-  $("#confirmSuspenderBtn").click(function () {
-    $("#suspenderModal").modal("hide");
-    setTimeout(() => {
-      $("#confirmacionFinalModal").modal("show");
-    }, 300);
-  });
-});
-
-</script>
-
 {% endblock %}
