@@ -1,4 +1,7 @@
 {% load static %}
+{% load permisos_tags %}
+{% block title %}Planes de Pago{% endblock %}
+
 {% block navbar %}{% endblock %}
 
 {% block extra_head %}
@@ -171,32 +174,43 @@
 </button>
 
 <div class="layout">
-  <main class="main">
-    <header class="page-head">
-      <div>
-        <h2 class="big-titles">Planes Activos</h2>
-      </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="user-info">
+            <img src="{% static 'img/tipito.png' %}" alt="admin">
+            <p>{{ user.username }}</p>
+            <p>{% now "d/m/Y H:i" %}</p>
+        </div>
+        <nav>
+            <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
+            <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
+            <a href="{% url 'planes_suspendidos' %}" 
+            class="{% if request.resolver_match.url_name == 'planes_suspendidos' %}active{% endif %}">
+            Suspendidos
+            </a>
+            <a href="#" class="">Historial</a>
+            <a href="#" class="">Reglas de mora</a>
+            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
+        </nav>
+    </aside>
 
-      <div class="actions">
-        <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">
-        <i class="bi bi-filetype-pdf me-1" aria-hidden="true"></i> PDF
-        </a>
-
-        <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">CSV
-            <i class="bi bi-filetype-csv"></i>
-        </a>
-
-        <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">Excel
-        <i class="bi bi-file-earmark-spreadsheet"></i>
-        </a>
-
-        <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"> Imprimir
-            <i class="bi bi-printer-fill"></i>
-        </a>
-      </div>
-
-      <button id="btnNuevo" class="btn-new"><i class="bi bi-plus-circle"></i> Nuevo Plan</button>
-    </header>
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="page-head">
+            <div>
+                <h2>Planes de Pago</h2>
+                <p>Recientes</p>
+            </div>
+            <div class="actions">
+                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
+                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
+                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
+                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+                {% if user|is_in_groups:"Administrador,Tesorero" %}
+                <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
+                {% endif %}
+            </div>
+        </header>
 
     <p><b>Recientes</b></p>
     <table id="tablaPlanes" class="display table table-striped" style="width:100%">
@@ -466,39 +480,50 @@ $.ajaxSetup({
   }
 });
 
+</script>
+<script>
+// Permisos del usuario
+const puedeModificar = {% if user|is_in_groups:"Administrador,Tesorero" %}true{% else %}false{% endif %};
+const puedeEliminar = {% if user|has_group:"Administrador" %}true{% else %}false{% endif %};
 
-$(function() {
-  /* ---------------------------
-     DataTable inicialización
-     --------------------------- */
-  const tabla = $('#tablaPlanes').DataTable({
-    ajax: '{% url "planes_data" %}',
-    columns: [
-      { data: 'id' },
-      { data: 'nombre' },
-      { data: 'tipo_plan' },
-      { data: 'carrera' },
-      { data: 'cohorte' },
-      { data: 'modalidad' },
-      {
-        data: null,
-        orderable: false,
-        render: function(data) {
-          return `
-            <div class="acciones">
-              <button class="btn-edit btn btn-sm" data-id="${data.id}" data-action="editar"><i class="bi bi-pencil"></i>Editar</button>
-              <button class="btn-clone btn btn-sm" data-id="${data.id}" data-action="clonar"><i class="bi bi-copy"></i>Clonar</button>
-              <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter btn btn-sm"><i class="bi bi-eye"></i>Entrar</a>
-              <button class="btn-susp btn btn-sm" data-id="${data.id}"><i class="bi bi-pause-fill"></i>Suspender</button>
-            </div>
-          `;
-        }
-      }
-    ],
-    language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-    pageLength: 10,
-    responsive: true
-  });
+$(function () {
+    const tabla = $('#tablaPlanes').DataTable({
+        ajax: '{% url "planes_data" %}',
+        columns: [
+            { data: 'id' },
+            { data: 'nombre' },
+            { data: 'carrera' },
+            { data: 'cohorte' },
+            { data: 'modalidad' },
+
+            {
+                data: null,
+                orderable: false,
+                render: (data) => {
+                    let botones = '<div class="acciones">';
+
+                    // Botón Entrar (todos pueden ver)
+                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>`;
+
+                    // Botones de edición (solo Administrador y Tesorero)
+                    if (puedeModificar) {
+                        botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>`;
+                        botones += `<button class="btn-clone" data-id="${data.id}" data-action="clonar">Clonar</button>`;
+                    }
+
+                    // Botón Suspender (solo Administrador)
+                    if (puedeEliminar) {
+                        botones += `<button class="btn-susp" data-id="${data.id}">Suspender</button>`;
+                    }
+
+                    botones += '</div>';
+                    return botones;
+                }
+            },
+        ],
+        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+        pageLength: 10
+    });
 
   /* ---------------------------
      Manejo Suspend/Confirm

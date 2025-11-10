@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load permisos_tags %}
 {% block title %}Cuotas{% endblock %}
 
 {% block extra_head %}
@@ -14,7 +15,9 @@
         <a href="{% url 'exportar_cuotas_csv' %}" class="btn btn-success btn-sm me-1">🟢 CSV</a>
         <a href="{% url 'exportar_cuotas_excel' %}" class="btn btn-primary btn-sm me-1">📊 Excel</a>
         <a href="{% url 'imprimir_cuotas' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+        {% if user|is_in_groups:"Administrador,Tesorero" %}
         <button id="btnNuevaCuota" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalCuota">Nueva Cuota</button>
+        {% endif %}
     </div>
 </div>
 
@@ -78,6 +81,10 @@
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+// Permisos del usuario
+const puedeModificar = {% if user|is_in_groups:"Administrador,Tesorero" %}true{% else %}false{% endif %};
+const puedeEliminar = {% if user|has_group:"Administrador" %}true{% else %}false{% endif %};
+
     $(function () {
     const tabla = $('#tablaCuotas').DataTable({
         ajax: '{% url "cuotas_data" %}',
@@ -90,10 +97,21 @@
         {
             data: null,
             orderable: false,
-            render: (data) => `
-            <button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>
-            <button class="btn btn-sm btn-danger btn-del">Eliminar</button>
-            `
+            render: (data) => {
+                let botones = '';
+
+                // Botón editar (solo Administrador y Tesorero)
+                if (puedeModificar) {
+                    botones += '<button class="btn btn-sm btn-warning me-1 btn-edit">Editar</button>';
+                }
+
+                // Botón eliminar (solo Administrador)
+                if (puedeEliminar) {
+                    botones += '<button class="btn btn-sm btn-danger btn-del">Eliminar</button>';
+                }
+
+                return botones;
+            }
         },
         ],
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
