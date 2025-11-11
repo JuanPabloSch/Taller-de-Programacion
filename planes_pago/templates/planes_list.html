@@ -134,6 +134,7 @@
                 <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
                 <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
                 <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
+                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nueva Regularización</button>
             </div>
         </header>
 
@@ -165,7 +166,82 @@
                 </div>
             </div>
         </div>
+        <!-- Fin Modal -->
+        <!-- Modal genérico para Regularización -->
+<div class="modal fade" id="regularizacionModal" tabindex="-1" aria-labelledby="regularizacionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!--DATOS DE IDENTIFICACION-->
+        <h5 class="modal-title" id="regularizacionModalLabel">Crear Nueva Regularización</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      
+      <form method="post" action="{% url 'regularizacion_crear' %}">
+        {% csrf_token %}
+        
+        <div class="modal-body">
+          
+          <div class="card text-center">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="identificacion-tab" data-bs-toggle="tab" data-bs-target="#identificacion" type="button" role="tab" aria-controls="identificacion" aria-selected="true">Detalles de identificación</button>
+                </li>
+                <!--ESTRUCTURA-->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab" aria-controls="estructura" aria-selected="false">Estructura</button>
+                </li>
+                <!--REGLAS DE MORA-->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="mora-tab" data-bs-toggle="tab" data-bs-target="#mora" type="button" role="tab" aria-controls="mora" aria-selected="false">Reglas de mora</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab" aria-controls="visualizacion" aria-selected="false">Visualización</button>
+                </li>
+              </ul>
+            </div>
 
+            <div class="card-body">
+              <div class="tab-content" id="myTabContent">
+
+                <div class="tab-pane fade show active" id="identificacion" role="tabpanel" aria-labelledby="identificacion-tab">
+                  <h5 class="card-title">Datos de Identificación de la Regularización</h5>
+                  {{ regularizacion_form.as_p }} 
+                </div>
+
+                <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">>
+                        <h5 class="card-title">Configuración de Estructura</h5>
+                        {{ estructura_form.as_p }}  
+                </div>
+
+                <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
+                  <h5 class="card-title">Parámetros de Reglas de Mora</h5>
+                        {{ mora_form.as_p }}
+                </div>
+<div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
+    
+    <h5 class="card-title">Simulación del Plan de Pagos</h5>
+    
+    <div id="visualizacion-resultados">
+        <p class="card-text text-muted">Haga clic en la pestaña de Visualización para calcular y ver una simulación del plan de pagos basado en la estructura y reglas definidas.</p>
+    </div>
+    
+</div>
+              </div>
+            </div>
+          </div>
+          </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar Regularización</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+        <!-- Fin Modal -->
     </main>
 </div>
 {% endblock %}
@@ -304,6 +380,122 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
 
         abrirModal(titulo, url);
     });
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Asegúrate de que los IDs coincidan con tu HTML:
+    // 1. El ID de la pestaña de Visualización (la que se clickea)
+    const visualizacionTabElement = document.getElementById('visualizacion-tab');
+    // 2. El ID del div contenedor donde se mostrará la tabla
+    const resultadosContainer = document.getElementById('visualizacion-resultados'); 
+    
+    // Solo si ambos elementos existen, ejecutamos el listener
+    if (!visualizacionTabElement || !resultadosContainer) {
+        console.error("No se encontraron los elementos #visualizacion-tab o #visualizacion-resultados. El script no se ejecutará.");
+        return;
+    }
+    
+    // 1. Escuchar cuando la pestaña de Visualización es abierta
+    visualizacionTabElement.addEventListener('shown.bs.tab', function (event) {
+        
+        // Mostrar mensaje de carga mientras se espera la respuesta del servidor
+        resultadosContainer.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p>Calculando plan de pagos...</p></div>';
+
+        const estructuraForm = document.querySelector('form'); // Asume que es el formulario principal
+        const formData = new FormData(estructuraForm);
+        
+        // 2. Recolectar solo los datos de Estructura usando el prefijo 'estructura-'
+        const dataParaCalculo = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            // Recolectamos todos los campos que empiezan con el prefijo 'estructura-'
+            if (key.startsWith('estructura-')) { 
+                dataParaCalculo.append(key, value);
+            }
+        }
+        
+        // 3. Enviar la petición AJAX
+        fetch('{% url "regla_estructura_calculos" %}', {
+            method: 'POST',
+            body: dataParaCalculo,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // ¡CRUCIAL para Django!
+                'X-Requested-With': 'XMLHttpRequest', // Para identificar la petición como AJAX
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            // Si hay un error (ej. 400), capturamos el JSON de error
+            return response.json().then(data => {
+                // Lanzamos un error que contiene los errores de validación del formulario
+                throw new Error(JSON.stringify(data.errors || data.message || "Error desconocido del servidor."));
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                // 4. Si el cálculo es exitoso, inyectamos la tabla HTML
+                const tablaHTML = generarTablaHTML(data.plan_pagos);
+                resultadosContainer.innerHTML = tablaHTML; 
+            }
+        })
+        .catch(error => {
+            // 5. Manejar y mostrar errores
+            let errorMessage = "Ocurrió un error inesperado en el cálculo.";
+            try {
+                 const errors = JSON.parse(error.message);
+                 // Este mensaje es clave si falla la validación del formulario de Estructura
+                 errorMessage = "Error de validación: Revise los campos de la pestaña Estructura (ej: valor, cuotas, tasa).";
+            } catch (e) {
+                // Error genérico si no se puede conectar o si hay un 500
+                errorMessage = "No se pudo calcular el plan. Verifique la conexión o contacte a soporte.";
+            }
+
+            resultadosContainer.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <strong>¡Error!</strong> ${errorMessage}
+                </div>
+            `;
+            console.error('Error en el cálculo AJAX:', error);
+        });
+    });
+
+    // --- Función de ayuda para generar la tabla HTML a partir del JSON (Cuotas) ---
+    function generarTablaHTML(plan_pagos) {
+        if (!plan_pagos || plan_pagos.length === 0) {
+            return '<p class="alert alert-info">No se generaron cuotas para el plan. Revise los parámetros de Estructura.</p>';
+        }
+
+        let html = `
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th># Cuota</th>
+                        <th>Vencimiento</th>
+                        <th>Capital</th>
+                        <th>Interés</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        plan_pagos.forEach((pago, index) => {
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${pago.vencimiento}</td>
+                    <td>$${pago.capital.toFixed(2)}</td>
+                    <td>$${pago.interes.toFixed(2)}</td>
+                    <td>$${pago.monto_cuota.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        return html;
+    }
 });
 </script>
 {% endblock %}

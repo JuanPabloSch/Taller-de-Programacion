@@ -2,15 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from .models import PlanPago, Cuota
+from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora
 from fpdf import FPDF
 from datetime import datetime
 from .forms import PlanPagoForm
+from .forms import RegularizacionForm, ReglaEstructuraForm, ReglaMoraForm
 import csv
 import openpyxl
+from django.db import transaction
 from openpyxl.utils import get_column_letter
 import os
-
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import date, timedelta
 
 # -------------------------------
 # Clase PDF personalizada
@@ -43,7 +48,26 @@ def home(request):
 # -------------------------------
 @login_required
 def planes_list(request):
-    return render(request, "planes_list.html")
+    
+    # Instanciar los TRES formularios con prefijos únicos
+    # (El prefijo es opcional, pero ALTAMENTE recomendado)
+    regularizacion_form = RegularizacionForm(prefix='regularizacion') 
+    estructura_form = ReglaEstructuraForm(prefix='estructura') 
+    mora_form = ReglaMoraForm(prefix='mora') # <-- ¡Añadido el formulario de Mora!
+    
+    # Instancia de los planes existentes (asumiendo que los listaras)
+    # planes = PlanPago.objects.all() 
+    
+    # Pasar los TRES formularios al contexto
+    context = {
+        # 'planes': planes, # Si los estás listando
+        'regularizacion_form': regularizacion_form,
+        'estructura_form': estructura_form,
+        'mora_form': mora_form, # <-- Añadido al contexto
+    }
+    
+    return render(request, "planes_list.html", context)
+
 
 
 @login_required
@@ -121,6 +145,210 @@ def plan_crear(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, "planes/plan_form.html", {"form": form})
     return render(request, "planes/plan_form.html", {"form": form})
+
+
+                                                    #regularizaciones
+@require_http_methods(["POST"])
+def regularizacion_crear(request):
+    # 1. Instanciar los formularios con los datos POST
+    regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion')
+    estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
+    mora_form = ReglaMoraForm(request.POST, prefix='mora')
+
+    # 2. Validar todos los formularios
+    if regularizacion_form.is_valid() and estructura_form.is_valid() and mora_form.is_valid():
+        try:
+            # Usar transaction.atomic() asegura que si falla el guardado de un formulario, 
+            # todos los cambios se revierten y no se guarda nada incompleto.
+            with transaction.atomic():
+                # A. Guardar el formulario padre (Regularizacion)
+                regularizacion_instance = regularizacion_form.save()
+
+                # B. Guardar los formularios hijos, enlazándolos a la instancia padre.
+                # Nota: Necesitas el campo ForeignKey (regularizacion) en ReglaEstructura y ReglaMora.
+
+                # Guardar Estructura
+                estructura_instance = estructura_form.save(commit=False)
+                estructura_instance.regularizacion = regularizacion_instance
+                estructura_instance.save()
+                
+                # Guardar Mora
+                mora_instance = mora_form.save(commit=False)
+                mora_instance.regularizacion = regularizacion_instance
+                mora_instance.save()
+
+            messages.success(request, 'La regularización fue creada exitosamente.')
+            return redirect('nombre_de_la_lista_de_planes') # Redirige al listado
+
+        except Exception as e:
+            messages.error(request, f'Ocurrió un error al guardar: {e}')
+            # Si hay error, necesitamos volver a mostrar el modal con los datos y errores.
+            
+    # Si la validación falla (o si hubo un error al guardar)
+    # Debes renderizar la plantilla de nuevo, pasando todos los formularios con sus errores.
+    # Nota: Si esta vista es solo POST, la redirección es más limpia. Si manejas GET aquí, 
+    # la lógica se vuelve más compleja. Por simplicidad, asumo que fallas y re-renderizas.
+    
+    # Aquí deberías tener una función que muestre el modal de nuevo, con los formularios
+    # que contienen los errores de validación.
+
+    # Esto es una simplificación; la lógica real de cómo volver a mostrar el modal 
+    # en la página de listado depende de cómo manejas el GET y el POST en tu vista principal.
+
+    # Por ahora, volvamos al listado (el usuario verá el mensaje de error si falla el guardado)
+    return redirect('nombre_de_la_lista_de_planes') 
+
+                                #calculo visualizacion
+@require_http_methods(["POST"])
+def regla_estructura_calculos(request):
+    # Usamos el prefijo 'estructura' para recibir solo los datos relevantes
+    estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura') 
+    
+    if estructura_form.is_valid():
+        datos = estructura_form.cleaned_data
+        
+        try:
+            # Llama a tu función de cálculo (PENDIENTE DE IMPLEMENTAR)
+            plan_pagos = generar_plan_regularizacion(datos) 
+            
+            # Devuelve el plan de pagos en formato JSON
+            return JsonResponse({
+                'success': True,
+                'plan_pagos': plan_pagos # Lista de diccionarios (cuotas)
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error al calcular: {e}'}, status=400)
+    
+    # Si falla la validación del formulario de Estructura
+    else:
+        return JsonResponse({'success': False, 'errors': estructura_form.errors}, status=400)
+@require_http_methods(["POST"])
+def regla_estructura_calculos(request):
+    # ... (código para instanciar y validar estructura_form) ...
+    estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura') 
+    
+    if estructura_form.is_valid():
+        datos = estructura_form.cleaned_data
+        
+        try:
+            # Llama a la función de cálculo con los datos limpios
+            plan_pagos = generar_plan_pagos(datos) 
+            
+            return JsonResponse({
+                'success': True,
+                'plan_pagos': plan_pagos 
+            })
+            
+        except Exception as e:
+            # Captura errores como división por cero o datos inválidos
+            return JsonResponse({'success': False, 'message': f'Error al calcular: {e}'}, status=400)
+    
+    else:
+        # Devuelve errores de validación
+        return JsonResponse({'success': False, 'errors': estructura_form.errors}, status=400)
+
+
+# ----------------------------------------------------------------------
+# LÓGICA DE CÁLCULO DE AMORTIZACIÓN
+# ----------------------------------------------------------------------
+
+def generar_plan_pagos(datos):
+    # 1. Extracción y Conversión de Parámetros
+    
+    # Usamos Decimal para evitar errores de coma flotante en montos monetarios
+    monto_capital = datos.get('valor', Decimal(0)) - datos.get('pago_incial', Decimal(0))
+    tasa_anual = datos.get('tasa', Decimal(0)) # Tasa porcentual, ej. 12
+    cantidad_cuotas = datos.get('cantidad_de_cuotas', 1)
+    frecuencia_pago = datos.get('frecuencia_de_pago') # Ej. 'MENSUAL'
+    dia_vencimiento = datos.get('dia_vencimiento') # El día del mes de vencimiento
+    
+    # 2. Conversión de Tasa y Frecuencia
+    
+    # Convertir la tasa anual (ej. 12%) a una tasa por período (mensual, quincenal, etc.)
+    # tasa_periodica (ej. 0.01 para 1% mensual)
+    # Asumimos una capitalización simple mensual (12 períodos) para fines de ejemplo.
+    if tasa_anual > 0 and cantidad_cuotas > 0:
+        # Tasa nominal (ej. 0.12) / Frecuencia (ej. 12 meses)
+        tasa_mensual_decimal = (tasa_anual / Decimal(100)) / Decimal(12)
+        
+        # Ajustar la tasa según la frecuencia de pago si es necesario
+        # Esto es muy específico de cada cálculo. Aquí usamos la mensual como base.
+        if frecuencia_pago == 'MENSUAL':
+             tasa_aplicable = tasa_mensual_decimal
+        elif frecuencia_pago == 'QUINCENAL':
+             tasa_aplicable = tasa_mensual_decimal / Decimal(2) # Simplificación
+        # ... añadir otras frecuencias ...
+        else:
+            tasa_aplicable = tasa_mensual_decimal # Usar mensual si no está definida
+            
+    else:
+        tasa_aplicable = Decimal(0)
+        
+    # 3. Cálculo de Cuota Fija (Método Francés/Amortización Fija)
+    # Fórmula: Cuota = Capital * [ i / (1 - (1 + i)^-n) ]
+    
+    cuotas = []
+    capital_pendiente = monto_capital
+    
+    if cantidad_cuotas > 0 and capital_pendiente > 0:
+        if tasa_aplicable > 0:
+            # Denominador de la fórmula: 1 - (1 + i)^-n
+            denominador = Decimal(1) - (Decimal(1) + tasa_aplicable)**(-cantidad_cuotas)
+            if denominador == 0:
+                raise ValueError("No se puede calcular la cuota (denominador cero).")
+                
+            cuota_fija = capital_pendiente * (tasa_aplicable / denominador)
+            
+        else:
+            # Sin interés (cuota es solo capital)
+            cuota_fija = capital_pendiente / cantidad_cuotas
+
+        # 4. Cálculo de Fechas de Vencimiento
+        # Usaremos el primer día hábil del próximo mes si no se especifica una fecha de inicio
+        fecha_actual = date.today()
+        # Puedes añadir lógica aquí para definir la fecha inicial (ej. hoy + 30 días)
+        
+        # Iterar para generar cada cuota
+        for i in range(1, cantidad_cuotas + 1):
+            
+            # Cálculo de interés y capital
+            interes = capital_pendiente * tasa_aplicable
+            capital = cuota_fija - interes
+            
+            # Ajuste de la última cuota para evitar residuos por redondeo
+            if i == cantidad_cuotas:
+                capital = capital_pendiente
+                interes = cuota_fija - capital # Recalcula el interés con el capital ajustado
+                monto_cuota = capital + interes
+            else:
+                monto_cuota = cuota_fija
+            
+            # Cálculo de la próxima fecha de vencimiento (simplificación: +30 días)
+            # NOTA: La lógica de fechas puede ser compleja por meses de 30/31 días.
+            # Aquí se requiere una librería como dateutil para un cálculo preciso de meses.
+            fecha_vencimiento = fecha_actual + timedelta(days=30 * i)
+            
+            # 5. Agregar la cuota al plan
+            cuotas.append({
+                'vencimiento': fecha_vencimiento.strftime('%Y-%m-%d'),
+                'monto_cuota': monto_cuota.quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
+                'capital': capital.quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
+                'interes': interes.quantize(Decimal('.01'), rounding=ROUND_HALF_UP),
+            })
+            
+            # Actualizar el capital pendiente
+            capital_pendiente -= capital
+            
+    return cuotas
+# --- FUNCIÓN PENDIENTE ---
+def generar_plan_regularizacion(datos):
+    """Aquí va la lógica para calcular la amortización (tasa, cuotas, fechas)."""
+    # Ejemplo de un resultado esperado (DEBES REEMPLAZAR ESTO CON TU CÁLCULO)
+    return [
+        {'vencimiento': '2025-12-10', 'monto_cuota': 1050.00, 'capital': 1000.00, 'interes': 50.00},
+        # ... más cuotas
+    ]
 
 
 @login_required

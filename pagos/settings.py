@@ -89,11 +89,12 @@ WSGI_APPLICATION = 'pagos.wsgi.application'
 
 DATABASES = {
     'default': {
+
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'isdm_pagos',
-        'USER': 'root',
-        'PASSWORD': '',      # si root no tiene clave en XAMPP
-        'HOST': '127.0.0.1',
+        'NAME': 'pagosdb',
+        'USER': 'bel',
+        'PASSWORD': 'pp2025',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }

@@ -30,3 +30,144 @@ class Cuota(models.Model):
 
     def __str__(self):
         return f"Cuota {self.numero} - {self.plan.nombre}"
+    
+                                        #regularizaciones (crear)
+class Regularizacion(models.Model):
+    nombre = models.CharField(max_length=100)
+    CARRERA_CHOICES = (
+        ('INICIAL', 'Meestra nivel inicial'),
+        ('ASI', 'Analisis de Sistemas'),
+        ('INGLES', 'Profesorado de Ingles'),
+        ('Psic', 'Psicopedagogia'),
+    )
+    # El campo se define como un CharField, pero con el argumento 'choices'
+    carrera = models.CharField(
+        max_length=20,
+        choices=CARRERA_CHOICES,
+        default='ASI',
+        verbose_name='Carrera Seleccionada'
+    )
+    MODALIDAD_CHOICES = (
+        ('PRESENCIAL', 'Presencial'),
+        ('VIRTUAL', 'Virtual'),
+        ('MIXTA', 'Mixta'),
+    )
+    modalidad = models.CharField(
+        max_length=20,
+        choices=MODALIDAD_CHOICES,
+        default='PRESENCIAL',
+        verbose_name='Modalidad de Cursada'
+    )
+    cohorte = models.CharField(max_length=15)
+
+                                    #estructura de la regularizacion
+class ReglaEstructura(models.Model):
+    regularizacion = models.ForeignKey(
+        Regularizacion, 
+        on_delete=models.CASCADE,
+        related_name='reglas_estructura', # Nombre para acceder desde Regularizacion
+        verbose_name='Regularización asociada'
+    )
+                                #Campos de la pestaña "Estructura"
+    
+    # Origen de la Deuda
+    ORIGEN_CHOICES = (
+        ('FIJO', 'Monto Fijo'),
+        ('TOTAL', 'Total de Deuda'),
+    )
+    origen_deuda = models.CharField(max_length=10, choices=ORIGEN_CHOICES) 
+    valor = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Tasa (se ve como un porcentaje)
+    tasa = models.DecimalField(max_digits=5, decimal_places=2, help_text="Tasa en porcentaje (ej. 10.5)")
+    APLICAR_CHOICES = (
+        ('CUOTA', 'Monto de cuota'),
+        ('TOTAL', 'Total de Deuda'),
+    )
+    aplicar_sobre = models.CharField(max_length=10, choices=APLICAR_CHOICES)
+    
+    # Cuotas
+    pago_incial = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad_de_cuotas = models.IntegerField(default=1)
+    
+    FRECUENCIA_CHOICES = (
+        ('MENSUAL', 'Mensual'),
+        ('BIMESTRAL', 'Bimestral'),
+        ('TRIMESTRAL', 'Trimestral'),
+        ('SEMESTRAL', 'Semestral'),
+    )
+    frecuencia_de_pago = models.CharField(max_length=10, choices=FRECUENCIA_CHOICES)
+    dia_vencimiento = models.IntegerField(
+        verbose_name='Día de Vencimiento',
+        help_text='Día del mes (1 al 31) en que vencerá la cuota.',
+        # El valor por defecto podría ser 1 (el primer día del mes) o el que decidas.
+        default=1, 
+        # Asegura que el valor esté presente
+        null=False, 
+        blank=False
+    )
+    def __str__(self):
+        return f"Estructura para {self.regularizacion.nombre}"
+    
+                                                        #REGLAS DE MORA 
+class ReglaMora(models.Model):
+    regularizacion = models.ForeignKey(
+        Regularizacion, 
+        on_delete=models.CASCADE,
+        related_name='reglas_mora',
+        verbose_name='Regularización asociada'
+    )
+    
+    # Campo ELIMINADO: Ya no existe el checkbox de control
+    # aplica_reglas_mora = models.BooleanField(...) 
+    
+    TIPO_RECARGO_CHOICES = (
+        ('PORCENTUAL', 'Un porcentaje  respecto a la cuota vencida'),
+        ('FIJO', 'Monto Fijo de Multa'),
+    )
+    tipo_de_recargo = models.CharField(
+        max_length=10, 
+        choices=TIPO_RECARGO_CHOICES,
+        # Mantener null=True y blank=True para que sean opcionales
+        null=True,     
+        blank=True,     
+        verbose_name='Tipo de Recargo'
+    )
+    
+    cantidad_recargo = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        # Mantener null=True y blank=True
+        null=True,     
+        blank=True,     
+        verbose_name='Tasa/Monto de Recargo'
+    )
+    
+    FRECUENCIA_APLICACION_CHOICES = (
+        ('UNA_VEZ', 'Una Sola Vez'),
+        ('QUINCENAL', 'Cada 15 días'),
+        ('DIARIA', 'Diaria'),
+    )
+    frecuencia_aplicacion = models.CharField(
+        max_length=10, 
+        choices=FRECUENCIA_APLICACION_CHOICES,
+        # Mantener null=True y blank=True
+        null=True,     
+        blank=True,     
+        verbose_name='Frecuencia de aplicación'
+    )
+    veces_aplicacion=models.IntegerField(
+        default=1,
+        verbose_name='Veces de Aplicación',
+        help_text='Veces que se aplicará el recargo según la frecuencia seleccionada'
+    )
+    
+    # Días de gracia puede permanecer con default=0 si quieres que siempre tenga un valor
+    dias_gracia = models.IntegerField(
+        default=5,
+        verbose_name='Días de Gracia',
+        help_text='Cantidad de días antes de que se aplique recargo post vencimiento'
+    )
+    
+    def __str__(self):
+        return f"Reglas de Mora para {self.regularizacion.nombre}"
