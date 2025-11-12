@@ -5,11 +5,11 @@
 
 {% block content %}
 <div class="layout">
-    <!-- Main -->
     <main class="main-content">
-        <h2>Suspendidos y Desactivados</h2><br>
+        <h2 class="mb-4">Planes Suspendidos y Desactivados</h2>
         <hr>
 
+        <!-- Tabla de suspendidos -->
         <section class="mt-4">
         <h4 class="mb-3">Suspendidos</h4>
         <table class="table table-bordered table-sm align-middle text-center">
@@ -24,9 +24,9 @@
                 <th>Acciones</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="tablaSuspendidos">
             {% for plan in suspendidos %}
-            <tr>
+            <tr id="plan-{{ plan.id }}">
                 <td>{{ plan.id }}</td>
                 <td>{{ plan.nombre }}</td>
                 <td>{{ plan.carrera }}</td>
@@ -34,8 +34,8 @@
                 <td>{{ plan.modalidad }}</td>
                 <td>Suspendido</td>
                 <td>
-                <button class="btn btn-sm btn-warning">Desactivar</button>
-                <button class="btn btn-sm btn-success">Reactivar</button>
+                    <button class="btn btn-sm btn-warning btn-desactivar" data-id="{{ plan.id }}">Desactivar</button>
+                    <button class="btn btn-sm btn-success btn-reactivar" data-id="{{ plan.id }}">Reactivar</button>
                 </td>
             </tr>
             {% empty %}
@@ -45,6 +45,7 @@
         </table>
         </section>
 
+        <!-- Tabla de desactivados -->
         <section class="mt-5">
         <h4 class="mb-3">Desactivados</h4>
         <table class="table table-bordered table-sm align-middle text-center">
@@ -59,9 +60,9 @@
                 <th>Acciones</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="tablaDesactivados">
             {% for plan in desactivados %}
-            <tr>
+            <tr id="plan-{{ plan.id }}">
                 <td>{{ plan.id }}</td>
                 <td>{{ plan.nombre }}</td>
                 <td>{{ plan.carrera }}</td>
@@ -69,7 +70,7 @@
                 <td>{{ plan.modalidad }}</td>
                 <td>Desactivado</td>
                 <td>
-                <button class="btn btn-sm btn-success">Reactivar</button>
+                    <button class="btn btn-sm btn-success btn-reactivar" data-id="{{ plan.id }}">Reactivar</button>
                 </td>
             </tr>
             {% empty %}
@@ -80,4 +81,91 @@
         </section>
     </main>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tablaSuspendidos = document.getElementById("tablaSuspendidos");
+    const tablaDesactivados = document.getElementById("tablaDesactivados");
+    const csrftoken = "{{ csrf_token }}";
+
+    function reactivar(id) {
+        fetch(`/planes/reactivar/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                alert("Error: " + data.msg);
+                return;
+            }
+            const tr = document.getElementById(`plan-${id}`);
+            if (tr) {
+                tr.remove();  // lo sacamos de la tabla donde esté
+            }
+            alert(data.msg);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Ocurrió un error al reactivar el plan.");
+        });
+    }
+
+    function desactivar(id) {
+        fetch(`/planes/desactivar/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                alert("Error: " + data.msg);
+                return;
+            }
+            const tr = document.getElementById(`plan-${id}`);
+            if (!tr) return;
+
+            // Cambiar estado a "Desactivado"
+            const estadoTd = tr.querySelector("td:nth-child(6)");
+            if (estadoTd) {
+                estadoTd.textContent = "Desactivado";
+            }
+
+            // Sacar botón "Desactivar"
+            const btnDesactivar = tr.querySelector(".btn-desactivar");
+            if (btnDesactivar) {
+                btnDesactivar.remove();
+            }
+
+            // Mover la fila a la tabla de desactivados
+            tablaDesactivados.appendChild(tr);
+
+            alert(data.msg);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Ocurrió un error al desactivar el plan.");
+        });
+    }
+
+    // Delegación de eventos: un solo listener para todos los botones
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        if (btn.classList.contains("btn-reactivar")) {
+            reactivar(id);
+        } else if (btn.classList.contains("btn-desactivar")) {
+            desactivar(id);
+        }
+    });
+});
+</script>
 {% endblock %}

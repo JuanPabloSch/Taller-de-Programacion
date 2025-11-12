@@ -1,31 +1,24 @@
+# views.py (fusionado y limpio)
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_POST
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib.auth.decorators import login_required
-from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora
 from django.core.exceptions import PermissionDenied
-from .models import PlanPago, Cuota
-from fpdf import FPDF
-from datetime import datetime
+from django.contrib import messages
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
-from .forms import PlanPagoForm
-from .forms import RegularizacionForm, ReglaEstructuraForm, ReglaMoraForm
-from .decorators import group_required, can_delete, can_modify
-import csv
-import openpyxl
-from django.db import transaction
-from openpyxl.utils import get_column_letter
-import os
-from django.views.decorators.http import require_http_methods
-from django.contrib import messages
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import date, timedelta
-from django.http import JsonResponse
-from django.db import transaction
-from django.contrib import messages
+import csv, os, openpyxl
+from openpyxl.utils import get_column_letter
+from fpdf import FPDF
+
+from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora
+from .forms import (PlanPagoForm, RegularizacionForm,
+                    ReglaEstructuraForm, ReglaMoraForm)
+from .decorators import group_required, can_delete, can_modify
+
 
 # -------------------------------
 # Clase PDF personalizada
@@ -34,7 +27,11 @@ class PDF(FPDF):
     def header(self):
         logo_path = os.path.join("static", "img", "logo.png")
         if os.path.exists(logo_path):
-            self.image(logo_path, 10, 8, 20)  # (x, y, ancho)
+            try:
+                self.image(logo_path, 10, 8, 20)  # (x, y, ancho)
+            except Exception:
+                # si hay problemas con la imagen, no rompe el PDF
+                pass
         self.set_font("Arial", "B", 14)
         self.cell(0, 10, "ISDM - Sistema de Pagos", border=False, ln=1, align="C")
         self.ln(5)
@@ -54,34 +51,29 @@ def home(request):
 
 
 # -------------------------------
-# CRUD Planes
+# CRUD Planes (lista principal)
 # -------------------------------
 @login_required
 def planes_list(request):
-    
     # Instanciar los TRES formularios con prefijos únicos
-    # (El prefijo es opcional, pero ALTAMENTE recomendado)
-    regularizacion_form = RegularizacionForm(prefix='regularizacion') 
-    estructura_form = ReglaEstructuraForm(prefix='estructura') 
-    mora_form = ReglaMoraForm(prefix='mora') # <-- ¡Añadido el formulario de Mora!
-    
-    # Instancia de los planes existentes (asumiendo que los listaras)
-    # planes = PlanPago.objects.all() 
-    
-    # Pasar los TRES formularios al contexto
+    regularizacion_form = RegularizacionForm(prefix='regularizacion')
+    estructura_form = ReglaEstructuraForm(prefix='estructura')
+    mora_form = ReglaMoraForm(prefix='mora')
+
     context = {
-        # 'planes': planes, # Si los estás listando
         'regularizacion_form': regularizacion_form,
         'estructura_form': estructura_form,
-        'mora_form': mora_form, # <-- Añadido al contexto
+        'mora_form': mora_form,
     }
-    
-    return render(request, "planes_list.html", context)
 
+    return render(request, "planes_list.html", context)
 
 
 @login_required
 def planes_data(request):
+    """
+    Endpoint JSON para datatables / fetch de planes activos.
+    """
     data = [
         {
             "id": p.id,
@@ -90,7 +82,7 @@ def planes_data(request):
             "cohorte": p.cohorte,
             "modalidad": p.modalidad,
         }
-        for p in PlanPago.objects.filter(iEstado=True)
+        for p in PlanPago.objects.filter(estado='A')  # activos
     ]
     return JsonResponse({"data": data})
 
@@ -98,7 +90,9 @@ def planes_data(request):
 @require_POST
 @login_required
 def plan_guardar(request):
-    # Verificar permisos: solo Administrador y Tesorero pueden crear/modificar
+    """
+    Crear o actualizar plan vía POST (AJAX u ordinario).
+    """
     if not can_modify(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para realizar esta acción"}, status=403)
 
@@ -108,20 +102,21 @@ def plan_guardar(request):
     if plan_id:
         try:
             plan = PlanPago.objects.get(pk=plan_id)
-            plan.nombre = datos["nombre"]
-            plan.carrera = datos["carrera"]
-            plan.cohorte = datos["cohorte"]
-            plan.modalidad = datos["modalidad"]
+            plan.nombre = datos.get("nombre", plan.nombre)
+            plan.carrera = datos.get("carrera", plan.carrera)
+            plan.cohorte = datos.get("cohorte", plan.cohorte)
+            plan.modalidad = datos.get("modalidad", plan.modalidad)
             plan.save()
             return JsonResponse({"ok": True, "msg": "Plan actualizado"})
         except PlanPago.DoesNotExist:
             return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
     else:
         PlanPago.objects.create(
-            nombre=datos["nombre"],
-            carrera=datos["carrera"],
-            cohorte=datos["cohorte"],
-            modalidad=datos["modalidad"],
+            nombre=datos.get("nombre", ""),
+            carrera=datos.get("carrera", ""),
+            cohorte=datos.get("cohorte", ""),
+            modalidad=datos.get("modalidad", ""),
+            estado='S'  # por defecto guardamos como suspendido para revisión del admin
         )
         return JsonResponse({"ok": True, "msg": "Plan creado"})
 
@@ -129,7 +124,9 @@ def plan_guardar(request):
 @require_POST
 @login_required
 def plan_borrar(request, pk):
-    # Verificar permisos: solo Administrador puede eliminar
+    """
+    Marcar plan como inactivo (iEstado=False) - borrado lógico.
+    """
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para eliminar planes"}, status=403)
 
@@ -140,10 +137,7 @@ def plan_borrar(request, pk):
         return JsonResponse({"ok": True, "msg": "Plan eliminado"})
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
-# -------------------------------
-# FORMULARIOS DE PLANES (páginas separadas)
-# -------------------------------
-from .forms import PlanPagoForm  # asegúrate de tener esto entre los imports
+
 
 # -------------------------------
 # FORMULARIOS DE PLANES (modal AJAX)
@@ -154,10 +148,13 @@ def plan_crear(request):
     if request.method == "POST":
         form = PlanPagoForm(request.POST)
         if form.is_valid():
-            form.save()
+            plan = form.save(commit=False)
+            # Si el flujo requiere que nuevos planes queden en 'S' (suspendidos) para validacion:
+            plan.estado = 'S'
+            plan.save()
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"success": True})
-            return redirect("planes_list")
+            return redirect("planes_suspendidos")
     else:
         form = PlanPagoForm()
 
@@ -166,23 +163,19 @@ def plan_crear(request):
     return render(request, "planes/plan_form.html", {"form": form})
 
 
-                                                    #regularizaciones
+# Regularizaciones (combinado con reglas)
 @require_http_methods(["POST"])
 def regularizacion_crear(request):
     if request.method == 'POST':
         regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion')
         estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
         mora_form = ReglaMoraForm(request.POST, prefix='mora')
-        print("POST recibido:", request.POST)
-        print("Errores Regularizacion:", regularizacion_form.errors)
-        print("Errores Estructura:", estructura_form.errors)
-        print("Errores Mora:", mora_form.errors)
 
         if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
             try:
                 with transaction.atomic():
                     regularizacion = regularizacion_form.save(commit=False)
-                    regularizacion.estado = 'S'  # ← Se marca como suspendido
+                    regularizacion.estado = 'S'  # Se marca como suspendido
                     regularizacion.save()
 
                     estructura = estructura_form.save(commit=False)
@@ -193,7 +186,6 @@ def regularizacion_crear(request):
                     mora.regularizacion = regularizacion
                     mora.save()
 
-                # Si fue por AJAX
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'success': True, 'message': 'Regularización creada correctamente.'})
 
@@ -206,7 +198,7 @@ def regularizacion_crear(request):
                 messages.error(request, f'Ocurrió un error al guardar: {e}')
 
         else:
-            # Formularios con errores
+            # Responder errores (AJAX o normal)
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
@@ -218,9 +210,7 @@ def regularizacion_crear(request):
                 }, status=400)
 
             messages.error(request, 'Hay errores en los formularios.')
-            regularizacion_instance = regularizacion_form.save(commit=False)
-            regularizacion_instance.estado = 'suspendido'
-            regularizacion_instance.save()
+            # No guardamos parcialmente en este flujo; redirigimos
     return redirect('planes_list')
 
 
@@ -260,6 +250,7 @@ def plan_clonar(request, pk):
             "cohorte": original.cohorte,
             "modalidad": original.modalidad,
             "iEstado": True,
+            "estado": "S",
         }
         form = PlanPagoForm(initial=data_inicial)
 
@@ -267,12 +258,13 @@ def plan_clonar(request, pk):
         return render(request, "planes/plan_form.html", {"form": form})
     return render(request, "planes/plan_form.html", {"form": form})
 
+
 # -------------------------------
 # CRUD Cuotas
 # -------------------------------
 @login_required
 def cuotas_list(request):
-    plans = PlanPago.objects.filter(iEstado=True)
+    plans = PlanPago.objects.filter(estado='A')  # solo planes activos
     return render(request, "cuotas_list.html", {"plans": plans})
 
 
@@ -294,7 +286,6 @@ def cuotas_data(request):
 @require_POST
 @login_required
 def cuota_guardar(request):
-    # Verificar permisos: solo Administrador y Tesorero pueden crear/modificar
     if not can_modify(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para realizar esta acción"}, status=403)
 
@@ -304,20 +295,20 @@ def cuota_guardar(request):
     if cuota_id:
         try:
             cuota = Cuota.objects.get(pk=cuota_id)
-            cuota.plan_id = datos["plan"]
-            cuota.numero = datos["numero"]
-            cuota.vencimiento = datos["vencimiento"]
-            cuota.monto = datos["monto"]
+            cuota.plan_id = datos.get("plan", cuota.plan_id)
+            cuota.numero = datos.get("numero", cuota.numero)
+            cuota.vencimiento = datos.get("vencimiento", cuota.vencimiento)
+            cuota.monto = datos.get("monto", cuota.monto)
             cuota.save()
             return JsonResponse({"ok": True, "msg": "Cuota actualizada"})
         except Cuota.DoesNotExist:
             return JsonResponse({"ok": False, "msg": "Cuota no encontrada"}, status=404)
     else:
         Cuota.objects.create(
-            plan_id=datos["plan"],
-            numero=datos["numero"],
-            vencimiento=datos["vencimiento"],
-            monto=datos["monto"],
+            plan_id=datos.get("plan"),
+            numero=datos.get("numero"),
+            vencimiento=datos.get("vencimiento"),
+            monto=datos.get("monto"),
         )
         return JsonResponse({"ok": True, "msg": "Cuota creada"})
 
@@ -325,7 +316,6 @@ def cuota_guardar(request):
 @require_POST
 @login_required
 def cuota_borrar(request, pk):
-    # Verificar permisos: solo Administrador puede eliminar
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para eliminar cuotas"}, status=403)
 
@@ -362,7 +352,7 @@ def exportar_planes_pdf(request):
     pdf.cell(40, 10, "Modalidad", 1, 1, "C")
 
     pdf.set_font("Arial", size=10)
-    for p in PlanPago.objects.filter(iEstado=True):
+    for p in PlanPago.objects.filter(estado='A'):
         pdf.cell(40, 10, str(p.nombre), 1)
         pdf.cell(40, 10, str(p.carrera), 1)
         pdf.cell(40, 10, str(p.cohorte), 1)
@@ -374,6 +364,7 @@ def exportar_planes_pdf(request):
     response["Content-Disposition"] = 'attachment; filename="planes_pago.pdf"'
     return response
 
+
 @login_required
 def exportar_planes_csv(request):
     response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
@@ -382,11 +373,10 @@ def exportar_planes_csv(request):
     writer = csv.writer(response, delimiter=";")
     writer.writerow(["Nombre del Plan", "Carrera", "Cohorte", "Modalidad"])
 
-    for p in PlanPago.objects.filter(iEstado=True):
+    for p in PlanPago.objects.filter(estado='A'):
         writer.writerow([p.nombre, p.carrera, p.cohorte, p.modalidad])
 
     return response
-
 
 
 @login_required
@@ -395,7 +385,6 @@ def exportar_planes_excel(request):
     ws = wb.active
     ws.title = "Planes de Pago"
 
-    # Estilos
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 
     bold_font = Font(bold=True, color="FFFFFF")
@@ -408,7 +397,6 @@ def exportar_planes_excel(request):
         bottom=Side(style="thin"),
     )
 
-    # Cabecera
     headers = ["Nombre", "Carrera", "Cohorte", "Modalidad"]
     ws.append(headers)
 
@@ -419,11 +407,9 @@ def exportar_planes_excel(request):
         cell.alignment = center_align
         cell.border = thin_border
 
-    # Datos
-    for p in PlanPago.objects.filter(iEstado=True):
+    for p in PlanPago.objects.filter(estado='A'):
         ws.append([p.nombre, p.carrera, p.cohorte, p.modalidad])
 
-    # Ajustar ancho de columnas
     for col in ws.columns:
         max_length = 0
         col_letter = col[0].column_letter
@@ -436,7 +422,6 @@ def exportar_planes_excel(request):
         adjusted_width = (max_length + 2)
         ws.column_dimensions[col_letter].width = adjusted_width
 
-    # Descargar
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -445,10 +430,9 @@ def exportar_planes_excel(request):
     return response
 
 
-
 @login_required
 def imprimir_planes(request):
-    planes = PlanPago.objects.filter(iEstado=True)
+    planes = PlanPago.objects.filter(estado='A')
     return render(request, "imprimir_planes.html", {"planes": planes})
 
 
@@ -483,11 +467,10 @@ def exportar_cuotas_pdf(request):
         pdf.cell(40, 10, str(c.monto), 1)
         pdf.ln()
 
-    pdf_bytes = pdf.output(dest="S")  # 👈 bytes directos
+    pdf_bytes = pdf.output(dest="S")
     response = HttpResponse(bytes(pdf_bytes), content_type="application/pdf")
     response["Content-Disposition"] = 'attachment; filename="cuotas.pdf"'
     return response
-
 
 
 @login_required
@@ -502,7 +485,6 @@ def exportar_cuotas_csv(request):
         writer.writerow([c.plan.nombre, c.numero, c.vencimiento.strftime("%d/%m/%Y"), c.monto])
 
     return response
-
 
 
 @login_required
@@ -523,7 +505,6 @@ def exportar_cuotas_excel(request):
         bottom=Side(style="thin"),
     )
 
-    # Cabecera
     headers = ["Plan", "Número", "Vencimiento", "Monto"]
     ws.append(headers)
 
@@ -534,11 +515,9 @@ def exportar_cuotas_excel(request):
         cell.alignment = center_align
         cell.border = thin_border
 
-    # Datos
     for c in Cuota.objects.filter(iEstado=True):
         ws.append([c.plan.nombre, c.numero, c.vencimiento.strftime("%d/%m/%Y"), float(c.monto)])
 
-    # Ajustar ancho de columnas
     for col in ws.columns:
         max_length = 0
         col_letter = col[0].column_letter
@@ -550,7 +529,6 @@ def exportar_cuotas_excel(request):
                 pass
         ws.column_dimensions[col_letter].width = max_length + 2
 
-    # Descargar
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -564,11 +542,15 @@ def imprimir_cuotas(request):
     cuotas = Cuota.objects.filter(iEstado=True)
     return render(request, "imprimir_cuotas.html", {"cuotas": cuotas})
 
+
+# -------------------------------
 # Planes suspendidos
+# -------------------------------
 @login_required
 def planes_suspendidos(request):
     """
     Vista que muestra todos los planes y regularizaciones suspendidos o desactivados.
+    Combina PlanPago y Regularizacion (ambos con campo 'estado' esperado).
     """
     # Planes
     suspendidos_planes = PlanPago.objects.filter(estado='S')
@@ -591,20 +573,21 @@ def planes_suspendidos(request):
 @require_POST
 @login_required
 def plan_suspendido(request, pk):
+    """
+    Acción que marca iEstado=False (uso legacy). Dejéla si alguna parte del sistema la llama.
+    """
     try:
         plan = PlanPago.objects.get(pk=pk)
-        plan.iEstado = False  # Marcamos el plan como suspendido
+        plan.iEstado = False
         plan.save()
         return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
 
+
 # -------------------------------
 # DESACTIVAR / REACTIVAR PLANES
 # -------------------------------
-
-
-
 
 @require_POST
 @login_required
@@ -612,13 +595,13 @@ def plan_suspender(request, pk):
     """
     Marca un plan como suspendido (estado='S').
     """
-    # Verificar permisos: solo Administrador puede suspender
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para suspender planes"}, status=403)
 
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.estado = 'S'
+        plan.iEstado = False  # opcional, mantener coherencia
         plan.save()
         return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
     except PlanPago.DoesNotExist:
@@ -630,9 +613,7 @@ def plan_suspender(request, pk):
 def plan_desactivar(request, pk):
     """
     Desactiva un plan (estado='D' y iEstado=False).
-    No se elimina, simplemente deja de estar disponible.
     """
-    # Verificar permisos: solo Administrador puede desactivar
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para desactivar planes"}, status=403)
 
@@ -652,7 +633,6 @@ def plan_reactivar(request, pk):
     """
     Reactiva un plan desactivado o suspendido (estado='A' y iEstado=True).
     """
-    # Verificar permisos: solo Administrador puede reactivar
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para reactivar planes"}, status=403)
 
@@ -664,6 +644,3 @@ def plan_reactivar(request, pk):
         return JsonResponse({"ok": True, "msg": "Plan reactivado correctamente"})
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
-
-
-
