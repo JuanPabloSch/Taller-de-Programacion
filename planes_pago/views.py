@@ -4,6 +4,8 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora
+from django.core.exceptions import PermissionDenied
+from .models import PlanPago, Cuota
 from fpdf import FPDF
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -11,6 +13,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from .forms import PlanPagoForm
 from .forms import RegularizacionForm, ReglaEstructuraForm, ReglaMoraForm
+from .decorators import group_required, can_delete, can_modify
 import csv
 import openpyxl
 from django.db import transaction
@@ -95,6 +98,10 @@ def planes_data(request):
 @require_POST
 @login_required
 def plan_guardar(request):
+    # Verificar permisos: solo Administrador y Tesorero pueden crear/modificar
+    if not can_modify(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para realizar esta acción"}, status=403)
+
     datos = request.POST
     plan_id = datos.get("id")
 
@@ -122,6 +129,10 @@ def plan_guardar(request):
 @require_POST
 @login_required
 def plan_borrar(request, pk):
+    # Verificar permisos: solo Administrador puede eliminar
+    if not can_delete(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para eliminar planes"}, status=403)
+
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.iEstado = False
@@ -138,6 +149,7 @@ from .forms import PlanPagoForm  # asegúrate de tener esto entre los imports
 # FORMULARIOS DE PLANES (modal AJAX)
 # -------------------------------
 @login_required
+@group_required('Administrador', 'Tesorero')
 def plan_crear(request):
     if request.method == "POST":
         form = PlanPagoForm(request.POST)
@@ -213,6 +225,7 @@ def regularizacion_crear(request):
 
 
 @login_required
+@group_required('Administrador', 'Tesorero')
 def plan_editar(request, pk):
     plan = get_object_or_404(PlanPago, pk=pk)
     if request.method == "POST":
@@ -281,6 +294,10 @@ def cuotas_data(request):
 @require_POST
 @login_required
 def cuota_guardar(request):
+    # Verificar permisos: solo Administrador y Tesorero pueden crear/modificar
+    if not can_modify(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para realizar esta acción"}, status=403)
+
     datos = request.POST
     cuota_id = datos.get("id")
 
@@ -308,6 +325,10 @@ def cuota_guardar(request):
 @require_POST
 @login_required
 def cuota_borrar(request, pk):
+    # Verificar permisos: solo Administrador puede eliminar
+    if not can_delete(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para eliminar cuotas"}, status=403)
+
     try:
         cuota = Cuota.objects.get(pk=pk)
         cuota.iEstado = False
@@ -591,6 +612,10 @@ def plan_suspender(request, pk):
     """
     Marca un plan como suspendido (estado='S').
     """
+    # Verificar permisos: solo Administrador puede suspender
+    if not can_delete(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para suspender planes"}, status=403)
+
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.estado = 'S'
@@ -607,6 +632,10 @@ def plan_desactivar(request, pk):
     Desactiva un plan (estado='D' y iEstado=False).
     No se elimina, simplemente deja de estar disponible.
     """
+    # Verificar permisos: solo Administrador puede desactivar
+    if not can_delete(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para desactivar planes"}, status=403)
+
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.estado = 'D'
@@ -623,6 +652,10 @@ def plan_reactivar(request, pk):
     """
     Reactiva un plan desactivado o suspendido (estado='A' y iEstado=True).
     """
+    # Verificar permisos: solo Administrador puede reactivar
+    if not can_delete(request.user):
+        return JsonResponse({"ok": False, "msg": "No tienes permisos para reactivar planes"}, status=403)
+
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.estado = 'A'
