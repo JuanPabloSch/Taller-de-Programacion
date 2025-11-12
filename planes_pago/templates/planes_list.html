@@ -12,12 +12,16 @@
 
 
 <style>
+          body {
+  background-color: #d2dde4a2 !important;
+}
     .layout {
         display: flex;
         min-height: 100vh;
-        background: #f8f9fa;
+        background: #ffffff;
+        padding:20px;
+        border-radius: 16px;
     }
-
     /* SIDEBAR */
     .sidebar {
         width: 220px;
@@ -52,7 +56,7 @@
     /* MAIN CONTENT */
     .main-content {
         flex: 1;
-        padding: 2rem;
+
     }
     header.page-head {
         display: flex;
@@ -252,7 +256,6 @@
         <header class="page-head">
             <div>
                 <h2>Planes de Pago</h2>
-                <p>Recientes</p>
             </div>
             <div class="actions">
                 <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</a>
@@ -263,10 +266,10 @@
                 <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nueva Regularización</button>
                 {% endif %}
-
             </div>
         </header>
-
+        <br>
+<hr>
         <table id="tablaPlanes" class="display">
             <thead>
                 <tr>
