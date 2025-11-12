@@ -98,6 +98,9 @@
 <body>
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <button class="btn-toggle me-2" id="toggleSidebar">
+        <i class="bi bi-list"></i>
+      </button>
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static 'img/logo.png' %}" alt="ISDM Logo" class="navbar-logo">
@@ -112,6 +115,9 @@
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}">Planes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}">Cuotas</a></li>
+                    <li class="nav-item">
+                      <span class="nav-link disabled text-light">{% now "d/m/Y H:i" %}</span>
+                    </li>
                     {% if user|has_group:"Administrador" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_usuarios' %}">Usuarios</a></li>
                     {% endif %}
@@ -122,6 +128,7 @@
                     {% user_role user as rol %}
                     <li class="nav-item">
                         <span class="navbar-text text-white me-3">
+                            <i class="bi bi-person"></i>
                             <strong>{{ user.username }}</strong>
                             <span class="badge bg-secondary">{{ rol }}</span>
                         </span>
@@ -141,62 +148,18 @@
         </div>
     </nav>
 
-  <!-- === NAVBAR SUPERIOR === -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-
-      <!-- Botón de menú lateral -->
-      <button class="btn-toggle me-2" id="toggleSidebar">
-        <i class="bi bi-list"></i>
-      </button>
-
-      <a class="navbar-brand" href="{% url 'home' %}">ISDM Pagos</a>
-
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
-              aria-controls="nav" aria-expanded="false" aria-label="Menú">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div id="nav" class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto">
-          {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}">Planes</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}">Cuotas</a></li>
-          {% endif %}
-        </ul>
-
-        <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-            <li class="nav-item">
-              <span class="navbar-text text-white me-2">Hola, {{ user.username }}</span>
-            </li>
-            <li class="nav-item">
-              <form method="post" action="{% url 'logout' %}" style="display:inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
-              </form>
-            </li>
-          {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'registro' %}">Registrarse</a></li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-  </nav>
-
   <!-- === SIDEBAR === -->
   <nav id="sidebar">
     <div class="p-3 text-white fw-bold border-bottom">Menú</div>
     <ul class="nav flex-column">
+      <br>
+      <br>
       <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
       {% if user.is_authenticated %}
         <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}"><i class="bi bi-cash-stack"></i> Cuotas</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-cash-stack"></i> Planes Suspendidos/desactivados</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
       {% endif %}
-      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
-      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Ayuda</a></li>
     </ul>
   </nav>
 

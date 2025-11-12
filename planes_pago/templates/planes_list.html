@@ -247,26 +247,6 @@
 
 {% block content %}
 <div class="layout">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="user-info">
-            <img src="{% static 'img/tipito.png' %}" alt="admin">
-            <p>{{ user.username }}</p>
-            <p>{% now "d/m/Y H:i" %}</p>
-        </div>
-        <nav>
-            <a href="{% url 'planes_list' %}" class="{% if request.resolver_match.url_name == 'planes_list' %}active{% endif %}">Planes</a>
-            <a href="{% url 'cuotas_list' %}" class="{% if request.resolver_match.url_name == 'cuotas_list' %}active{% endif %}">Cuotas</a>
-            <a href="{% url 'planes_suspendidos' %}" 
-            class="{% if request.resolver_match.url_name == 'planes_suspendidos' %}active{% endif %}">
-            Suspendidos
-            </a>
-            <a href="#" class="">Historial</a>
-            <a href="#" class="">Reglas de mora</a>
-            <a href="{% url 'logout' %}" class="text-danger">🚪 Salir</a>
-        </nav>
-    </aside>
-
     <!-- MAIN -->
     <main class="main-content">
         <header class="page-head">
@@ -275,10 +255,10 @@
                 <p>Recientes</p>
             </div>
             <div class="actions">
-                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm">📄 PDF</a>
-                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm">🟢 CSV</a>
-                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm">📊 Excel</a>
-                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm">🖨 Imprimir</a>
+                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</a>
+                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm"><i class="bi bi-filetype-csv"></i>CSV</a>
+                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-excel"></i>Excel</a>
+                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir</a>
                 {% if user|is_in_groups:"Administrador,Tesorero" %}
                 <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nueva Regularización</button>
@@ -366,7 +346,7 @@
                     </div>
                 </div>
                     
-                <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">>
+                <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
                         <h5 class="card-title">Configuración de Estructura</h5>
                         {{ estructura_form.as_p }}  
                         <div class="d-flex justify-content-between mt-4">
