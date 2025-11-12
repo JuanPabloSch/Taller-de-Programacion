@@ -9,6 +9,7 @@
 <!-- Bootstrap para el modal -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+
 <style>
     .layout {
         display: flex;
@@ -96,6 +97,150 @@
     .btn-clone { background: #8338ec; }
     .btn-enter { background: #06d6a0; }
     .btn-del   { background: #ff006e; }
+    /* ===== Modal general ===== */
+#regularizacionModal .modal-content {
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  border: none;
+  overflow: hidden;
+}
+
+#regularizacionModal .modal-header {
+  background: linear-gradient(135deg, #004aad, #007bff);
+  color: white;
+  border-bottom: none;
+}
+
+#regularizacionModal .modal-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#regularizacionModal .btn-close {
+  filter: invert(1);
+}
+
+/* ===== Cuerpo del modal ===== */
+#regularizacionModal .modal-body {
+  background-color: #f8f9fa;
+  padding: 2rem;
+}
+
+/* ===== Tarjeta con pestañas ===== */
+#regularizacionModal .card {
+  border: none;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-radius: 12px;
+}
+
+#regularizacionModal .card-header {
+  background-color: #f1f4f8;
+  border-bottom: 2px solid #dee2e6;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 0.5rem;
+}
+
+/* ===== Navegación de pestañas ===== */
+#regularizacionModal .nav-tabs {
+  border-bottom: none;
+  justify-content: center;
+}
+
+#regularizacionModal .nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
+}
+
+#regularizacionModal .nav-tabs .nav-link.active {
+  background-color: white;
+  color: #004aad;
+  font-weight: 600;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+}
+
+/* ===== Contenido de cada pestaña ===== */
+#regularizacionModal .card-body {
+  padding: 2rem;
+}
+
+#regularizacionModal h5.card-title {
+  color: #004aad;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
+
+/* ===== Botones ===== */
+#regularizacionModal .btn {
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+#regularizacionModal .btn-primary {
+  background-color: #004aad;
+  border-color: #004aad;
+}
+
+#regularizacionModal .btn-primary:hover {
+  background-color: #003c8f;
+}
+
+#regularizacionModal .btn-success {
+  background-color: #198754;
+}
+
+#regularizacionModal .btn-success:hover {
+  background-color: #157347;
+}
+
+#regularizacionModal .btn-danger {
+  background-color: #dc3545;
+}
+
+#regularizacionModal .btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* ===== Inputs y selects ===== */
+#regularizacionModal input.form-control,
+#regularizacionModal select.form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+#regularizacionModal input.form-control:focus,
+#regularizacionModal select.form-select:focus {
+  border-color: #004aad;
+  box-shadow: 0 0 0 0.2rem rgba(0,74,173,0.15);
+}
+
+/* ===== Validación ===== */
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+  border-color: #dc3545;
+}
+
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+  border-color: #198754;
+}
+
+/* ===== Alertas de visualización ===== */
+#visualizacion-resultados .alert {
+  background-color: #e9f5ff;
+  color: #004aad;
+  border: 1px solid #b6d9ff;
+  border-radius: 8px;
+}
+
 </style>
 {% endblock %}
 
@@ -167,6 +312,8 @@
             </div>
         </div>
         <!-- Fin Modal -->
+
+
         <!-- Modal genérico para Regularización -->
 <div class="modal fade" id="regularizacionModal" tabindex="-1" aria-labelledby="regularizacionModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
@@ -206,37 +353,55 @@
               <div class="tab-content" id="myTabContent">
 
                 <div class="tab-pane fade show active" id="identificacion" role="tabpanel" aria-labelledby="identificacion-tab">
-                  <h5 class="card-title">Datos de Identificación de la Regularización</h5>
-                  {{ regularizacion_form.as_p }} 
+                    <h5 class="card-title">Datos de Identificación de la Regularización</h5>
+                    {{ regularizacion_form.as_p }} 
+                    
+                    <div class="d-flex justify-content-end mt-4">
+                                <!-- En la primera pestaña, solo hay botón Continuar (siguiente: Estructura) -->
+                                <button type="button" class="btn btn-primary" onclick="goToTab('estructura')">Continuar</button>
+                    </div>
                 </div>
-
+                    
                 <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">>
                         <h5 class="card-title">Configuración de Estructura</h5>
                         {{ estructura_form.as_p }}  
+                        <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTab('identificacion')">Volver</button>
+                        <!-- Continuar a Reglas de Mora -->
+                        <button type="button" class="btn btn-primary" onclick="goToTab('mora')">Continuar</button>
+                        </div>
                 </div>
 
                 <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
-                  <h5 class="card-title">Parámetros de Reglas de Mora</h5>
-                        {{ mora_form.as_p }}
+                    <h5 class="card-title">Parámetros de Reglas de Mora</h5>
+                    {{ mora_form.as_p }}
+                    <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-secondary" onclick="goToTab('estructura')">Volver</button>
+                            <!-- Generar Visualización (Activa el cálculo y navega) -->
+                            <button id="btnSimularPlan" class="btn btn-primary">Simular Plan</button>
+                    </div>
                 </div>
-<div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
-    
+                <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
     <h5 class="card-title">Simulación del Plan de Pagos</h5>
     
-    <div id="visualizacion-resultados">
-        <p class="card-text text-muted">Haga clic en la pestaña de Visualización para calcular y ver una simulación del plan de pagos basado en la estructura y reglas definidas.</p>
+    <div id="visualizacion-resultados" class="mt-3">
+        <div class="alert alert-info text-center" role="alert">
+        </div>
     </div>
     
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn btn-secondary" onclick="goToTab('mora')">Volver </button>
+        <div>
+            <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success" id="btnGuardarRegularizacion">Guardar Regularización</button>
+        </div>
+    </div>
+</div>   
 </div>
               </div>
             </div>
           </div>
           </div>
-        
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Guardar Regularización</button>
-        </div>
       </form>
     </div>
   </div>
@@ -250,6 +415,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 // ✅ Configurar CSRF correctamente para Django y AJAX
@@ -267,7 +433,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-const csrftoken = getCookie('csrftoken');
 
 // ⚡ Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
@@ -280,6 +445,7 @@ $.ajaxSetup({
 
 </script>
 <script>
+    
 $(function () {
     const tabla = $('#tablaPlanes').DataTable({
         ajax: '{% url "planes_data" %}',
@@ -383,119 +549,310 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
 });
 </script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Asegúrate de que los IDs coincidan con tu HTML:
-    // 1. El ID de la pestaña de Visualización (la que se clickea)
-    const visualizacionTabElement = document.getElementById('visualizacion-tab');
-    // 2. El ID del div contenedor donde se mostrará la tabla
-    const resultadosContainer = document.getElementById('visualizacion-resultados'); 
+function goToTab(tabId) {
+    const tabTrigger = new bootstrap.Tab(document.querySelector(`#${tabId}-tab`));
+    tabTrigger.show();
+}
+//boton simular plan funcion 
+
+</script>
+<script>
+// =======================================================
+// === FUNCIONES AUXILIARES PARA EL CÁLCULO Y NAVEGACIÓN ===
+// =======================================================
+
+// Función para cambiar de pestaña de Bootstrap (Sin cambios)
+function goToTab(tabId) {
+    const tabElement = document.querySelector(`#${tabId}-tab`); 
+    if (tabElement) {
+        const tab = new bootstrap.Tab(tabElement);
+        tab.show();
+    } else {
+        console.error(`Error: No se encontró el elemento de la pestaña con ID: ${tabId}-tab`);
+    }
+}
+
+// Función para parsear la data del formulario (Sin cambios)
+function getFormData(formElement) {
+    const data = {};
+    const formData = new FormData(formElement);
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    return data;
+}
+
+/**
+ * Función de cálculo con la inclusión del pago inicial en la información de retorno.
+ */
+function calcularCuotas(data) {
+    // --- 1. Obtener y parsear los datos de los formularios ---
+    const valor_origen = parseFloat(data['estructura-valor']) || 0;
+    const tasa_interes = parseFloat(data['estructura-tasa']) || 0;
+    // Capturamos el pago inicial del formulario
+    const pago_inicial = parseFloat(data['estructura-pago_incial']) || 0; 
+    const cantidad_de_cuotas = parseInt(data['estructura-cantidad_de_cuotas']) || 0;
+    const frecuencia_de_pago = data['estructura-frecuencia_de_pago'];
+    const dia_vencimiento = parseInt(data['estructura-dia_vencimiento']) || 1;
     
-    // Solo si ambos elementos existen, ejecutamos el listener
-    if (!visualizacionTabElement || !resultadosContainer) {
-        console.error("No se encontraron los elementos #visualizacion-tab o #visualizacion-resultados. El script no se ejecutará.");
-        return;
+    const tipo_recargo = data['mora-tipo_de_recargo'];
+    const cantidad_recargo = parseFloat(data['mora-cantidad_recargo']) || 0;
+    const dias_gracia = parseInt(data['mora-dias_gracia']) || 0;
+    const origen_deuda = data['estructura-origen_deuda'];
+
+    // --- 2. Validación Básica ---
+    if (cantidad_de_cuotas <= 0) {
+        return { status: 'error', message: 'La cantidad de cuotas debe ser un número positivo.' };
+    }
+    if (valor_origen <= 0 && origen_deuda === 'FIJO') {
+         return { status: 'error', message: 'El valor de la deuda fija debe ser un número positivo.' };
     }
     
-    // 1. Escuchar cuando la pestaña de Visualización es abierta
-    visualizacionTabElement.addEventListener('shown.bs.tab', function (event) {
-        
-        // Mostrar mensaje de carga mientras se espera la respuesta del servidor
-        resultadosContainer.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p>Calculando plan de pagos...</p></div>';
+    const round2 = (num) => Math.round(num * 100) / 100;
+    
+    // --- 3. Cálculos Preliminares ---
+    // Asunción de deuda total (si no es fija)
+    let deuda_total_completa = (origen_deuda === 'FIJO') ? valor_origen : 100000; 
 
-        const estructuraForm = document.querySelector('form'); // Asume que es el formulario principal
-        const formData = new FormData(estructuraForm);
-        
-        // 2. Recolectar solo los datos de Estructura usando el prefijo 'estructura-'
-        const dataParaCalculo = new URLSearchParams();
-        for (const [key, value] of formData.entries()) {
-            // Recolectamos todos los campos que empiezan con el prefijo 'estructura-'
-            if (key.startsWith('estructura-')) { 
-                dataParaCalculo.append(key, value);
-            }
+    // Monto a financiar (Deuda total - Pago inicial)
+    let monto_base_total = round2(deuda_total_completa - pago_inicial);
+    
+    if (monto_base_total <= 0) {
+        return { status: 'error', message: 'El monto total a financiar debe ser mayor que cero. Revise la deuda y el pago inicial.' };
+    }
+
+    const base = monto_base_total / cantidad_de_cuotas;
+    
+    // --- 4. Cálculo de Fechas ---
+    const fecha_asignacion = new Date(); 
+    let anio_inicio = fecha_asignacion.getFullYear();
+    let mes_inicio = fecha_asignacion.getMonth();
+
+    if (fecha_asignacion.getDate() > dia_vencimiento) {
+        mes_inicio += 1;
+        if (mes_inicio > 11) {
+            mes_inicio = 0;
+            anio_inicio += 1;
         }
-        
-        // 3. Enviar la petición AJAX
-        fetch('{% url "regla_estructura_calculos" %}', {
-            method: 'POST',
-            body: dataParaCalculo,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}', // ¡CRUCIAL para Django!
-                'X-Requested-With': 'XMLHttpRequest', // Para identificar la petición como AJAX
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            // Si hay un error (ej. 400), capturamos el JSON de error
-            return response.json().then(data => {
-                // Lanzamos un error que contiene los errores de validación del formulario
-                throw new Error(JSON.stringify(data.errors || data.message || "Error desconocido del servidor."));
-            });
-        })
-        .then(data => {
-            if (data.success) {
-                // 4. Si el cálculo es exitoso, inyectamos la tabla HTML
-                const tablaHTML = generarTablaHTML(data.plan_pagos);
-                resultadosContainer.innerHTML = tablaHTML; 
-            }
-        })
-        .catch(error => {
-            // 5. Manejar y mostrar errores
-            let errorMessage = "Ocurrió un error inesperado en el cálculo.";
-            try {
-                 const errors = JSON.parse(error.message);
-                 // Este mensaje es clave si falla la validación del formulario de Estructura
-                 errorMessage = "Error de validación: Revise los campos de la pestaña Estructura (ej: valor, cuotas, tasa).";
-            } catch (e) {
-                // Error genérico si no se puede conectar o si hay un 500
-                errorMessage = "No se pudo calcular el plan. Verifique la conexión o contacte a soporte.";
-            }
+    }
+    
+    let vto_inicial = new Date(anio_inicio, mes_inicio, dia_vencimiento);
+    vto_inicial.setDate(vto_inicial.getDate() + dias_gracia);
 
-            resultadosContainer.innerHTML = `
-                <div class="alert alert-danger" role="alert">
-                    <strong>¡Error!</strong> ${errorMessage}
+    const frecuencia_a_meses = { 'MENSUAL': 1, 'BIMESTRAL': 2, 'TRIMESTRAL': 3 };
+    const intervalo_meses = frecuencia_a_meses[frecuencia_de_pago] || 1;
+
+    // --- 5. Generar Cuotas (Igual que antes) ---
+    const cuotas_data = [];
+    
+    for (let i = 1; i <= cantidad_de_cuotas; i++) {
+        let vto = new Date(vto_inicial);
+        vto.setMonth(vto.getMonth() + (intervalo_meses * (i - 1)));
+        
+        const monto_interes = round2(base * (tasa_interes / 100));
+        const monto_cuota = round2(base + monto_interes);
+
+        let mora = 0;
+        if (tipo_recargo === 'FIJO') {
+            mora = cantidad_recargo;
+        } else if (tipo_recargo === 'PORCENTUAL') {
+            mora = round2(base * (cantidad_recargo / 100));
+        }
+
+        cuotas_data.push({
+            'nro': i, 'base': base.toFixed(2), 'interes': monto_interes.toFixed(2),
+            'monto_total': monto_cuota.toFixed(2), 'mora': mora.toFixed(2),
+            'vto': vto.toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: 'numeric'}),
+        });
+    }
+
+    // --- 6. Devolver información adicional para el resumen ---
+    let descripcion_mora = '';
+    if (tipo_recargo === 'FIJO') {
+        descripcion_mora = `$${cantidad_recargo.toFixed(2)} Fijo`;
+    } else if (tipo_recargo === 'PORCENTUAL') {
+        descripcion_mora = `${cantidad_recargo.toFixed(2)}% sobre la base de la cuota`;
+    } else {
+        descripcion_mora = 'No aplica recargo de mora';
+    }
+
+    return { 
+        status: 'ok', 
+        cuotas: cuotas_data,
+        extra_info: {
+            total_original: deuda_total_completa.toFixed(2),
+            pago_inicial: pago_inicial.toFixed(2), // <--- AGREGADO AQUÍ
+            total_a_financiar: monto_base_total.toFixed(2), // Renombrado para claridad
+            frecuencia: frecuencia_de_pago,
+            interes: tasa_interes.toFixed(2) + '%',
+            recargo_mora: descripcion_mora,
+            dias_gracia: dias_gracia,
+        }
+    };
+}
+
+
+// ===============================================
+// === MANEJADOR DEL BOTÓN DE SIMULACIÓN (jQuery) ===
+// ===============================================
+$(document).ready(function() {
+    
+    $('#btnSimularPlan').on('click', function() {
+        
+        const $resultadosDiv = $('#visualizacion-resultados');
+        
+        // 1. Mostrar spinner/cargando
+        $resultadosDiv.html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Calculando...</span>
+                </div>
+                <p class="mt-2">Calculando plan de cuotas localmente...</p>
+            </div>
+        `);
+        
+        // 2. Obtener y ejecutar la simulación localmente
+        const formElement = document.querySelector('#regularizacionModal form');
+        const data = getFormData(formElement);
+        const response = calcularCuotas(data);
+        
+        // 3. Procesar la respuesta y generar la visualización
+        if (response.status === 'ok') {
+            // --- 3.1. Crear el Resumen ---
+            const info = response.extra_info;
+            let resumenHtml = `
+                <div class="card mb-4 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">Resumen del Plan de Pagos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Deuda Original:</strong> $${info.total_original}<br>
+                                <strong>Pago Inicial:</strong> $${info.pago_inicial}<br>
+                                <strong>Deuda a Financiar:</strong> <strong>$${info.total_a_financiar}</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Frecuencia de Pago:</strong> ${info.frecuencia}<br>
+                                <strong>Tasa de Interés:</strong> ${info.interes}<br>
+                                <strong>Recargo por Mora:</strong> ${info.recargo_mora}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
-            console.error('Error en el cálculo AJAX:', error);
-        });
+            // --- 3.2. Crear la Tabla (Igual que antes) ---
+            let tablaHtml = `
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th># Cuota</th>
+                            <th>Monto Base</th>
+                            <th>Interés</th>
+                            <th>Monto Total</th>
+                            <th>Mora Aplicada</th>
+                            <th>Fecha Vencimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            response.cuotas.forEach(c => {
+                tablaHtml += `
+                    <tr>
+                        <td>${c.nro}</td>
+                        <td>$${c.base}</td>
+                        <td>$${c.interes}</td>
+                        <td><strong>$${c.monto_total}</strong></td>
+                        <td>$${c.mora}</td>
+                        <td>${c.vto}</td>
+                    </tr>
+                `;
+            });
+            tablaHtml += `
+                    </tbody>
+                </table>
+            `;
+            
+            // 4. Insertar ambos elementos
+            $resultadosDiv.html(resumenHtml + tablaHtml);
+            
+            // 5. Cambiar a la pestaña de Visualización
+            goToTab('visualizacion');
+        } else {
+            // Manejo de errores
+            const errorMessage = response.message || 'Error desconocido en la simulación.';
+            $resultadosDiv.html(`
+                <div class="alert alert-danger" role="alert">
+                    <h4>⚠️ Error de Simulación:</h4>
+                    <p>${errorMessage}</p>
+                    <p>Por favor, revisa los datos ingresados en las pestañas Estructura y Reglas de Mora.</p>
+                </div>`
+            );
+            goToTab('visualizacion');
+        }
     });
 
-    // --- Función de ayuda para generar la tabla HTML a partir del JSON (Cuotas) ---
-    function generarTablaHTML(plan_pagos) {
-        if (!plan_pagos || plan_pagos.length === 0) {
-            return '<p class="alert alert-info">No se generaron cuotas para el plan. Revise los parámetros de Estructura.</p>';
-        }
-
-        let html = `
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th># Cuota</th>
-                        <th>Vencimiento</th>
-                        <th>Capital</th>
-                        <th>Interés</th>
-                        <th>Monto Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        plan_pagos.forEach((pago, index) => {
-            html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${pago.vencimiento}</td>
-                    <td>$${pago.capital.toFixed(2)}</td>
-                    <td>$${pago.interes.toFixed(2)}</td>
-                    <td>$${pago.monto_cuota.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-
-        html += '</tbody></table>';
-        return html;
-    }
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Buscamos el botón por su id
+  const btnGuardar = document.getElementById("btnGuardarRegularizacion");
+
+  // Si existe el botón, le agregamos la acción
+  if (btnGuardar) {
+    btnGuardar.addEventListener("click", function (e) {
+      e.preventDefault(); // Evita que recargue la página
+
+      // Buscamos el formulario dentro del modal
+      const form = document.querySelector("#regularizacionModal form");
+      const formData = new FormData(form);
+
+      // Enviamos los datos al backend (a tu vista 'regularizacion_crear')
+      fetch(form.action, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Error al guardar la regularización");
+        return res.text();
+      })
+      .then(() => {
+        Swal.fire({
+          title: "✅ Guardado",
+          text: "La regularización se guardó correctamente.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Cierra el modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById("regularizacionModal"));
+        modal.hide();
+
+        // Refresca la tabla principal
+        if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
+          $('#tablaPlanes').DataTable().ajax.reload();
+        } else {
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire("❌ Error", "No se pudo guardar la regularización.", "error");
+      });
+    });
+  }
+});
+</script>
+
+
+
+
+
+
 {% endblock %}

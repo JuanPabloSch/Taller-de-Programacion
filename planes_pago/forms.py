@@ -53,17 +53,23 @@ class RegularizacionForm(forms.ModelForm):
         widgets = {
                 'nombre': forms.TextInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: Regularización Analista 2025'
+                    'placeholder': 'Ej: Regularización Analista 2025',
+                    'required': True
                 }),
                 'carrera': forms.Select(attrs={
                     'class': 'form-select',
+                    'placeholder':'---Seleccione---',
+                    'required': True
                 }),
                 'modalidad': forms.Select(attrs={
                     'class': 'form-select',
+                    'placeholder':'---Seleccione---',
+                    'required': True
                 }),
                 'cohorte': forms.TextInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: 2025'
+                    'placeholder': 'Ej: 2025',
+                    'required': True
                 }),
             }
 class ReglaEstructuraForm(forms.ModelForm):
@@ -73,7 +79,6 @@ class ReglaEstructuraForm(forms.ModelForm):
             'origen_deuda', 
             'valor',
             'tasa', 
-            'aplicar_sobre',
             'pago_incial', # ¡Nuevo!
             'cantidad_de_cuotas',
             'frecuencia_de_pago',
@@ -83,7 +88,6 @@ class ReglaEstructuraForm(forms.ModelForm):
                 'origen_deuda': 'Origen de la Deuda',
                 'valor': 'Valor',
                 'tasa': 'Tasa (%)',
-                'aplicar_sobre': 'Aplicar Sobre',
                 'pago_incial': 'Pago Inicial',
                 'cantidad_de_cuotas': 'Cantidad de Cuotas',
                 'frecuencia_de_pago': 'Frecuencia de Pago',
@@ -93,32 +97,36 @@ class ReglaEstructuraForm(forms.ModelForm):
         widgets = {
                 'origen_deuda': forms.Select(attrs={
                     'class': 'form-select',
+                    
                 }),
                 'valor': forms.NumberInput(attrs={  
                     'class': 'form-control',
-                    'placeholder': 'Ej: 5000.00'
+                    'placeholder': 'Ej: 5000.00',
+                    'required': True
                 }),
                 'tasa': forms.NumberInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: 10.5'
-                }),
-                'aplicar_sobre': forms.Select(attrs={
-                    'class': 'form-select',
+                    'placeholder': 'Ej: 10.5',
+                    'required': True
                 }),
                 'pago_incial': forms.NumberInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: 2000.00'
+                    'placeholder': 'Ej: 2000.00',
+                    'required': True
                 }),
                 'cantidad_de_cuotas': forms.NumberInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: 12'
+                    'placeholder': 'Ej: 12',
+                    'required': True
                 }),
                 'frecuencia_de_pago': forms.Select(attrs={
                     'class': 'form-select',
+                    'required': True
                 }),
                 'dia_vencimiento': forms.NumberInput(attrs={
                     'class': 'form-control',
-                    'placeholder': 'Ej: 15'
+                    'placeholder': 'Ej: 15',
+                    'required': True
                 }),
             }
 class ReglaMoraForm(forms.ModelForm):

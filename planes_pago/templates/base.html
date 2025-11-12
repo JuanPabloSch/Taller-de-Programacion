@@ -1,90 +1,175 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Sistema de Pagos{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ISDM Pagos{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- Bootstrap CSS + Íconos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    {% block extra_head %}{% endblock %}
+
+
+  <style>
+    /* === SIDEBAR === */
+    #sidebar {
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      left: -250px;
+      top: 0;
+      background-color: #212529;
+      transition: all 0.3s;
+      z-index: 1030;
+    }
+
+    #sidebar.active {
+      left: 0;
+    }
+
+    #sidebar .nav-link {
+      color: #ddd;
+      padding: 12px 20px;
+      display: block;
+    }
+
+    #sidebar .nav-link:hover {
+      background-color: #343a40;
+      color: #fff;
+    }
+
+    #content {
+      transition: margin-left 0.3s;
+      padding: 20px;
+    }
+
+    #sidebar.active + #content {
+      margin-left: 250px;
+    }
+
+    .btn-toggle {
+      border: none;
+      background: none;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                ISDM Pagos
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
-                    aria-controls="nav" aria-expanded="false" aria-label="Menú">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div id="nav" class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}">Planes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}">Cuotas</a></li>
-                {% endif %}
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="navbar-text text-white me-2">Hola, {{ user.username }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" style="display:inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
-                        </form>
-                    </li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registro' %}">Registrarse</a></li>
-                {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <!-- CONTENIDO -->
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
+  <!-- === NAVBAR SUPERIOR === -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+
+      <!-- Botón de menú lateral -->
+      <button class="btn-toggle me-2" id="toggleSidebar">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <a class="navbar-brand" href="{% url 'home' %}">ISDM Pagos</a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+              aria-controls="nav" aria-expanded="false" aria-label="Menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}">Planes</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}">Cuotas</a></li>
+          {% endif %}
+        </ul>
+
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <span class="navbar-text text-white me-2">Hola, {{ user.username }}</span>
+            </li>
+            <li class="nav-item">
+              <form method="post" action="{% url 'logout' %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'registro' %}">Registrarse</a></li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
+  </nav>
 
-    <!-- jQuery + Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- === SIDEBAR === -->
+  <nav id="sidebar">
+    <div class="p-3 text-white fw-bold border-bottom">Menú</div>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
+      {% if user.is_authenticated %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}"><i class="bi bi-cash-stack"></i> Cuotas</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-cash-stack"></i> Planes Suspendidos/desactivados</a></li>
+      {% endif %}
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Ayuda</a></li>
+    </ul>
+  </nav>
 
-    <!-- CSRF para AJAX -->
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+  <!-- === CONTENIDO PRINCIPAL === -->
+  <div id="content" class="container mt-4">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- === SCRIPTS === -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Toggle sidebar
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+    });
+
+    // CSRF setup para AJAX
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
-        const csrftoken = getCookie('csrftoken');
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            }
-        });
-    </script>
+      }
+      return cookieValue;
+    }
 
-    {% block extra_scripts %}{% endblock %}
+    const csrftoken = getCookie('csrftoken');
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>

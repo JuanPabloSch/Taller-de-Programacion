@@ -59,6 +59,18 @@ class Regularizacion(models.Model):
         verbose_name='Modalidad de Cursada'
     )
     cohorte = models.CharField(max_length=15)
+    ESTADO_CHOICES = [
+        ('A', 'Activa'),
+        ('S', 'Suspendida'),
+        ('D', 'Desactivada'),
+    ]
+    estado = models.CharField(
+        max_length=1,
+        choices=ESTADO_CHOICES,
+        default='S'
+    )
+    def __str__(self):
+         return f"{self.nombre} - {self.get_estado_display()}"
 
                                     #estructura de la regularizacion
 class ReglaEstructura(models.Model):
@@ -80,12 +92,7 @@ class ReglaEstructura(models.Model):
     
     # Tasa (se ve como un porcentaje)
     tasa = models.DecimalField(max_digits=5, decimal_places=2, help_text="Tasa en porcentaje (ej. 10.5)")
-    APLICAR_CHOICES = (
-        ('CUOTA', 'Monto de cuota'),
-        ('TOTAL', 'Total de Deuda'),
-    )
-    aplicar_sobre = models.CharField(max_length=10, choices=APLICAR_CHOICES)
-    
+  
     # Cuotas
     pago_incial = models.DecimalField(max_digits=10, decimal_places=2)
     cantidad_de_cuotas = models.IntegerField(default=1)
@@ -137,11 +144,12 @@ class ReglaMora(models.Model):
     cantidad_recargo = models.DecimalField(
         max_digits=5, 
         decimal_places=2, 
-        # Mantener null=True y blank=True
-        null=True,     
-        blank=True,     
+        null=True,
+        blank=True,
+        default=0,
         verbose_name='Tasa/Monto de Recargo'
     )
+
     
     FRECUENCIA_APLICACION_CHOICES = (
         ('UNA_VEZ', 'Una Sola Vez'),
@@ -151,20 +159,21 @@ class ReglaMora(models.Model):
     frecuencia_aplicacion = models.CharField(
         max_length=10, 
         choices=FRECUENCIA_APLICACION_CHOICES,
+        null=True,
+        blank=True, 
         # Mantener null=True y blank=True
-        null=True,     
-        blank=True,     
+            
         verbose_name='Frecuencia de aplicación'
     )
     veces_aplicacion=models.IntegerField(
-        default=1,
+        default=0,
         verbose_name='Veces de Aplicación',
         help_text='Veces que se aplicará el recargo según la frecuencia seleccionada'
     )
     
     # Días de gracia puede permanecer con default=0 si quieres que siempre tenga un valor
     dias_gracia = models.IntegerField(
-        default=5,
+        default=3,
         verbose_name='Días de Gracia',
         help_text='Cantidad de días antes de que se aplique recargo post vencimiento'
     )

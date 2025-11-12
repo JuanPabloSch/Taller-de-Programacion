@@ -9,165 +9,58 @@
     <div class="modal fade" id="regularizacionModal" tabindex="-1" aria-labelledby="regularizacionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg"> <div class="modal-content">
             
-            <form method="post" action="{% url 'regularizacion_crear' %}">
-                {% csrf_token %}
-                
-                <div class="modal-header">
-                    <h5 class="modal-title" id="regularizacionModalLabel">Plan Regularización</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                
-                <div class="modal-body">
-                    
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="detalles-tab" data-bs-toggle="tab" data-bs-target="#detalles" type="button" role="tab">Detalles de Regularización</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab">Estructura</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="mora-tab" data-bs-toggle="tab" data-bs-target="#mora" type="button" role="tab">Reglas de Mora</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab">Visualización</button>
-                        </li>
-                        </ul>
+            <form method="post" action="{% url 'regularizacion_crear' %}" class="needs-validation" novalidate>
+    {% csrf_token %}
 
-                        <div class="tab-content pt-3" id="myTabContent">
-                        
-                        <div class="tab-pane fade show active" id="detalles" role="tabpanel" aria-labelledby="detalles-tab">
-                            {{ regularizacion_form.as_p }} 
-                        </div>
-                        
-                        <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
-                            {{ estructura_form.as_p }} 
-                        </div>
-                        <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
-                            {{ mora_form.as_p }}
-                        </div>
-<div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
-    
-    <h5 class="card-title">Simulación del Plan de Pagos</h5>
-    
-    <div id="visualizacion-resultados">
-        <p class="card-text text-muted">Haga clic en la pestaña de Visualización para calcular y ver una simulación del plan de pagos basado en la estructura y reglas definidas.</p>
+    <div class="modal-header">
+        <h5 class="modal-title" id="regularizacionModalLabel">Plan Regularización</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
-    
-</div>
-                        </div>
 
+    <div class="modal-body">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="detalles-tab" data-bs-toggle="tab" data-bs-target="#detalles" type="button" role="tab">Detalles de Regularización</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab">Estructura</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mora-tab" data-bs-toggle="tab" data-bs-target="#mora" type="button" role="tab">Reglas de Mora</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab">Visualización</button>
+            </li>
+        </ul>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Regularización Completa</button>
+        <div class="tab-content pt-3" id="myTabContent">
+            <div class="tab-pane fade show active" id="detalles" role="tabpanel" aria-labelledby="detalles-tab">
+                {{ regularizacion_form.as_p }}
+            </div>
+            <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
+                {{ estructura_form.as_p }}
+            </div>
+            <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
+                {{ mora_form.as_p }}
+            </div>
+            <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
+                <h5 class="card-title">Simulación del Plan de Pagos</h5>
+                <div id="visualizacion-resultados">
+                    <p class="card-text text-muted">Haga clic en la pestaña de Visualización para calcular y ver una simulación del plan de pagos basado en la estructura y reglas definidas.</p>
                 </div>
-            </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Regularización Completa</button>
+    </div>
+</form>
+
             
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const visualizacionTabElement = document.getElementById('visualizacion-tab');
-    const resultadosContainer = document.getElementById('visualizacion-resultados');
-    
-    // 1. Escuchar cuando la pestaña de Visualización es abierta
-    visualizacionTabElement.addEventListener('shown.bs.tab', function (event) {
-        
-        resultadosContainer.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p>Calculando plan de pagos...</p></div>';
-
-        const estructuraForm = document.querySelector('form');
-        const formData = new FormData(estructuraForm);
-        
-        // 2. Recolectar solo los datos de Estructura usando el prefijo 'estructura-'
-        const dataParaCalculo = new URLSearchParams();
-        for (const [key, value] of formData.entries()) {
-            if (key.startsWith('estructura-')) { 
-                dataParaCalculo.append(key, value);
-            }
-        }
-        
-        // 3. Enviar la petición AJAX
-        fetch('{% url "regla_estructura_calculos" %}', {
-            method: 'POST',
-            body: dataParaCalculo,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}', 
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            return response.json().then(data => {
-                throw new Error(JSON.stringify(data.errors || data.message || "Error desconocido."));
-            });
-        })
-        .then(data => {
-            if (data.success) {
-                // 4. Inyectar la tabla HTML
-                const tablaHTML = generarTablaHTML(data.plan_pagos);
-                resultadosContainer.innerHTML = tablaHTML; 
-            }
-        })
-        .catch(error => {
-            // 5. Manejar y mostrar errores de validación
-            let errorMessage = "Ocurrió un error inesperado en el cálculo.";
-            try {
-                 const errors = JSON.parse(error.message);
-                 errorMessage = "Error de validación en la pestaña Estructura. Revise los campos (ej: valor, cuotas).";
-            } catch (e) {
-                errorMessage = "No se pudo calcular el plan. Verifique la conexión o los parámetros.";
-            }
-
-            resultadosContainer.innerHTML = `
-                <div class="alert alert-danger" role="alert">
-                    <strong>¡Error!</strong> ${errorMessage}
-                </div>
-            `;
-            console.error('Error en el cálculo AJAX:', error);
-        });
-    });
-
-    // --- Función para generar la tabla HTML a partir del JSON (Cuotas) ---
-    function generarTablaHTML(plan_pagos) {
-        if (!plan_pagos || plan_pagos.length === 0) {
-            return '<p class="alert alert-info">No se generaron cuotas para el plan.</p>';
-        }
-
-        let html = `
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        <th># Cuota</th>
-                        <th>Vencimiento</th>
-                        <th>Capital</th>
-                        <th>Interés</th>
-                        <th>Monto Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        plan_pagos.forEach((pago, index) => {
-            html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${pago.vencimiento}</td>
-                    <td>$${pago.capital.toFixed(2)}</td>
-                    <td>$${pago.interes.toFixed(2)}</td>
-                    <td>$${pago.monto_cuota.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-
-        html += '</tbody></table>';
-        return html;
-    }
-});
-</script>
-</script>
 </body>
 </html>

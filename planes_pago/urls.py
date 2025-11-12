@@ -20,8 +20,6 @@ urlpatterns = [
     path("planes/clonar/<int:pk>/", views.plan_clonar, name="plan_clonar"),
         #formulario regularizaciones
     path("planes/regularizaciones/nuevo/", views.regularizacion_crear, name="regularizacion_crear"),
-        #calculos para visualizacion
-    path("planes/regularizaciones/calculos/", views.regla_estructura_calculos, name="regla_estructura_calculos"),
 
 
     # CRUD de cuotas
