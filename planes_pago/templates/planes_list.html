@@ -472,30 +472,51 @@ $(function () {
 
     
     // Suspender plan
+// Suspender plan con SweetAlert2 (LINDO)
 $('#tablaPlanes').on('click', '.btn-susp', function () {
     const data = tabla.row($(this).closest('tr')).data();
-    if (!confirm(`¿Suspender el plan #${data.id}?`)) return;
 
-    fetch(`/planes/suspender/${data.id}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Error en la respuesta del servidor');
-        return response.json();
-    })
-    .then(data => {
-        alert(data.msg || 'Plan suspendido correctamente');
-        tabla.ajax.reload(null, false);
-    })
-    .catch(error => {
-        console.error(error);
-        alert('Error al suspender el plan');
+    Swal.fire({
+        title: `¿Suspender el plan #${data.id}?`,
+        text: "El plan pasará a la sección de suspendidos.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, suspender",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        fetch(`/planes/suspender/${data.id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error en la respuesta del servidor");
+            return response.json();
+        })
+        .then(resp => {
+            Swal.fire({
+                icon: "success",
+                title: "Plan suspendido",
+                text: resp.msg || "El plan pasó a la sección de suspendidos",
+                timer: 1800,
+                showConfirmButton: false
+            });
+
+            tabla.ajax.reload(null, false);
+        })
+        .catch(error => {
+            console.error(error);
+            Swal.fire("Error", "No se pudo suspender el plan.", "error");
+        });
     });
 });
+
 
 
     // Modal de Bootstrap

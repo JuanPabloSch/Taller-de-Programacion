@@ -79,8 +79,13 @@
             </tbody>
         </table>
         </section>
+
     </main>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -88,83 +93,126 @@ document.addEventListener("DOMContentLoaded", () => {
     const tablaDesactivados = document.getElementById("tablaDesactivados");
     const csrftoken = "{{ csrf_token }}";
 
-    function reactivar(id) {
-        fetch(`/planes/reactivar/${id}/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": csrftoken,
-            },
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.ok) {
-                alert("Error: " + data.msg);
-                return;
-            }
-            const tr = document.getElementById(`plan-${id}`);
-            if (tr) {
-                tr.remove();  // lo sacamos de la tabla donde esté
-            }
-            alert(data.msg);
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Ocurrió un error al reactivar el plan.");
+    /** ===============================
+     *  SWEETALERT2 – ESTILO IGUAL A PLANES_LIST
+     *  =============================== */
+
+    function confirmarAccion({titulo, texto, confirmText, colorConfirm}) {
+        return Swal.fire({
+            title: titulo,
+            text: texto,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: "Cancelar",
+            reverseButtons: true,
+            heightAuto: false,
+            confirmButtonColor: colorConfirm,
+            cancelButtonColor: "#6c757d",
+            focusCancel: true,
         });
     }
+
+    function modalOk(titulo, texto) {
+        return Swal.fire({
+            icon: "success",
+            title: titulo,
+            text: texto,
+            confirmButtonText: "Aceptar",
+            heightAuto: false,
+        });
+    }
+
+    function alertError(texto) {
+        return Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: texto,
+            confirmButtonText: "Aceptar",
+            heightAuto: false,
+        });
+    }
+
+    /** ===============================
+     *  REACTIVAR
+     *  =============================== */
+
+    function reactivar(id) {
+        confirmarAccion({
+            titulo: `¿Reactivar el plan #${id}?`,
+            texto: "El plan volverá a la sección de Planes Activos.",
+            confirmText: "Sí, reactivar",
+            colorConfirm: "#198754"
+        })
+        .then(result => {
+            if (!result.isConfirmed) return;
+
+            fetch(`/planes/reactivar/${id}/`, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.ok) return alertError(data.msg);
+
+                const tr = document.getElementById(`plan-${id}`);
+                if (tr) tr.remove();
+
+                modalOk("Plan reactivado", "El plan fue reactivado correctamente. Ahora lo encontrarás en Planes Activos.");
+            })
+            .catch(() => alertError("Ocurrió un error al reactivar el plan."));
+        });
+    }
+
+    /** ===============================
+     *  DESACTIVAR
+     *  =============================== */
 
     function desactivar(id) {
-        fetch(`/planes/desactivar/${id}/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": csrftoken,
-            },
+        confirmarAccion({
+            titulo: `¿Desactivar el plan #${id}?`,
+            texto: "El plan quedará totalmente inactivo.",
+            confirmText: "Sí, desactivar",
+            colorConfirm: "#d33"
         })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.ok) {
-                alert("Error: " + data.msg);
-                return;
-            }
-            const tr = document.getElementById(`plan-${id}`);
-            if (!tr) return;
+        .then(result => {
+            if (!result.isConfirmed) return;
 
-            // Cambiar estado a "Desactivado"
-            const estadoTd = tr.querySelector("td:nth-child(6)");
-            if (estadoTd) {
-                estadoTd.textContent = "Desactivado";
-            }
+            fetch(`/planes/desactivar/${id}/`, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.ok) return alertError(data.msg);
 
-            // Sacar botón "Desactivar"
-            const btnDesactivar = tr.querySelector(".btn-desactivar");
-            if (btnDesactivar) {
-                btnDesactivar.remove();
-            }
+                const tr = document.getElementById(`plan-${id}`);
+                if (!tr) return;
 
-            // Mover la fila a la tabla de desactivados
-            tablaDesactivados.appendChild(tr);
+                tr.querySelector("td:nth-child(6)").textContent = "Desactivado";
 
-            alert(data.msg);
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Ocurrió un error al desactivar el plan.");
+                const btnDes = tr.querySelector(".btn-desactivar");
+                if (btnDes) btnDes.remove();
+
+                tablaDesactivados.appendChild(tr);
+
+                modalOk("Plan desactivado", "El plan fue desactivado correctamente.");
+            })
+            .catch(() => alertError("Ocurrió un error al desactivar el plan."));
         });
     }
 
-    // Delegación de eventos: un solo listener para todos los botones
+    /** ===============================
+     *  EVENTOS
+     *  =============================== */
     document.addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
 
         const id = btn.dataset.id;
-        if (!id) return;
 
-        if (btn.classList.contains("btn-reactivar")) {
-            reactivar(id);
-        } else if (btn.classList.contains("btn-desactivar")) {
-            desactivar(id);
-        }
+        if (btn.classList.contains("btn-reactivar")) reactivar(id);
+        if (btn.classList.contains("btn-desactivar")) desactivar(id);
     });
 });
 </script>
