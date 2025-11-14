@@ -448,7 +448,7 @@ $(function () {
                     let botones = '<div class="acciones">';
 
                     // Botón Entrar (todos pueden ver)
-                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Entrar</a>`;
+                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Ver Plan</a>`;
 
                     // Botones de edición (solo Administrador y Tesorero)
                     if (puedeModificar) {

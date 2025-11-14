@@ -167,7 +167,7 @@
       <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
       {% if user.is_authenticated %}
         <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}"><i class="bi bi-cash-stack"></i> Cuotas</a></li>
+        <!-- <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}"><i class="bi bi-cash-stack"></i> Cuotas</a></li> -->
         <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
         {% if user|has_group:"Administrador" %}
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_usuarios' %}"><i class="bi bi-people"></i>Usuarios</a></li>
