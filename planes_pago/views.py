@@ -644,3 +644,7 @@ def plan_reactivar(request, pk):
         return JsonResponse({"ok": True, "msg": "Plan reactivado correctamente"})
     except PlanPago.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+
+@login_required
+def historial(request):
+    return render(request, "historial.html")

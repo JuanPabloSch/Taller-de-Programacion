@@ -82,8 +82,8 @@
 
 <script>
 // Permisos del usuario
-const puedeModificar = {% if user|is_in_groups:"Administrador,Tesorero" %}true{% else %}false{% endif %};
-const puedeEliminar = {% if user|has_group:"Administrador" %}true{% else %}false{% endif %};
+const puedeModificar = "{{ user|is_in_groups:'Administrador,Tesorero' }}" === "True";
+const puedeEliminar = "{{ user|is_in_groups:'Administrador' }}" === "True";
 
     $(function () {
     const tabla = $('#tablaCuotas').DataTable({

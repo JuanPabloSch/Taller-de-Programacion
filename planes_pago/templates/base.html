@@ -171,7 +171,12 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
         {% if user|has_group:"Administrador" %}
             <li class="nav-item"><a class="nav-link" href="{% url 'gestionar_usuarios' %}"><i class="bi bi-people"></i>Usuarios</a></li>
-            <li class="nav-item"><a class="nav-link"><i class="bi bi-clock-history"></i> Historial</a> </li> <!--ESTE LO PONGO DE DECO, AQUI IRIA EL LINK CUANDO MONI SUBA EL MODULO DE HISTORIAL-->
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'historial' %}">
+            <i class="bi bi-clock-history"></i> Historial
+            </a>
+</li>
+
         {% endif %}                      
       {% endif %}
     </ul>
