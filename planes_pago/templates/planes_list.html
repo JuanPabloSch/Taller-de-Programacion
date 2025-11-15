@@ -272,6 +272,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Tipo</th>
                     <th>Nombre</th>
                     <th>Carrera</th>
                     <th>Cohorte</th>
@@ -436,6 +437,7 @@ $(function () {
         ajax: '{% url "planes_data" %}',
         columns: [
             { data: 'id' },
+            { data:'tipo'},
             { data: 'nombre' },
             { data: 'carrera' },
             { data: 'cohorte' },

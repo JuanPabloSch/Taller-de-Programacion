@@ -77,6 +77,7 @@ def planes_data(request):
     data = [
         {
             "id": p.id,
+            "tipo": p.tipo,
             "nombre": p.nombre,
             "carrera": p.carrera,
             "cohorte": p.cohorte,
