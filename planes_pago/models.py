@@ -1,6 +1,7 @@
 from django.db import models
 
 class PlanPago(models.Model):
+    tipo = models.CharField(default="Plan normal", max_length=20)
     nombre = models.CharField(max_length=100)
     carrera = models.CharField(max_length=100)
     cohorte = models.CharField(max_length=10)
@@ -33,6 +34,7 @@ class Cuota(models.Model):
     
                                         #regularizaciones (crear)
 class Regularizacion(models.Model):
+    tipo = models.CharField(default="Regularización", max_length=20)
     nombre = models.CharField(max_length=100)
     CARRERA_CHOICES = (
         ('INICIAL', 'Meestra nivel inicial'),

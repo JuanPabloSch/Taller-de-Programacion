@@ -16,6 +16,7 @@
             <thead class="table-primary">
             <tr>
                 <th>ID</th>
+                <th>Tipo</th>
                 <th>Nombre</th>
                 <th>Carrera</th>
                 <th>Cohorte</th>
@@ -28,6 +29,7 @@
             {% for plan in suspendidos %}
             <tr id="plan-{{ plan.id }}">
                 <td>{{ plan.id }}</td>
+                <td>{{ plan.tipo }}</td>
                 <td>{{ plan.nombre }}</td>
                 <td>{{ plan.carrera }}</td>
                 <td>{{ plan.cohorte }}</td>
@@ -52,6 +54,7 @@
             <thead class="table-secondary">
             <tr>
                 <th>ID</th>
+                <th>Tipo</th>
                 <th>Nombre</th>
                 <th>Carrera</th>
                 <th>Cohorte</th>
@@ -64,6 +67,7 @@
             {% for plan in desactivados %}
             <tr id="plan-{{ plan.id }}">
                 <td>{{ plan.id }}</td>
+                <td>{{ plan.tipo }}</td>
                 <td>{{ plan.nombre }}</td>
                 <td>{{ plan.carrera }}</td>
                 <td>{{ plan.cohorte }}</td>
