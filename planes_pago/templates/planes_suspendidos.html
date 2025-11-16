@@ -265,9 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
 
-        // DESACTIVAR
 // DESACTIVAR
-// DESACTIVAR
+
 if (btn.classList.contains("btn-desactivar")) {
 
     let tipo = btn.dataset.tipo;
@@ -287,7 +286,7 @@ if (btn.classList.contains("btn-desactivar")) {
         tipo = "regularizacion";
     }
 
-    // ⬇️ ⬇️ ⬇️  AQUI VA EL MODAL DE CONFIRMACIÓN  ⬇️ ⬇️ ⬇️
+    // MODAL DE CONFIRMACIÓN 
     confirmarAccion({
         titulo: `¿Desactivar el ${tipo} #${id}?`,
         texto: "Pasará a la sección de desactivados.",
@@ -298,14 +297,13 @@ if (btn.classList.contains("btn-desactivar")) {
             desactivarObjeto(id, tipo);
         }
     });
-    // ⬆️ ⬆️ ⬆️  FIN CONFIRMACIÓN  ⬆️ ⬆️ ⬆️
 
     return;
 }
 
     });
 
-}); // ← ESTE CIERRE FALTABA
+}); 
 </script>
 
 {% endblock %}
