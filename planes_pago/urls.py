@@ -54,4 +54,12 @@ path('planes/suspendidos/', views.planes_suspendidos, name='planes_suspendidos')
 
 path("historial/", views.historial, name="historial"),
 
+# Gestión de Usuarios y Roles
+path("usuarios/", views.usuarios_list, name="usuarios_list"),
+path("usuarios/data/", views.usuarios_data, name="usuarios_data"),
+path("usuarios/grupos/", views.grupos_data, name="grupos_data"),
+path("usuarios/crear/", views.usuario_crear, name="usuario_crear"),
+path("usuarios/editar/<int:pk>/", views.usuario_editar, name="usuario_editar"),
+path("usuarios/eliminar/<int:pk>/", views.usuario_eliminar, name="usuario_eliminar"),
+
 ]

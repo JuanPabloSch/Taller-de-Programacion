@@ -1,7 +1,7 @@
 # accounts/urls.py
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
-from . import views_admin
 
 urlpatterns = [
     # Login propio (usa tu login_view + accounts/login.html)
@@ -16,8 +16,7 @@ urlpatterns = [
     # Home (vista protegida)
     path("", views.home, name="home"),
 
-    # Administración de usuarios y roles (solo Administradores)
-    path("gestionar-usuarios/", views_admin.gestionar_usuarios, name="gestionar_usuarios"),
-    path("asignar-rol/<int:user_id>/", views_admin.asignar_rol, name="asignar_rol"),
+    # Redirección de la antigua gestión de usuarios a la nueva
+    path("gestionar-usuarios/", RedirectView.as_view(pattern_name='usuarios_list', permanent=True)),
 ]
 

@@ -717,3 +717,209 @@ def reactivar_objeto(request):
 @login_required
 def historial(request):
     return render(request, "historial.html")
+
+
+# -------------------------------
+# Gestión de Usuarios y Roles
+# -------------------------------
+@login_required
+@group_required('Administrador')
+def usuarios_list(request):
+    """Vista principal de gestión de usuarios (solo para administradores)"""
+    from django.contrib.auth.models import User, Group
+
+    return render(request, "usuarios_list.html")
+
+
+@login_required
+@group_required('Administrador')
+def usuarios_data(request):
+    """Endpoint JSON para datatables de usuarios"""
+    from django.contrib.auth.models import User
+
+    usuarios = User.objects.all().prefetch_related('groups')
+
+    data = []
+    for user in usuarios:
+        grupos_list = list(user.groups.all())
+        grupos_nombres = ", ".join([g.name for g in grupos_list]) or "Sin rol"
+        grupo_id = grupos_list[0].id if grupos_list else None
+
+        data.append({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "is_active": user.is_active,
+            "grupos": grupos_nombres,
+            "grupo_id": grupo_id,
+        })
+
+    return JsonResponse({"data": data})
+
+
+@login_required
+@group_required('Administrador')
+def grupos_data(request):
+    """Endpoint JSON para obtener grupos/roles disponibles"""
+    from django.contrib.auth.models import Group
+
+    print("=== DEBUG grupos_data ===")
+    print(f"Usuario: {request.user.username}")
+    print(f"Es superuser: {request.user.is_superuser}")
+    print(f"Grupos del usuario: {list(request.user.groups.values_list('name', flat=True))}")
+
+    grupos = Group.objects.all().values('id', 'name')
+    grupos_list = list(grupos)
+
+    print(f"Grupos disponibles en DB: {grupos_list}")
+    print(f"Cantidad de grupos: {len(grupos_list)}")
+
+    return JsonResponse({"grupos": grupos_list})
+
+
+@require_POST
+@login_required
+@group_required('Administrador')
+def usuario_crear(request):
+    """Crear nuevo usuario con rol asignado"""
+    from django.contrib.auth.models import User, Group
+
+    try:
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        password = request.POST.get('password', '').strip()
+        password_confirm = request.POST.get('password_confirm', '').strip()
+        grupo_id = request.POST.get('grupo')
+
+        # Validaciones
+        if not username:
+            return JsonResponse({"ok": False, "msg": "El nombre de usuario es obligatorio"}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"ok": False, "msg": "El nombre de usuario ya existe"}, status=400)
+
+        if email and User.objects.filter(email=email).exists():
+            return JsonResponse({"ok": False, "msg": "El email ya está registrado"}, status=400)
+
+        if not password:
+            return JsonResponse({"ok": False, "msg": "La contraseña es obligatoria"}, status=400)
+
+        if password != password_confirm:
+            return JsonResponse({"ok": False, "msg": "Las contraseñas no coinciden"}, status=400)
+
+        if len(password) < 6:
+            return JsonResponse({"ok": False, "msg": "La contraseña debe tener al menos 6 caracteres"}, status=400)
+
+        # Crear usuario
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+
+            # Asignar grupo/rol si fue seleccionado
+            if grupo_id:
+                try:
+                    grupo = Group.objects.get(id=grupo_id)
+                    user.groups.add(grupo)
+                except Group.DoesNotExist:
+                    pass
+
+        return JsonResponse({
+            "ok": True,
+            "msg": f"Usuario '{username}' creado correctamente"
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "ok": False,
+            "msg": f"Error al crear usuario: {str(e)}"
+        }, status=500)
+
+
+@require_POST
+@login_required
+@group_required('Administrador')
+def usuario_editar(request, pk):
+    """Editar usuario existente"""
+    from django.contrib.auth.models import User, Group
+
+    try:
+        user = get_object_or_404(User, pk=pk)
+
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        is_active = request.POST.get('is_active') == 'true'
+        grupo_id = request.POST.get('grupo')
+
+        # Validar email único (excepto el actual)
+        if email and User.objects.filter(email=email).exclude(pk=pk).exists():
+            return JsonResponse({"ok": False, "msg": "El email ya está registrado"}, status=400)
+
+        # Actualizar datos
+        with transaction.atomic():
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.is_active = is_active
+            user.save()
+
+            # Actualizar grupo
+            user.groups.clear()
+            if grupo_id:
+                try:
+                    grupo = Group.objects.get(id=grupo_id)
+                    user.groups.add(grupo)
+                except Group.DoesNotExist:
+                    pass
+
+        return JsonResponse({
+            "ok": True,
+            "msg": f"Usuario '{user.username}' actualizado correctamente"
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "ok": False,
+            "msg": f"Error al actualizar usuario: {str(e)}"
+        }, status=500)
+
+
+@require_POST
+@login_required
+@group_required('Administrador')
+def usuario_eliminar(request, pk):
+    """Desactivar usuario (no se elimina físicamente)"""
+    from django.contrib.auth.models import User
+
+    try:
+        user = get_object_or_404(User, pk=pk)
+
+        # No permitir desactivar el propio usuario
+        if user.id == request.user.id:
+            return JsonResponse({
+                "ok": False,
+                "msg": "No puedes desactivar tu propio usuario"
+            }, status=400)
+
+        user.is_active = False
+        user.save()
+
+        return JsonResponse({
+            "ok": True,
+            "msg": f"Usuario '{user.username}' desactivado correctamente"
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "ok": False,
+            "msg": f"Error al desactivar usuario: {str(e)}"
+        }, status=500)

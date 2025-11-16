@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+{% load static %}
+{% load permisos_tags %}
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background-color: #d2dde4a2 !important;
+    }
+    .layout {
+        display: flex;
+        min-height: 100vh;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 16px;
+    }
+    .main-content {
+        flex: 1;
+    }
+    header.page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .btn-new {
+        background: #3a86ff;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .btn-new:hover {
+        background: #2a76ef;
+    }
+    table.dataTable {
+        width: 100% !important;
+        margin-top: 20px;
+    }
+    table.dataTable th,
+    table.dataTable td {
+        padding: 10px;
+    }
+    .acciones a, .acciones button {
+        margin: 0 2px;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 8px;
+        cursor: pointer;
+        color: #fff;
+        text-decoration: none;
+    }
+    .btn-edit { background: #3a86ff; }
+    .btn-del { background: #ff006e; }
+
+    .badge {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.85em;
+    }
+    .badge-success {
+        background-color: #05c995;
+    }
+    .badge-danger {
+        background-color: #ff006e;
+    }
+
+    /* Modal styles */
+    #usuarioModal .modal-content {
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        border: none;
+        overflow: hidden;
+    }
+    #usuarioModal .modal-header {
+        background: linear-gradient(135deg, #004aad, #007bff);
+        color: white;
+        border-bottom: none;
+    }
+    #usuarioModal .modal-title {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    #usuarioModal .btn-close {
+        filter: invert(1);
+    }
+    #usuarioModal .modal-body {
+        padding: 30px;
+        background: #f8f9fa;
+    }
+    #usuarioModal .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    #usuarioModal .form-control,
+    #usuarioModal .form-select {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 10px 15px;
+    }
+    #usuarioModal .form-control:focus,
+    #usuarioModal .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    #usuarioModal .modal-footer {
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        padding: 20px 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid layout">
+    <main class="main-content">
+        <header class="page-head">
+            <h1>Gestión de Usuarios y Roles</h1>
+            <div class="actions">
+                <button type="button" class="btn-new" id="btnNuevoUsuario" data-bs-toggle="modal" data-bs-target="#usuarioModal">
+                    <i class="bi bi-person-plus-fill"></i> Nuevo Usuario
+                </button>
+            </div>
+        </header>
+
+        <div class="table-responsive">
+            <table id="usuariosTable" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- Modal para Crear/Editar Usuario -->
+<div class="modal fade" id="usuarioModal" tabindex="-1" aria-labelledby="usuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="usuarioModalLabel">Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario">
+                    {% csrf_token %}
+                    <input type="hidden" id="usuario_id" name="usuario_id">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">Usuario <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <small class="text-muted">Nombre de usuario para iniciar sesión</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3" id="passwordFields">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password">
+                            <small class="text-muted">Mínimo 6 caracteres</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password_confirm" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="grupo" class="form-label">Rol</label>
+                            <select class="form-select" id="grupo" name="grupo">
+                                <option value="">Sin rol asignado</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Tesorero</option>
+                                <option value="3">Consulta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="statusField" style="display: none;">
+                            <label for="is_active" class="form-label">Estado</label>
+                            <select class="form-select" id="is_active" name="is_active">
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3" id="passwordNote" style="display: none;">
+                        <i class="bi bi-info-circle"></i> Para cambiar la contraseña de un usuario existente, use el administrador de Django.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarUsuario">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- DataTables CSS y JS -->
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+console.log('=== SCRIPT DE USUARIOS CARGADO ===');
+$(document).ready(function() {
+    console.log('=== DOCUMENT READY EJECUTADO ===');
+
+    // Inicializar DataTable
+    const table = $('#usuariosTable').DataTable({
+        ajax: {
+            url: "{% url 'usuarios_data' %}",
+            dataSrc: 'data'
+        },
+        columns: [
+            { data: 'id' },
+            { data: 'username' },
+            { data: 'first_name' },
+            { data: 'last_name' },
+            { data: 'email' },
+            { data: 'grupos' },
+            {
+                data: 'is_active',
+                render: function(data) {
+                    return data
+                        ? '<span class="badge badge-success">Activo</span>'
+                        : '<span class="badge badge-danger">Inactivo</span>';
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    return `
+                        <div class="acciones">
+                            <button class="btn-edit btn-editar-usuario" data-id="${row.id}" title="Editar">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn-del btn-eliminar-usuario" data-id="${row.id}" title="Desactivar">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json'
+        },
+        order: [[0, 'asc']]
+    });
+
+    // Cargar grupos/roles disponibles
+    function cargarGrupos(selectedGrupoId = null) {
+        console.log('=== INICIANDO cargarGrupos ===');
+        console.log('selectedGrupoId:', selectedGrupoId);
+
+        const url = "{% url 'grupos_data' %}";
+        console.log('URL a llamar:', url);
+
+        $.get(url, function(response) {
+            console.log('=== RESPUESTA RECIBIDA ===');
+            console.log('Response completo:', response);
+            console.log('response.grupos:', response.grupos);
+
+            const $select = $('#grupo');
+            $select.find('option:not(:first)').remove();
+
+            if (response.grupos && response.grupos.length > 0) {
+                console.log('Agregando', response.grupos.length, 'grupos al select');
+                response.grupos.forEach(g => {
+                    const selected = selectedGrupoId && g.id === selectedGrupoId ? 'selected' : '';
+                    console.log('Agregando grupo:', g.name, 'ID:', g.id);
+                    $select.append(`<option value="${g.id}" ${selected}>${g.name}</option>`);
+                });
+                console.log('Grupos agregados exitosamente');
+            } else {
+                console.error('No se encontraron grupos en la respuesta');
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('=== ERROR AL CARGAR GRUPOS ===');
+            console.error('Status:', status);
+            console.error('Error:', error);
+            console.error('Response:', xhr.responseText);
+            Swal.fire("Error", 'Error al cargar roles: ' + error, "error");
+        });
+    }
+
+    // Editar usuario - guardar datos en el botón para luego procesarlos
+    $(document).on('click', '.btn-editar-usuario', function() {
+        const rowData = table.row($(this).closest('tr')).data();
+
+        // Guardar los datos en data attributes del modal para procesarlos en el evento show.bs.modal
+        $('#usuarioModal').data('editData', rowData);
+
+        // Abrir el modal usando la API de Bootstrap 5
+        const modal = new bootstrap.Modal(document.getElementById('usuarioModal'));
+        modal.show();
+    });
+
+    // Actualizar el evento show.bs.modal para manejar edición
+    $('#usuarioModal').on('show.bs.modal', function(event) {
+        const button = $(event.relatedTarget);
+        const editData = $(this).data('editData');
+
+        console.log('Modal abierto, button:', button, 'editData:', editData); // Debug
+
+        // Si hay datos de edición guardados
+        if (editData) {
+            console.log('Preparando modal para editar usuario'); // Debug
+            $('#usuarioModalLabel').text('Editar Usuario');
+            $('#usuario_id').val(editData.id);
+            $('#username').val(editData.username).prop('readonly', true);
+            $('#email').val(editData.email);
+            $('#first_name').val(editData.first_name);
+            $('#last_name').val(editData.last_name);
+            $('#is_active').val(editData.is_active ? 'true' : 'false');
+
+            // Ocultar campos de contraseña en edición
+            $('#passwordFields').hide();
+            $('#passwordNote').show();
+            $('#statusField').show();
+            $('#password').prop('required', false);
+            $('#password_confirm').prop('required', false);
+
+            // Cargar grupos y seleccionar el actual
+            cargarGrupos(editData.grupo_id);
+
+            // Limpiar los datos guardados
+            $(this).removeData('editData');
+        }
+        // Si no hay datos de edición, es un nuevo usuario
+        else {
+            console.log('Preparando modal para nuevo usuario'); // Debug
+            $('#usuarioModalLabel').text('Nuevo Usuario');
+            $('#formUsuario')[0].reset();
+            $('#usuario_id').val('');
+            $('#passwordFields').show();
+            $('#passwordNote').hide();
+            $('#statusField').hide();
+            $('#username').prop('readonly', false);
+            $('#password').prop('required', true);
+            $('#password_confirm').prop('required', true);
+            cargarGrupos();
+        }
+    });
+
+    // Guardar usuario (crear o editar)
+    $('#btnGuardarUsuario').click(function() {
+        console.log('=== BOTÓN GUARDAR USUARIO CLICKEADO ===');
+
+        const userId = $('#usuario_id').val();
+        const isEdit = userId !== '';
+        console.log('userId:', userId, 'isEdit:', isEdit);
+
+        // Validación básica
+        const username = $('#username').val().trim();
+        console.log('username:', username);
+
+        if (!username) {
+            Swal.fire("Error", "El nombre de usuario es obligatorio", "error");
+            return;
+        }
+
+        if (!isEdit) {
+            const password = $('#password').val();
+            const passwordConfirm = $('#password_confirm').val();
+            console.log('password length:', password.length);
+            console.log('passwords match:', password === passwordConfirm);
+
+            if (!password) {
+                Swal.fire("Error", "La contraseña es obligatoria", "error");
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                Swal.fire("Error", "Las contraseñas no coinciden", "error");
+                return;
+            }
+
+            if (password.length < 6) {
+                Swal.fire("Error", "La contraseña debe tener al menos 6 caracteres", "error");
+                return;
+            }
+        }
+
+        const url = isEdit
+            ? "{% url 'usuario_editar' 0 %}".replace('0', userId)
+            : "{% url 'usuario_crear' %}";
+
+        console.log('URL a llamar:', url);
+
+        const formData = new FormData($('#formUsuario')[0]);
+        console.log('FormData creado');
+
+        // Log de los datos del formulario
+        for (let [key, value] of formData.entries()) {
+            if (key === 'password' || key === 'password_confirm') {
+                console.log(key + ': [OCULTO]');
+            } else {
+                console.log(key + ':', value);
+            }
+        }
+
+        console.log('=== ENVIANDO AJAX ===');
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                console.log('=== AJAX BEFORE SEND ===');
+            },
+            success: function(response) {
+                console.log('=== AJAX SUCCESS ===');
+                console.log('Response:', response);
+                if (response.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: isEdit ? "Usuario actualizado" : "Usuario creado",
+                        text: response.msg,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                    // Usar Bootstrap 5 API para cerrar el modal
+                    const modalElement = document.getElementById('usuarioModal');
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    modal.hide();
+                    table.ajax.reload();
+                } else {
+                    Swal.fire("Error", response.msg, "error");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('=== AJAX ERROR ===');
+                console.log('Status:', status);
+                console.log('Error:', error);
+                console.log('XHR:', xhr);
+                const response = xhr.responseJSON;
+                Swal.fire("Error", response?.msg || 'Error al guardar el usuario', "error");
+            }
+        });
+    });
+
+    // Eliminar (desactivar) usuario
+    $(document).on('click', '.btn-eliminar-usuario', function() {
+        const userId = $(this).data('id');
+        const rowData = table.row($(this).closest('tr')).data();
+        const username = rowData.username || 'este usuario';
+
+        Swal.fire({
+            title: '¿Desactivar usuario?',
+            text: `El usuario ${username} será desactivado del sistema.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, desactivar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            const url = "{% url 'usuario_eliminar' 0 %}".replace('0', userId);
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Usuario desactivado",
+                            text: response.msg,
+                            timer: 1800,
+                            showConfirmButton: false
+                        });
+                        table.ajax.reload();
+                    } else {
+                        Swal.fire("Error", response.msg, "error");
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    Swal.fire("Error", response?.msg || 'Error al desactivar el usuario', "error");
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
