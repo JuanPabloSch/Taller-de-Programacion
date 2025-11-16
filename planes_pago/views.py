@@ -624,20 +624,30 @@ def plan_suspendido(request, pk):
 @require_POST
 @login_required
 def plan_suspender(request, pk):
-    """
-    Marca un plan como suspendido (estado='S').
-    """
     if not can_delete(request.user):
         return JsonResponse({"ok": False, "msg": "No tienes permisos para suspender planes"}, status=403)
 
+    # 1. Intentar suspender un PlanPago
     try:
         plan = PlanPago.objects.get(pk=pk)
         plan.estado = 'S'
-        plan.iEstado = False  # opcional, mantener coherencia
+        plan.iEstado = False
         plan.save()
         return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
     except PlanPago.DoesNotExist:
-        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+        pass
+
+    # 2. Intentar suspender una Regularización
+    try:
+        reg = Regularizacion.objects.get(pk=pk)
+        reg.estado = 'S'
+        reg.save()
+        return JsonResponse({"ok": True, "msg": "Regularización suspendida correctamente"})
+    except Regularizacion.DoesNotExist:
+        pass
+
+    # 3. Si no existe en ninguna tabla
+    return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
 
 @require_POST
@@ -664,11 +674,11 @@ def desactivar_objeto(request):
         return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
     except Exception as e:
-        # CAPTURA CUALQUIER OTRO ERROR → y evita el "None"
+        # CAPTURA CUALQUIER OTRO ERROR 
         print("ERROR inesperado:", e)
         return JsonResponse({"ok": False, "msg": f"Error inesperado: {str(e)}"}, status=500)
 
-# @require_POST
+# @require_POST -------ESTE ES EL REACTIVAR VIEJO, LO DEJO COMENTADO POR LAS DUDAS-------
 # @login_required
 # def plan_reactivar(request, pk):
 #     """

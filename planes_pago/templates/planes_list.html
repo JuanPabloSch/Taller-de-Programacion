@@ -213,7 +213,6 @@
   border: 1px solid #b6d9ff;
   border-radius: 8px;
 }
-/* Normaliza el estilo de los formularios renderizados con {{ form.as_p }} */
 .tab-pane form p,
 .tab-pane p {
   margin-bottom: 1rem;
@@ -460,7 +459,13 @@ $(function () {
 
                     // Botón Suspender (solo Administrador)
                     if (puedeEliminar) {
-                        botones += `<button class="btn-susp" data-id="${data.id}">Suspender</button>`;
+                        botones += `
+                        <button class="btn-susp btn btn-warning btn-sm"
+                                data-id="${data.id}"
+                                data-tipo="${data.tipo}">
+                            Suspender
+                        </button>`;
+
                     }
 
                     botones += '</div>';
@@ -473,13 +478,22 @@ $(function () {
     });
 
     
-    // Suspender plan
-// Suspender plan con SweetAlert2 (LINDO)
+// Suspender plan o regularización
+// con SweetAlert2
 $('#tablaPlanes').on('click', '.btn-susp', function () {
     const data = tabla.row($(this).closest('tr')).data();
 
+    // Para planes REGULARIZACIÓN el ID suele venir como data.plan_id
+    const planId = data.id || data.plan_id;
+
+    if (!planId) {
+        console.error("No se encontró el ID del plan en la fila");
+        Swal.fire("Error", "No se pudo determinar el ID del plan.", "error");
+        return;
+    }
+
     Swal.fire({
-        title: `¿Suspender el plan #${data.id}?`,
+        title: `¿Suspender el plan #${planId}?`,
         text: "El plan pasará a la sección de suspendidos.",
         icon: "warning",
         showCancelButton: true,
@@ -490,7 +504,7 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
     }).then((result) => {
         if (!result.isConfirmed) return;
 
-        fetch(`/planes/suspender/${data.id}/`, {
+        fetch(`/planes/suspender/${planId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
@@ -518,8 +532,6 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         });
     });
 });
-
-
 
     // Modal de Bootstrap
     const modal = new bootstrap.Modal(document.getElementById('planModal'));
@@ -573,14 +585,12 @@ function goToTab(tabId) {
     const tabTrigger = new bootstrap.Tab(document.querySelector(`#${tabId}-tab`));
     tabTrigger.show();
 }
-
-
 </script>
+
 <script>
+// FUNCIONES CÁLCULO
 
-// FUNCIONES AUXILIARES PARA EL CÁLCULO
-
-// Función para cambiar de pestaña de Bootstrap (Sin cambios)
+// Función para cambiar de pestaña de Bootstrap 
 function goToTab(tabId) {
     const tabElement = document.querySelector(`#${tabId}-tab`); 
     if (tabElement) {
@@ -591,7 +601,7 @@ function goToTab(tabId) {
     }
 }
 
-// Función para parsear la data del formulario (Sin cambios)
+// Función para parsear la data del formulari
 function getFormData(formElement) {
     const data = {};
     const formData = new FormData(formElement);
@@ -600,7 +610,6 @@ function getFormData(formElement) {
     }
     return data;
 }
-
 //Función de cálculo con la inclusión del pago inicial en la información de retorno.
 
 function calcularCuotas(data) {
@@ -620,7 +629,7 @@ function calcularCuotas(data) {
         return { status: 'error', message: 'La cantidad de cuotas debe ser un número positivo.' };
     }
     if (valor_origen <= 0 && origen_deuda === 'FIJO') {
-         return { status: 'error', message: 'El valor de la deuda fija debe ser un número positivo.' };
+        return { status: 'error', message: 'El valor de la deuda fija debe ser un número positivo.' };
     }
     
     const round2 = (num) => Math.round(num * 100) / 100;
