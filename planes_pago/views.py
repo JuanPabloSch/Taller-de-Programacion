@@ -69,24 +69,47 @@ def planes_list(request):
     return render(request, "planes_list.html", context)
 
 
+# views.py
+
+# ... (código previo)
+
 @login_required
 def planes_data(request):
     """
     Endpoint JSON para datatables / fetch de planes activos.
+    Combina PlanPago y Regularizacion activos.
     """
+    
+    # 1. Obtener Planes de Pago activos
+    planes = PlanPago.objects.filter(estado='A').values(
+        'id', 'tipo', 'nombre', 'carrera', 'cohorte', 'modalidad'
+    )
+    
+    # 2. Obtener Regularizaciones activas
+    # NOTA: Asumimos que Regularizacion tiene 'nombre', 'carrera', 'cohorte', 'modalidad'.
+    # Si no los tiene, usa .annotate() para mapear campos.
+    regularizaciones = Regularizacion.objects.filter(estado='A').values(
+        'id', 'tipo', 'nombre', 'carrera', 'cohorte', 'modalidad'
+    )
+    
+    # 3. Combinar y formatear
+    combined_data = list(planes) + list(regularizaciones)
+
     data = [
         {
-            "id": p.id,
-            "tipo": p.tipo,
-            "nombre": p.nombre,
-            "carrera": p.carrera,
-            "cohorte": p.cohorte,
-            "modalidad": p.modalidad,
+            "id": p['id'],
+            # Si el modelo tiene un campo 'tipo', úsalo. Si no, forzamos un valor por defecto.
+            "tipo": p.get('tipo', 'plan') if 'cohorte' in p else p.get('tipo', 'regularizacion'), 
+            "nombre": p['nombre'],
+            "carrera": p['carrera'],
+            "cohorte": p['cohorte'],
+            "modalidad": p['modalidad'],
         }
-        for p in PlanPago.objects.filter(estado='A')  # activos
+        for p in combined_data
     ]
     return JsonResponse({"data": data})
 
+# ... (código posterior)
 
 @require_POST
 @login_required

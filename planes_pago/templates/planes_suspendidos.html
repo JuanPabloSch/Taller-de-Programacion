@@ -42,12 +42,12 @@
                     Desactivar
                     </button>
 
+                <button class="btn btn-sm btn-success btn-reactivar"
+                data-id="{{ plan.id }}"
+                data-tipo="{{ plan.tipo_backend }}">
+                Reactivar
+                </button>
 
-                   <button class="btn btn-sm btn-success btn-reactivar"
-                    data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}">
-                    Reactivar
-                    </button>
 
                 </td>
             </tr>
@@ -156,10 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /** ===============================
      *  REACTIVAR
      *  =============================== */
-/** ===============================
- *  REACTIVAR
- *  =============================== */
-function reactivar(id, tipo) {
+    function reactivar(id, tipo) {
     confirmarAccion({
         titulo: `¿Reactivar el ${tipo} #${id}?`,
         texto: "Volverá a la lista de activos.",
@@ -169,7 +166,7 @@ function reactivar(id, tipo) {
     .then(result => {
         if (!result.isConfirmed) return;
 
-        fetch("/reactivar_objeto/", {
+        fetch("/reactivar/", {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrftoken,
@@ -181,21 +178,14 @@ function reactivar(id, tipo) {
         .then(data => {
             if (!data.ok) return alertError(data.msg);
 
-            // QUITAR la fila de suspendidos / desactivados
             const tr = document.getElementById(`plan-${id}`);
             if (tr) tr.remove();
 
-            // MODAL y RECARGA (esto SOLUCIONA el problema)
-            modalOk("Reactivado", `${tipo} reactivado correctamente.`)
-                .then(() => {
-                    window.location.href = "/planes/";   // O la ruta real donde están los activos
-
-                });
+            modalOk("Reactivado", `${tipo} reactivado correctamente.`);
         })
         .catch(() => alertError("Ocurrió un error al reactivar."));
     });
 }
-
 
 
     /** ===============================
