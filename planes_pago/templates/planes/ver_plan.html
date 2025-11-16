@@ -1,0 +1,42 @@
+<h5 class="fw-bold mb-3">Plan: {{ plan.nombre }}</h5>
+
+<div class="mb-2">
+    <label class="form-label small text-muted">Carrera:</label>
+    <input class="form-control form-control-sm" value="{{ plan.carrera }}" disabled>
+</div>
+
+<div class="mb-2">
+    <label class="form-label small text-muted">Cohorte:</label>
+    <input class="form-control form-control-sm" value="{{ plan.cohorte }}" disabled>
+</div>
+
+<div class="mb-2">
+    <label class="form-label small text-muted">Modalidad:</label>
+    <input class="form-control form-control-sm" value="{{ plan.modalidad }}" disabled>
+</div>
+
+<div class="mb-3">
+    <label class="form-label small text-muted">Estado:</label>
+    <input class="form-control form-control-sm" 
+           value="{% if plan.iEstado %}Activo{% else %}Inactivo{% endif %}" 
+           disabled>
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-end">
+    <button class="btn btn-primary btn-sm px-3" data-bs-dismiss="modal">
+        Aceptar
+    </button>
+</div>
+
+<style>
+    #planModal .modal-dialog {
+        max-width: 550px !important;
+    }
+    #planModal input[disabled] {
+        background-color: #f4f6f8;
+        border-color: #d0d5db;
+        color: #495057;
+    }
+</style>
