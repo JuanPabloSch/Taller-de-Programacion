@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import reactivar_objeto
+
 
 urlpatterns = [
     # Landing page protegida
@@ -20,6 +22,7 @@ urlpatterns = [
     path("planes/clonar/<int:pk>/", views.plan_clonar, name="plan_clonar"),
         #formulario regularizaciones
     path("planes/regularizaciones/nuevo/", views.regularizacion_crear, name="regularizacion_crear"),
+    path("desactivar/", views.desactivar_objeto, name="desactivar_objeto"),
 
 
     # CRUD de cuotas
@@ -42,8 +45,11 @@ urlpatterns = [
 
     # Planes suspendidos
     path('planes/suspender/<int:pk>/', views.plan_suspender, name='plan_suspender'),
-path('planes/desactivar/<int:pk>/', views.plan_desactivar, name='plan_desactivar'),
-path('planes/reactivar/<int:pk>/', views.plan_reactivar, name='plan_reactivar'),
+# path('planes/desactivar/<int:pk>/', views.plan_desactivar, name='plan_desactivar'),
+# path('planes/reactivar/<int:pk>/', views.plan_reactivar, name='plan_reactivar'),
+path("reactivar_objeto/", reactivar_objeto, name="reactivar_objeto"),
+
+
 path('planes/suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
 
 path("historial/", views.historial, name="historial"),

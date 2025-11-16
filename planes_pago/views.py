@@ -549,19 +549,27 @@ def imprimir_cuotas(request):
 # -------------------------------
 @login_required
 def planes_suspendidos(request):
-    """
-    Vista que muestra todos los planes y regularizaciones suspendidos o desactivados.
-    Combina PlanPago y Regularizacion (ambos con campo 'estado' esperado).
-    """
-    # Planes
+
+    # --- Planes ---
     suspendidos_planes = PlanPago.objects.filter(estado='S')
     desactivados_planes = PlanPago.objects.filter(estado='D')
 
-    # Regularizaciones (si tu modelo tiene campo 'estado')
+    # --- Regularizaciones ---
     suspendidos_regularizaciones = Regularizacion.objects.filter(estado='S')
     desactivados_regularizaciones = Regularizacion.objects.filter(estado='D')
 
-    # Combinamos ambas listas (planes + regularizaciones)
+    # --- Marcar cada objeto con su tipo ---
+    for p in suspendidos_planes:
+        p.tipo_backend = "plan"
+    for p in desactivados_planes:
+        p.tipo_backend = "plan"
+
+    for r in suspendidos_regularizaciones:
+        r.tipo_backend = "regularizacion"
+    for r in desactivados_regularizaciones:
+        r.tipo_backend = "regularizacion"
+
+    # --- Combinar ---
     suspendidos = list(suspendidos_planes) + list(suspendidos_regularizaciones)
     desactivados = list(desactivados_planes) + list(desactivados_regularizaciones)
 
@@ -611,40 +619,67 @@ def plan_suspender(request, pk):
 
 @require_POST
 @login_required
-def plan_desactivar(request, pk):
-    """
-    Desactiva un plan (estado='D' y iEstado=False).
-    """
-    if not can_delete(request.user):
-        return JsonResponse({"ok": False, "msg": "No tienes permisos para desactivar planes"}, status=403)
+def desactivar_objeto(request):
+    tipo = request.POST.get("tipo")
+    pk = request.POST.get("id")
+
+    print("DEBUG tipo recibido:", repr(tipo))
+    print("DEBUG id recibido:", repr(pk))
+
+    if tipo not in ["plan", "regularizacion"]:
+        return JsonResponse({"ok": False, "msg": f"Tipo inválido: {tipo}"}, status=400)
+
+    Model = PlanPago if tipo == "plan" else Regularizacion
 
     try:
-        plan = PlanPago.objects.get(pk=pk)
-        plan.estado = 'D'
-        plan.iEstado = False
-        plan.save()
-        return JsonResponse({"ok": True, "msg": "Plan desactivado correctamente"})
-    except PlanPago.DoesNotExist:
-        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+        obj = Model.objects.get(pk=pk)
+        obj.estado = "D"
+        obj.save()
+        return JsonResponse({"ok": True, "msg": f"{tipo.capitalize()} desactivado correctamente"})
+    
+    except Model.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
+    except Exception as e:
+        # CAPTURA CUALQUIER OTRO ERROR → y evita el "None"
+        print("ERROR inesperado:", e)
+        return JsonResponse({"ok": False, "msg": f"Error inesperado: {str(e)}"}, status=500)
 
+# @require_POST
+# @login_required
+# def plan_reactivar(request, pk):
+#     """
+#     Reactiva un plan desactivado o suspendido (estado='A' y iEstado=True).
+#     """
+#     if not can_delete(request.user):
+#         return JsonResponse({"ok": False, "msg": "No tienes permisos para reactivar planes"}, status=403)
+
+#     try:
+#         plan = PlanPago.objects.get(pk=pk)
+#         plan.estado = 'A'
+#         plan.iEstado = True
+#         plan.save()
+#         return JsonResponse({"ok": True, "msg": "Plan reactivado correctamente"})
+#     except PlanPago.DoesNotExist:
+#         return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
 @require_POST
 @login_required
-def plan_reactivar(request, pk):
-    """
-    Reactiva un plan desactivado o suspendido (estado='A' y iEstado=True).
-    """
-    if not can_delete(request.user):
-        return JsonResponse({"ok": False, "msg": "No tienes permisos para reactivar planes"}, status=403)
+def reactivar_objeto(request):
+    tipo = request.POST.get("tipo")
+    pk = request.POST.get("id")
+
+    if tipo not in ["plan", "regularizacion"]:
+        return JsonResponse({"ok": False, "msg": "Tipo inválido"}, status=400)
+
+    Model = PlanPago if tipo == "plan" else Regularizacion
 
     try:
-        plan = PlanPago.objects.get(pk=pk)
-        plan.estado = 'A'
-        plan.iEstado = True
-        plan.save()
-        return JsonResponse({"ok": True, "msg": "Plan reactivado correctamente"})
-    except PlanPago.DoesNotExist:
-        return JsonResponse({"ok": False, "msg": "Plan no encontrado"}, status=404)
+        obj = Model.objects.get(pk=pk)
+        obj.estado = "A"
+        obj.save()
+        return JsonResponse({"ok": True, "msg": f"{tipo.capitalize()} reactivado correctamente"})
+    except Model.DoesNotExist:
+        return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
 @login_required
 def historial(request):
