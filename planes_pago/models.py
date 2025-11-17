@@ -212,3 +212,18 @@ class CuotaRegularizacion(models.Model):
 
     def __str__(self):
         return f"Cuota {self.numero_cuota} - {self.regularizacion.nombre}"
+
+# ------------------------------------
+# MODELO DE HISTORIAL DE ACCIONES
+# ------------------------------------
+from django.contrib.auth.models import User
+
+class HistorialAccion(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    accion = models.CharField(max_length=200)
+    plan = models.ForeignKey('PlanPago', on_delete=models.SET_NULL, null=True, blank=True)
+    descripcion = models.TextField(blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.fecha} - {self.accion}"

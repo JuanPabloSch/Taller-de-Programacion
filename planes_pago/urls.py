@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import historial, historial_ajax
+
 
 urlpatterns = [
     # Landing page protegida
@@ -49,12 +51,13 @@ urlpatterns = [
 path("reactivar/", views.reactivar_objeto, name="reactivar_objeto"),
 
 
-
-
 path('planes/suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
 path('planes/ver/<int:pk>/', views.plan_ver_detalle, name='plan_ver_detalle'),
 
+# Historial
 path("historial/", views.historial, name="historial"),
+path("historial/ajax/", historial_ajax, name="historial_ajax"),
+
 
 # Gestión de Usuarios y Roles
 path("usuarios/", views.usuarios_list, name="usuarios_list"),

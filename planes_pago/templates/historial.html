@@ -5,10 +5,8 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
 <style>
-    /* ----------------------------------- */
-    /* Estilos de TABLA, BOTONES y TÍTULOS */
-    /* ----------------------------------- */
     header.page-head {
         display: flex;
         justify-content: space-between;
@@ -28,12 +26,7 @@
         color: #555;
         margin-top: 0;
     }
-    table.dataTable {
-        width: 100% !important;
-        margin-top: 20px;
-        border-collapse: collapse;
-        border: 1px solid #ddd;
-    }
+
     table.dataTable th {
         padding: 12px 10px;
         font-weight: 600;
@@ -43,70 +36,19 @@
     }
     table.dataTable td {
         padding: 10px;
-        border-top: 1px solid #dee2e6;
         vertical-align: middle;
     }
 
-    /* ACCIONES (Botón Entrar + Ícono Imprimir) */
-    .acciones {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-    .btn-enter {
-        background: #021f4d;
-        color: #fff;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: background 0.2s ease;
-    }
-    .btn-enter:hover { background: #3a86ff; }
-    .btn-print-individual {
-        color: #021f4d;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: color 0.2s ease;
-    }
-    .btn-print-individual:hover { color: #3a86ff; }
-
-    /* ESTADO (Insignias) */
     .status-badge {
-        display: inline-block;
         padding: .35em .65em;
         font-size: .75em;
         font-weight: 700;
-        line-height: 1;
-        color: #fff;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
         border-radius: .25rem;
+        color: white;
     }
     .badge-created { background-color: #007bff; }
-    .badge-edited { background-color: #ffc107; color: #000;}
+    .badge-edited { background-color: #ffc107; color: #000; }
     .badge-deactivated { background-color: #dc3545; }
-
-    /* Botón de reporte completo */
-    .reporte-completo-container {
-        margin-top: 30px;
-        text-align: center;
-        padding-top: 20px;
-    }
-    .btn-reporte {
-        background: #28517e;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: background 0.2s ease;
-    }
-    .btn-reporte:hover { background: #5a6268; }
 </style>
 {% endblock %}
 
@@ -117,64 +59,20 @@
             <h1 class="page-title">Planes de Pago</h1>
             <h2 class="page-subtitle">Historial</h2>
         </div>
-        </header>
+    </header>
 
-    <table id="tablaHistorial" class="display table table-striped table-bordered">
+    <table id="tablaHistorial" class="table table-striped table-bordered">
         <thead>
             <tr>
-                <th>ID Historial</th>
                 <th>Fecha</th>
+                <th>Usuario</th>
                 <th>Acción</th>
-                <th>ID Plan de pago</th>
-                <th>Administrador</th>
+                <th>Plan</th>
                 <th>Descripción</th>
-                <th style="width: 100px;">Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            {% for registro in historial_registros %}
-            <tr>
-                <td>{{ registro.id_historial }}</td>
-                <td>
-                    {{ registro.fecha|date:"d/m/Y" }}<br>
-                    {{ registro.fecha|date:"H:i:s" }}
-                </td>
-                <td>
-                    {% if 'Editado' in registro.accion %}
-                        <span class="status-badge badge-edited">{{ registro.accion }}</span>
-                    {% elif 'Desactivado' in registro.accion %}
-                        <span class="status-badge badge-deactivated">{{ registro.accion }}</span>
-                    {% elif 'alta' in registro.accion %}
-                        <span class="status-badge badge-created">{{ registro.accion }}</span>
-                    {% else %}
-                        {{ registro.accion }}
-                    {% endif %}
-                </td>
-                <td>{{ registro.id_plan }}</td>
-                <td>{{ registro.administrador_id }}</td>
-                <td>{{ registro.descripcion }}</td>
-                <td>
-                    <div class="acciones">
-                        <a href="{% url 'historial_detalle' pk=registro.id_historial %}" class="btn-enter">Entrar</a>
-                        <a href="{% url 'exportar_cuotas_pdf' %}?historial_id={{ registro.id_historial }}" target="_blank" class="btn-print-individual" title="Imprimir Registro">
-                            <i class="far fa-file-alt"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" class="text-center">No hay registros de historial disponibles.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <tbody></tbody>
     </table>
-
-    <div class="reporte-completo-container">
-        <a href="{% url 'exportar_cuotas_pdf' %}?type=historial_full" class="btn-reporte">
-            <i class="fas fa-print"></i> Imprimir reporte completo
-        </a>
-    </div>
 </main>
 {% endblock %}
 
@@ -185,14 +83,32 @@
 
 <script>
 $(function () {
-    // Inicializar DataTables para la tabla de Historial
-    $('#tablaHistorial').DataTable({
+    $("#tablaHistorial").DataTable({
+        ajax: "{% url 'historial_ajax' %}",
+        columns: [
+            { data: "fecha" },
+            { data: "usuario" },
+            { 
+                data: "accion",
+                render: function(data){
+                    if (data.includes("Editó")) {
+                        return `<span class="status-badge badge-edited">${data}</span>`;
+                    }
+                    if (data.includes("Suspendió")) {
+                        return `<span class="status-badge badge-deactivated">${data}</span>`;
+                    }
+                    if (data.includes("Creó")) {
+                        return `<span class="status-badge badge-created">${data}</span>`;
+                    }
+                    return data;
+                }
+            },
+            { data: "plan" },
+            { data: "descripcion" }
+        ],
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-        order: [[1, 'desc']], // Ordenar por fecha por defecto (columna 1)
-        pageLength: 10,
-        info: false,
-        paging: true,
-        searching: true
+        order: [[0, "desc"]],
+        pageLength: 10
     });
 });
 </script>

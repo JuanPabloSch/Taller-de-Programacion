@@ -13,12 +13,26 @@ from decimal import Decimal, ROUND_HALF_UP
 import csv, os, openpyxl
 from openpyxl.utils import get_column_letter
 from fpdf import FPDF
-
-from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora, CuotaRegularizacion
-from .forms import (PlanPagoForm, RegularizacionForm,
-                    ReglaEstructuraForm, ReglaMoraForm)
+from django.utils import timezone
+from .models import (
+    PlanPago,
+    Cuota,
+    Regularizacion,
+    ReglaEstructura,
+    ReglaMora,
+    CuotaRegularizacion,
+    HistorialAccion
+)
+from .forms import (PlanPagoForm, RegularizacionForm, ReglaEstructuraForm, ReglaMoraForm)
 from .decorators import group_required, can_delete, can_modify
 
+def registrar_accion(usuario, accion, plan=None, descripcion=""):
+    HistorialAccion.objects.create(
+        usuario=usuario,
+        accion=accion,
+        plan=plan,
+        descripcion=descripcion
+    )
 
 # -------------------------------
 # Clase PDF personalizada
@@ -176,6 +190,13 @@ def plan_crear(request):
             # Si el flujo requiere que nuevos planes queden en 'S' (suspendidos) para validacion:
             plan.estado = 'S'
             plan.save()
+            # REGISTRAR EN HISTORIAL
+            registrar_accion(
+                usuario=request.user,
+                accion="Creó un plan",
+                plan=plan,
+                descripcion=f"Plan creado: {plan}"
+            )
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"success": True})
             return redirect("planes_suspendidos")
@@ -446,13 +467,24 @@ def plan_editar(request, pk):
 @login_required
 def plan_clonar(request, pk):
     original = get_object_or_404(PlanPago, pk=pk)
+    
     if request.method == "POST":
         form = PlanPagoForm(request.POST)
         if form.is_valid():
-            form.save()
+            nuevo_plan = form.save()   # ⚠️ Guardamos el nuevo plan y lo usamos abajo
+
+            #  REGISTRAR ACCIÓN EN HISTORIAL
+            registrar_accion(
+                usuario=request.user,
+                accion="Clonó un plan",
+                plan=nuevo_plan,
+                descripcion=f"Clonó el plan '{original}' → Nuevo: '{nuevo_plan}'"
+            )
+
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"success": True})
             return redirect("planes_list")
+
     else:
         data_inicial = {
             "nombre": f"{original.nombre} (Copia)",
@@ -467,6 +499,7 @@ def plan_clonar(request, pk):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, "planes/plan_form.html", {"form": form})
     return render(request, "planes/plan_form.html", {"form": form})
+
 
 
 # -------------------------------
@@ -909,6 +942,15 @@ def plan_suspender(request, pk):
         plan.estado = 'S'
         plan.iEstado = False
         plan.save()
+
+        # 🔥 Registrar historial
+        registrar_accion(
+            usuario=request.user,
+            accion="Suspendió un plan",
+            plan=plan,
+            descripcion=f"El plan '{plan}' fue suspendido."
+        )
+
         return JsonResponse({"ok": True, "msg": "Plan suspendido correctamente"})
     except PlanPago.DoesNotExist:
         pass
@@ -918,12 +960,22 @@ def plan_suspender(request, pk):
         reg = Regularizacion.objects.get(pk=pk)
         reg.estado = 'S'
         reg.save()
+
+        #  Registrar historial
+        registrar_accion(
+            usuario=request.user,
+            accion="Suspendió una regularización",
+            plan=None,
+            descripcion=f"Regularización '{reg}' fue suspendida."
+        )
+
         return JsonResponse({"ok": True, "msg": "Regularización suspendida correctamente"})
     except Regularizacion.DoesNotExist:
         pass
 
     # 3. Si no existe en ninguna tabla
     return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
+
 
 
 @require_POST
@@ -993,6 +1045,25 @@ def reactivar_objeto(request):
 @login_required
 def historial(request):
     return render(request, "historial.html")
+
+@login_required
+def historial_ajax(request):
+    historial = HistorialAccion.objects.select_related("usuario", "plan").order_by("-fecha")
+
+    data = []
+    for h in historial:
+        fecha_local = timezone.localtime(h.fecha)  # 👈 acá convertimos a tu zona
+
+        data.append({
+            "fecha": fecha_local.strftime("%d/%m/%Y %H:%M"),
+            "usuario": h.usuario.username if h.usuario else "—",
+            "accion": h.accion,
+            "plan": str(h.plan) if h.plan else "—",
+            "descripcion": h.descripcion,
+        })
+
+    return JsonResponse({"data": data})
+
 
 
 # -------------------------------
