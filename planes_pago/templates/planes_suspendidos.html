@@ -459,9 +459,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <table class="table table-bordered table-sm">
                                             <thead class="table-primary">
                                                 <tr>
-                                                    <th>Cuota</th>
-                                                    <th>Fecha Vencimiento</th>
-                                                    <th>Monto</th>
+                                                    <th>Nro de Cuota</th>
+                                                    <th>Base($)</th>
+                                                    <th>Interés</th>
+                                                    <th>Monto total cuota</th>
+                                                    <th>Recargo por Mora</th>
+                                                    <th>Vcto estimado</th>
                                                     <th>Estado</th>
                                                 </tr>
                                             </thead>
@@ -469,9 +472,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                                 ${plan.cuotas.map(c => `
                                                     <tr>
                                                         <td>${c.numero}</td>
-                                                        <td>${c.fecha_vencimiento}</td>
+                                                        <td>$${c.base}</td>
+                                                        <td>$${c.interes}</td>
                                                         <td>$${c.monto}</td>
-                                                        <td>${c.estado}</td>
+                                                        <td>$${c.mora}</td>
+                                                        <td>${c.fecha_vencimiento}</td>
+                                                        <td><span class="badge bg-secondary">${c.estado}</span></td>
                                                     </tr>
                                                 `).join('')}
                                             </tbody>

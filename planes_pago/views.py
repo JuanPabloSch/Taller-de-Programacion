@@ -232,7 +232,10 @@ def regularizacion_crear(request):
                                     regularizacion=regularizacion,
                                     numero_cuota=cuota.get('nro', 0),
                                     fecha_vencimiento=fecha_vto,
+                                    monto_base=cuota.get('base', 0),
+                                    monto_interes=cuota.get('interes', 0),
                                     monto_cuota=cuota.get('monto_total', 0),
+                                    monto_mora=cuota.get('mora', 0),
                                     estado='P'  # Pendiente por defecto
                                 )
                         except Exception as e:
@@ -690,8 +693,11 @@ def plan_ver_detalle(request, pk):
                         {
                             'numero': c.numero_cuota,
                             'fecha_vencimiento': c.fecha_vencimiento.strftime('%d/%m/%Y') if c.fecha_vencimiento else 'N/A',
+                            'base': str(c.monto_base),
+                            'interes': str(c.monto_interes),
                             'monto': str(c.monto_cuota),
-                            'estado': c.estado,
+                            'mora': str(c.monto_mora),
+                            'estado': c.get_estado_display(),
                         }
                         for c in cuotas
                     ]

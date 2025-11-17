@@ -194,7 +194,10 @@ class CuotaRegularizacion(models.Model):
     )
     numero_cuota = models.IntegerField(verbose_name='Número de Cuota')
     fecha_vencimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de Vencimiento')
+    monto_base = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Monto Base')
+    monto_interes = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Interés')
     monto_cuota = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Monto de la Cuota')
+    monto_mora = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Recargo por Mora')
     ESTADO_CHOICES = (
         ('P', 'Pendiente'),
         ('PA', 'Pagada'),
