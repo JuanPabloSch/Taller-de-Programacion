@@ -14,7 +14,7 @@ import csv, os, openpyxl
 from openpyxl.utils import get_column_letter
 from fpdf import FPDF
 
-from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora
+from .models import PlanPago, Cuota, Regularizacion, ReglaEstructura, ReglaMora, CuotaRegularizacion
 from .forms import (PlanPagoForm, RegularizacionForm,
                     ReglaEstructuraForm, ReglaMoraForm)
 from .decorators import group_required, can_delete, can_modify
@@ -267,6 +267,160 @@ def regularizacion_crear(request):
 
             messages.error(request, 'Hay errores en los formularios.')
             # No guardamos parcialmente en este flujo; redirigimos
+    return redirect('planes_list')
+
+
+@login_required
+@group_required('Administrador', 'Tesorero')
+def regularizacion_editar(request, pk):
+    """
+    Editar una regularización existente con sus reglas de estructura y mora.
+    Devuelve los datos del plan en formato JSON para cargar en el modal.
+    """
+    regularizacion = get_object_or_404(Regularizacion, pk=pk)
+
+    if request.method == 'GET':
+        # Obtener las reglas asociadas
+        try:
+            estructura = ReglaEstructura.objects.get(regularizacion=regularizacion)
+        except ReglaEstructura.DoesNotExist:
+            estructura = None
+
+        try:
+            mora = ReglaMora.objects.get(regularizacion=regularizacion)
+        except ReglaMora.DoesNotExist:
+            mora = None
+
+        # Obtener las cuotas existentes
+        cuotas = CuotaRegularizacion.objects.filter(regularizacion=regularizacion).order_by('numero_cuota')
+
+        # Preparar datos para enviar al frontend
+        data = {
+            'ok': True,
+            'regularizacion': {
+                'id': regularizacion.id,
+                'nombre': regularizacion.nombre,
+                'carrera': regularizacion.carrera,
+                'modalidad': regularizacion.modalidad,
+                'cohorte': regularizacion.cohorte,
+            },
+            'estructura': {
+                'origen_deuda': estructura.origen_deuda if estructura else '',
+                'valor': str(estructura.valor) if estructura else '',
+                'tasa': str(estructura.tasa) if estructura else '',
+                'pago_inicial': str(estructura.pago_incial) if estructura else '',
+                'cantidad_cuotas': estructura.cantidad_de_cuotas if estructura else '',
+                'frecuencia': estructura.frecuencia_de_pago if estructura else '',
+                'dia_vencimiento': estructura.dia_vencimiento if estructura else '',
+            } if estructura else None,
+            'mora': {
+                'tipo_recargo': mora.tipo_de_recargo if mora else '',
+                'cantidad': str(mora.cantidad_recargo) if mora else '',
+                'frecuencia': mora.frecuencia_aplicacion if mora else '',
+                'dias_gracia': mora.dias_gracia if mora else '',
+                'veces_aplicacion': mora.veces_aplicacion if mora else '',
+            } if mora else None,
+            'cuotas': [
+                {
+                    'nro': c.numero_cuota,
+                    'base': str(c.monto_base),
+                    'interes': str(c.monto_interes),
+                    'monto_total': str(c.monto_cuota),
+                    'mora': str(c.monto_mora),
+                    'vto': c.fecha_vencimiento.strftime('%d/%m/%Y') if c.fecha_vencimiento else '',
+                    'estado': c.get_estado_display(),
+                }
+                for c in cuotas
+            ]
+        }
+
+        return JsonResponse(data)
+
+    elif request.method == 'POST':
+        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion', instance=regularizacion)
+
+        # Obtener o crear las reglas asociadas
+        try:
+            estructura_instance = ReglaEstructura.objects.get(regularizacion=regularizacion)
+        except ReglaEstructura.DoesNotExist:
+            estructura_instance = None
+
+        try:
+            mora_instance = ReglaMora.objects.get(regularizacion=regularizacion)
+        except ReglaMora.DoesNotExist:
+            mora_instance = None
+
+        estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura', instance=estructura_instance)
+        mora_form = ReglaMoraForm(request.POST, prefix='mora', instance=mora_instance)
+
+        if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
+            try:
+                with transaction.atomic():
+                    regularizacion = regularizacion_form.save()
+
+                    estructura = estructura_form.save(commit=False)
+                    estructura.regularizacion = regularizacion
+                    estructura.save()
+
+                    mora = mora_form.save(commit=False)
+                    mora.regularizacion = regularizacion
+                    mora.save()
+
+                    # Actualizar las cuotas si fueron enviadas
+                    cuotas_json = request.POST.get('cuotas_json')
+                    if cuotas_json:
+                        import json
+                        from datetime import datetime
+                        try:
+                            # Eliminar cuotas existentes y crear las nuevas
+                            CuotaRegularizacion.objects.filter(regularizacion=regularizacion).delete()
+
+                            cuotas_data = json.loads(cuotas_json)
+                            for cuota in cuotas_data:
+                                fecha_vto = None
+                                if cuota.get('vto'):
+                                    try:
+                                        fecha_vto = datetime.strptime(cuota['vto'], '%d/%m/%Y').date()
+                                    except:
+                                        pass
+
+                                CuotaRegularizacion.objects.create(
+                                    regularizacion=regularizacion,
+                                    numero_cuota=cuota.get('nro', 0),
+                                    fecha_vencimiento=fecha_vto,
+                                    monto_base=cuota.get('base', 0),
+                                    monto_interes=cuota.get('interes', 0),
+                                    monto_cuota=cuota.get('monto_total', 0),
+                                    monto_mora=cuota.get('mora', 0),
+                                    estado='P'
+                                )
+                        except Exception as e:
+                            print(f"Error al actualizar cuotas: {e}")
+
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': 'Regularización actualizada correctamente.'})
+
+                messages.success(request, 'La regularización fue actualizada exitosamente.')
+                return redirect('planes_list')
+
+            except Exception as e:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': str(e)}, status=500)
+                messages.error(request, f'Ocurrió un error al actualizar: {e}')
+
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': {
+                        'regularizacion': regularizacion_form.errors,
+                        'estructura': estructura_form.errors,
+                        'mora': mora_form.errors
+                    }
+                }, status=400)
+
+            messages.error(request, 'Hay errores en los formularios.')
+
     return redirect('planes_list')
 
 

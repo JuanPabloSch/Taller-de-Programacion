@@ -260,7 +260,7 @@
                 <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-excel"></i>Excel</a>
                 <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir</a>
                 {% if user|is_in_groups:"Administrador,Tesorero" %}
-                <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nuevo Plan</button>
+                <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan" onclick="resetFormulario()">+ Nuevo Plan</button>
                 {% endif %}
             </div>
         </header>
@@ -299,15 +299,15 @@
 
 
         <!-- Modal genérico para Regularización -->
-        <div class="modal fade" id="regularizacionModal" tabindex="-1" aria-labelledby="regularizacionModalLabel" aria-hidden="true">
+        <div class="modal fade" id="modalNuevoPlan" tabindex="-1" aria-labelledby="modalNuevoPlanLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
             <div class="modal-header">
             <!--DATOS DE IDENTIFICACION-->
-            <h5 class="modal-title" id="regularizacionModalLabel">Crear Nuevo Plan</h5>
+            <h5 class="modal-title" id="modalNuevoPlanLabel">Crear Nuevo Plan</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-      <form method="post" action="{% url 'regularizacion_crear' %}">
+      <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacion">
         {% csrf_token %} 
         <div class="modal-body">
           <div class="card text-center">
@@ -364,13 +364,28 @@
                 </div>
                 <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
                     <h5 class="card-title">Simulación del Plan de Pagos</h5>
-    
+
                     <div id="visualizacion-resultados" class="mt-3">
-                        <div class="alert alert-info text-center" role="alert">
-                        </div>
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Nro de Cuota</th>
+                                    <th>Base($)</th>
+                                    <th>Interés</th>
+                                    <th>Monto total cuota</th>
+                                    <th>Recargo por Mora</th>
+                                    <th>Vcto estimado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuotas">
+                                <tr>
+                                    <td colspan="6" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                
-    
+
+
     <div class="d-flex justify-content-between mt-4">
         <button type="button" class="btn btn-secondary" onclick="goToTab('mora')">Volver </button>
         <div>
@@ -561,19 +576,175 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
     $('#tablaPlanes').on('click', 'button[data-action]', function() {
         const id = $(this).data('id');
         const action = $(this).data('action');
-        let url = '';
-        let titulo = '';
 
         if (action === 'editar') {
-            url = `/planes/editar/${id}/`;
-            titulo = 'Editar Plan';
+            // Cargar datos de la regularización en el modal con pestañas
+            cargarDatosEdicion(id);
         } else if (action === 'clonar') {
-            url = `/planes/clonar/${id}/`;
-            titulo = 'Clonar Plan';
+            let url = `/planes/clonar/${id}/`;
+            let titulo = 'Clonar Plan';
+            abrirModal(titulo, url);
+        }
+    });
+
+    // Función para cargar datos de edición en el modal
+    function cargarDatosEdicion(id) {
+        console.log('Cargando datos de edición para ID:', id);
+
+        // Cambiar el título del modal
+        document.getElementById('modalNuevoPlanLabel').textContent = 'Editar Plan de Pago';
+
+        // Cambiar el texto del botón de guardar
+        const btnGuardar = document.getElementById('btnGuardarRegularizacion');
+        if (btnGuardar) {
+            btnGuardar.textContent = 'Actualizar Plan';
+            btnGuardar.setAttribute('data-edit-id', id);
         }
 
-        abrirModal(titulo, url);
-    });
+        // Ir a la primera pestaña
+        goToTab('identificacion');
+
+        // Hacer fetch para obtener los datos
+        fetch(`/planes/regularizaciones/editar/${id}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                // Cargar datos de Identificación
+                document.getElementById('id_regularizacion-nombre').value = data.regularizacion.nombre || '';
+                document.getElementById('id_regularizacion-carrera').value = data.regularizacion.carrera || '';
+                document.getElementById('id_regularizacion-modalidad').value = data.regularizacion.modalidad || '';
+                document.getElementById('id_regularizacion-cohorte').value = data.regularizacion.cohorte || '';
+
+                // Cargar datos de Estructura
+                if (data.estructura) {
+                    document.getElementById('id_estructura-origen_deuda').value = data.estructura.origen_deuda || '';
+                    document.getElementById('id_estructura-valor').value = data.estructura.valor || '';
+                    document.getElementById('id_estructura-tasa').value = data.estructura.tasa || '';
+                    document.getElementById('id_estructura-pago_incial').value = data.estructura.pago_inicial || '';
+                    document.getElementById('id_estructura-cantidad_de_cuotas').value = data.estructura.cantidad_cuotas || '';
+                    document.getElementById('id_estructura-frecuencia_de_pago').value = data.estructura.frecuencia || '';
+                    document.getElementById('id_estructura-dia_vencimiento').value = data.estructura.dia_vencimiento || '';
+                }
+
+                // Cargar datos de Mora
+                if (data.mora) {
+                    document.getElementById('id_mora-tipo_de_recargo').value = data.mora.tipo_recargo || '';
+                    document.getElementById('id_mora-cantidad_recargo').value = data.mora.cantidad || '';
+                    document.getElementById('id_mora-frecuencia_aplicacion').value = data.mora.frecuencia || '';
+                    document.getElementById('id_mora-dias_gracia').value = data.mora.dias_gracia || '';
+                    document.getElementById('id_mora-veces_aplicacion').value = data.mora.veces_aplicacion || '';
+                }
+
+                // Guardar las cuotas en una variable global para mostrarlas en la visualización
+                window.cuotasExistentes = data.cuotas || [];
+
+                // Verificar si las cuotas tienen valores válidos (no todos en 0)
+                let cuotasValidas = false;
+                if (data.cuotas && data.cuotas.length > 0) {
+                    // Verificar si al menos una cuota tiene valores diferentes de 0
+                    cuotasValidas = data.cuotas.some(c =>
+                        parseFloat(c.base) !== 0 ||
+                        parseFloat(c.interes) !== 0
+                    );
+                }
+
+                if (cuotasValidas) {
+                    // Si las cuotas son válidas, mostrarlas
+                    mostrarCuotasExistentes(data.cuotas);
+                } else if (data.estructura && data.mora) {
+                    // Si las cuotas no son válidas pero tenemos datos de estructura y mora,
+                    // recalcular las cuotas automáticamente
+                    console.log('Cuotas con valores en 0, recalculando automáticamente...');
+
+                    // Esperar un momento para que el modal se muestre
+                    setTimeout(() => {
+                        // Simular el click en el botón de simular
+                        const formElement = document.querySelector('#modalNuevoPlan form');
+                        if (formElement) {
+                            const formData = getFormData(formElement);
+                            const response = calcularCuotas(formData);
+
+                            if (response.status === 'ok') {
+                                cuotasSimuladas = response.cuotas;
+                                mostrarCuotasExistentes(response.cuotas);
+                            }
+                        }
+                    }, 500);
+                } else if (data.cuotas && data.cuotas.length > 0) {
+                    // Mostrar las cuotas aunque estén en 0
+                    mostrarCuotasExistentes(data.cuotas);
+                }
+
+                // Mostrar el modal después de cargar todos los datos
+                const modal = new bootstrap.Modal(document.getElementById('modalNuevoPlan'));
+                modal.show();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los datos del plan'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar los datos del plan'
+            });
+        });
+    }
+
+    // Función para mostrar cuotas existentes en la pestaña de visualización
+    function mostrarCuotasExistentes(cuotas) {
+        const tbody = document.getElementById('tablaCuotas');
+        if (tbody) {
+            tbody.innerHTML = '';
+            cuotas.forEach(cuota => {
+                const row = `
+                    <tr>
+                        <td>${cuota.nro}</td>
+                        <td>${cuota.base}</td>
+                        <td>${cuota.interes}</td>
+                        <td>${cuota.monto_total}</td>
+                        <td>${cuota.mora}</td>
+                        <td>${cuota.vto}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+    }
+
+    // Función para resetear el formulario al crear un nuevo plan
+    window.resetFormulario = function() {
+        const form = document.getElementById('formRegularizacion');
+        if (form) {
+            form.reset();
+            form.action = "{% url 'regularizacion_crear' %}";
+        }
+
+        // Resetear el título y el botón
+        document.getElementById('modalNuevoPlanLabel').textContent = 'Crear Nuevo Plan';
+        const btnGuardar = document.getElementById('btnGuardarRegularizacion');
+        btnGuardar.textContent = 'Guardar Plan';
+        btnGuardar.removeAttribute('data-edit-id');
+
+        // Limpiar la tabla de cuotas
+        const tbody = document.getElementById('tablaCuotas');
+        if (tbody) {
+            tbody.innerHTML = '';
+        }
+
+        // Volver a la primera pestaña
+        goToTab('identificacion');
+    };
 });
 </script>
 <script>
@@ -720,20 +891,22 @@ $(document).ready(function() {
 
     $('#btnSimularPlan').on('click', function() {
 
-        const $resultadosDiv = $('#visualizacion-resultados');
+        const $tbody = $('#tablaCuotas');
 
-        // Mostrar spinner/cargando
-        $resultadosDiv.html(`
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Calculando...</span>
-                </div>
-                <p class="mt-2">Calculando plan de cuotas localmente...</p>
-            </div>
+        // Mostrar spinner/cargando en la tabla
+        $tbody.html(`
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Calculando...</span>
+                    </div>
+                    <p class="mt-2">Calculando plan de cuotas localmente...</p>
+                </td>
+            </tr>
         `);
 
         //ejecutar la simulación localmente
-        const formElement = document.querySelector('#regularizacionModal form');
+        const formElement = document.querySelector('#modalNuevoPlan form');
         const data = getFormData(formElement);
         const response = calcularCuotas(data);
 
@@ -741,46 +914,11 @@ $(document).ready(function() {
         if (response.status === 'ok') {
             // Guardar las cuotas en la variable global
             cuotasSimuladas = response.cuotas;
-            // --- 3.1. Crear el Resumen ---
-            const info = response.extra_info;
-            let resumenHtml = `
-                <div class="card mb-4 border-info">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="mb-0">Resumen del Plan de Pagos</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Deuda Original:</strong> $${info.total_original}<br>
-                                <strong>Pago Inicial:</strong> $${info.pago_inicial}<br>
-                                <strong>Deuda a Financiar:</strong> <strong>$${info.total_a_financiar}</strong>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Frecuencia de Pago:</strong> ${info.frecuencia}<br>
-                                <strong>Tasa de Interés:</strong> ${info.interes}<br>
-                                <strong>Recargo por Mora:</strong> ${info.recargo_mora}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            //Crear la Tabla
-            let tablaHtml = `
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th># Cuota</th>
-                            <th>Monto Base</th>
-                            <th>Interés</th>
-                            <th>Monto Total</th>
-                            <th>Mora Aplicada</th>
-                            <th>Fecha Vencimiento</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+
+            // Limpiar y llenar la tabla con las cuotas
+            $tbody.html('');
             response.cuotas.forEach(c => {
-                tablaHtml += `
+                $tbody.append(`
                     <tr>
                         <td>${c.nro}</td>
                         <td>$${c.base}</td>
@@ -789,27 +927,24 @@ $(document).ready(function() {
                         <td>$${c.mora}</td>
                         <td>${c.vto}</td>
                     </tr>
-                `;
+                `);
             });
-            tablaHtml += `
-                    </tbody>
-                </table>
-            `;
-            
-            // ambos elementos
-            $resultadosDiv.html(resumenHtml + tablaHtml);
-            
-            // 5. Cambiar a la pestaña de Visualización
+
+            // Cambiar a la pestaña de Visualización
             goToTab('visualizacion');
         } else {
             // Manejo de errores
             const errorMessage = response.message || 'Error desconocido en la simulación.';
-            $resultadosDiv.html(`
-                <div class="alert alert-danger" role="alert">
-                    <h4>⚠️ Error de Simulación:</h4>
-                    <p>${errorMessage}</p>
-                    <p>Por favor, revisa los datos ingresados en las pestañas Estructura y Reglas de Mora.</p>
-                </div>`
+            $tbody.html(`
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div class="alert alert-danger" role="alert">
+                            <h4>⚠️ Error de Simulación:</h4>
+                            <p>${errorMessage}</p>
+                            <p>Por favor, revisa los datos ingresados en las pestañas Estructura y Reglas de Mora.</p>
+                        </div>
+                    </td>
+                </tr>`
             );
             goToTab('visualizacion');
         }
@@ -828,7 +963,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault(); // Evita que recargue la página
 
       // Buscamos el formulario dentro del modal
-      const form = document.querySelector("#regularizacionModal form");
+      const form = document.querySelector("#modalNuevoPlan form");
       const formData = new FormData(form);
 
       // Si hay cuotas simuladas, las agregamos al formData como JSON
@@ -836,8 +971,21 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append('cuotas_json', JSON.stringify(cuotasSimuladas));
       }
 
-      // Enviamos los datos al backend (a tu vista 'regularizacion_crear')
-      fetch(form.action, {
+      // Verificar si estamos en modo edición
+      const editId = btnGuardar.getAttribute('data-edit-id');
+      let actionUrl = form.action;
+      let mensajeExito = "✅ Plan creado";
+      let textoExito = "El plan se guardó correctamente y está pendiente de activación.";
+
+      if (editId) {
+        // Estamos editando
+        actionUrl = `/planes/regularizaciones/editar/${editId}/`;
+        mensajeExito = "✅ Plan actualizado";
+        textoExito = "El plan se actualizó correctamente.";
+      }
+
+      // Enviamos los datos al backend
+      fetch(actionUrl, {
         method: "POST",
         body: formData,
         headers: {
@@ -879,16 +1027,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Éxito
         Swal.fire({
-          title: "✅ Plan creado",
-          text: "El plan se guardó correctamente y está pendiente de activación.",
+          title: mensajeExito,
+          text: textoExito,
           icon: "success",
           timer: 2000,
           showConfirmButton: false
         });
 
         // Cierra el modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById("regularizacionModal"));
-        modal.hide();
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevoPlan"));
+        if (modal) {
+          modal.hide();
+        }
 
         // Refresca la tabla principal
         if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
