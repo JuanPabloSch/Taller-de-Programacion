@@ -51,6 +51,7 @@ path("reactivar/", views.reactivar_objeto, name="reactivar_objeto"),
 
 
 path('planes/suspendidos/', views.planes_suspendidos, name='planes_suspendidos'),
+path('planes/ver/<int:pk>/', views.plan_ver_detalle, name='plan_ver_detalle'),
 
 path("historial/", views.historial, name="historial"),
 

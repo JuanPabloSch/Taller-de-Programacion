@@ -260,8 +260,7 @@
                 <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-excel"></i>Excel</a>
                 <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir</a>
                 {% if user|is_in_groups:"Administrador,Tesorero" %}
-                <button id="btnNuevo" class="btn-new">+ Nuevo Plan</button>
-                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nueva Regularización</button>
+                <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#regularizacionModal">+ Nuevo Plan</button>
                 {% endif %}
             </div>
         </header>
@@ -305,7 +304,7 @@
             <div class="modal-content">
             <div class="modal-header">
             <!--DATOS DE IDENTIFICACION-->
-            <h5 class="modal-title" id="regularizacionModalLabel">Crear Nueva Regularización</h5>
+            <h5 class="modal-title" id="regularizacionModalLabel">Crear Nuevo Plan</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
       <form method="post" action="{% url 'regularizacion_crear' %}">
@@ -360,7 +359,7 @@
                     <div class="d-flex justify-content-between mt-4">
                             <button type="button" class="btn btn-secondary" onclick="goToTab('estructura')">Volver</button>
                             <!-- Generar Visualización (Activa el cálculo y navega) -->
-                            <button id="btnSimularPlan" class="btn btn-primary">Simular Plan</button>
+                            <button type="button" id="btnSimularPlan" class="btn btn-primary">Simular Plan</button>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
@@ -376,7 +375,7 @@
         <button type="button" class="btn btn-secondary" onclick="goToTab('mora')">Volver </button>
         <div>
             <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success" id="btnGuardarRegularizacion">Guardar Regularización</button>
+            <button type="submit" class="btn btn-success" id="btnGuardarRegularizacion">Guardar Plan</button>
         </div>
     </div>
 </div>   
@@ -556,10 +555,7 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         });
     }
 
-    // Nuevo Plan
-    $('#btnNuevo').on('click', function() {
-        abrirModal('Nuevo Plan', '{% url "plan_crear" %}');
-    });
+    // Botón Nuevo Plan ya no necesita JavaScript - usa data-bs-toggle en el HTML
 
     // Editar / Clonar Plan
     $('#tablaPlanes').on('click', 'button[data-action]', function() {
@@ -716,13 +712,16 @@ function calcularCuotas(data) {
 
 
 
-//MANEJADOR DEL BOTÓN DE SIMULACIÓN (jQuery) 
+//MANEJADOR DEL BOTÓN DE SIMULACIÓN (jQuery)
+// Variable global para almacenar las cuotas simuladas
+let cuotasSimuladas = null;
+
 $(document).ready(function() {
-    
+
     $('#btnSimularPlan').on('click', function() {
-        
+
         const $resultadosDiv = $('#visualizacion-resultados');
-        
+
         // Mostrar spinner/cargando
         $resultadosDiv.html(`
             <div class="text-center py-5">
@@ -732,14 +731,16 @@ $(document).ready(function() {
                 <p class="mt-2">Calculando plan de cuotas localmente...</p>
             </div>
         `);
-        
+
         //ejecutar la simulación localmente
         const formElement = document.querySelector('#regularizacionModal form');
         const data = getFormData(formElement);
         const response = calcularCuotas(data);
-        
+
         // generar la visualización
         if (response.status === 'ok') {
+            // Guardar las cuotas en la variable global
+            cuotasSimuladas = response.cuotas;
             // --- 3.1. Crear el Resumen ---
             const info = response.extra_info;
             let resumenHtml = `
@@ -830,6 +831,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const form = document.querySelector("#regularizacionModal form");
       const formData = new FormData(form);
 
+      // Si hay cuotas simuladas, las agregamos al formData como JSON
+      if (cuotasSimuladas && cuotasSimuladas.length > 0) {
+        formData.append('cuotas_json', JSON.stringify(cuotasSimuladas));
+      }
+
       // Enviamos los datos al backend (a tu vista 'regularizacion_crear')
       fetch(form.action, {
         method: "POST",
@@ -839,14 +845,42 @@ document.addEventListener("DOMContentLoaded", () => {
           "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
         }
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Error al guardar la regularización");
-        return res.text();
-      })
-      .then(() => {
+      .then(res => res.json().then(data => ({status: res.status, ok: res.ok, data})))
+      .then(({status, ok, data}) => {
+        if (!ok) {
+          // Mostrar errores de validación
+          let errorMsg = "No se pudo guardar la regularización.";
+
+          if (data.errors) {
+            const errores = [];
+            if (data.errors.regularizacion) {
+              Object.values(data.errors.regularizacion).forEach(err => errores.push(...err));
+            }
+            if (data.errors.estructura) {
+              Object.values(data.errors.estructura).forEach(err => errores.push(...err));
+            }
+            if (data.errors.mora) {
+              Object.values(data.errors.mora).forEach(err => errores.push(...err));
+            }
+            if (errores.length > 0) {
+              errorMsg = errores.join('<br>');
+            }
+          } else if (data.error) {
+            errorMsg = data.error;
+          }
+
+          Swal.fire({
+            title: "Error",
+            html: errorMsg,
+            icon: "error"
+          });
+          return;
+        }
+
+        // Éxito
         Swal.fire({
-          title: "✅ Guardado",
-          text: "La regularización se guardó correctamente.",
+          title: "✅ Plan creado",
+          text: "El plan se guardó correctamente y está pendiente de activación.",
           icon: "success",
           timer: 2000,
           showConfirmButton: false
@@ -865,7 +899,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch(err => {
         console.error(err);
-        Swal.fire(" Error", "No se pudo guardar la regularización.", "error");
+        Swal.fire("Error", "Ocurrió un error al guardar la regularización.", "error");
       });
     });
   }

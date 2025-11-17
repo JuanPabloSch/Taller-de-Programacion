@@ -182,3 +182,30 @@ class ReglaMora(models.Model):
     
     def __str__(self):
         return f"Reglas de Mora para {self.regularizacion.nombre}"
+
+
+# Modelo de Cuota para Regularizaciones
+class CuotaRegularizacion(models.Model):
+    regularizacion = models.ForeignKey(
+        Regularizacion,
+        on_delete=models.CASCADE,
+        related_name='cuotas',
+        verbose_name='Regularización asociada'
+    )
+    numero_cuota = models.IntegerField(verbose_name='Número de Cuota')
+    fecha_vencimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de Vencimiento')
+    monto_cuota = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Monto de la Cuota')
+    ESTADO_CHOICES = (
+        ('P', 'Pendiente'),
+        ('PA', 'Pagada'),
+        ('V', 'Vencida'),
+    )
+    estado = models.CharField(max_length=2, choices=ESTADO_CHOICES, default='P', verbose_name='Estado')
+
+    class Meta:
+        ordering = ['numero_cuota']
+        verbose_name = 'Cuota de Regularización'
+        verbose_name_plural = 'Cuotas de Regularización'
+
+    def __str__(self):
+        return f"Cuota {self.numero_cuota} - {self.regularizacion.nombre}"

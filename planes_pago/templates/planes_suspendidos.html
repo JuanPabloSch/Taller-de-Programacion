@@ -21,6 +21,7 @@
                 <th>Carrera</th>
                 <th>Cohorte</th>
                 <th>Modalidad</th>
+                <th>Fecha de Creación</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -34,17 +35,26 @@
                 <td>{{ plan.carrera }}</td>
                 <td>{{ plan.cohorte }}</td>
                 <td>{{ plan.modalidad }}</td>
+                <td>{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
                 <td>Suspendido</td>
                 <td>
-                    <button class="btn btn-sm btn-warning btn-desactivar" 
+                    <button class="btn btn-sm btn-info btn-ver"
                     data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}">
+                    data-tipo="{{ plan.tipo_backend }}"
+                    title="Ver detalles">
+                    <i class="bi bi-eye"></i> Ver
+                    </button>
+                    <button class="btn btn-sm btn-warning btn-desactivar"
+                    data-id="{{ plan.id }}"
+                    data-tipo="{{ plan.tipo_backend }}"
+                    title="Desactivar">
                     Desactivar
                     </button>
 
                 <button class="btn btn-sm btn-success btn-reactivar"
                 data-id="{{ plan.id }}"
-                data-tipo="{{ plan.tipo_backend }}">
+                data-tipo="{{ plan.tipo_backend }}"
+                title="Reactivar">
                 Reactivar
                 </button>
 
@@ -52,7 +62,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="text-muted">No hay planes suspendidos</td></tr>
+            <tr><td colspan="9" class="text-muted">No hay planes suspendidos</td></tr>
             {% endfor %}
             </tbody>
         </table>
@@ -70,6 +80,7 @@
                 <th>Carrera</th>
                 <th>Cohorte</th>
                 <th>Modalidad</th>
+                <th>Fecha de Creación</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -83,18 +94,26 @@
                 <td>{{ plan.carrera }}</td>
                 <td>{{ plan.cohorte }}</td>
                 <td>{{ plan.modalidad }}</td>
+                <td>{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
                 <td>Desactivado</td>
                 <td>
+                    <button class="btn btn-sm btn-info btn-ver"
+                    data-id="{{ plan.id }}"
+                    data-tipo="{{ plan.tipo_backend }}"
+                    title="Ver detalles">
+                    <i class="bi bi-eye"></i> Ver
+                    </button>
                     <button class="btn btn-sm btn-success btn-reactivar"
-        data-id="{{ plan.id }}"
-        data-tipo="{{ plan.tipo_backend }}">
-    Reactivar
-</button>
+                    data-id="{{ plan.id }}"
+                    data-tipo="{{ plan.tipo_backend }}"
+                    title="Reactivar">
+                    Reactivar
+                    </button>
 
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="text-muted">No hay planes desactivados</td></tr>
+            <tr><td colspan="9" class="text-muted">No hay planes desactivados</td></tr>
             {% endfor %}
             </tbody>
         </table>
@@ -102,6 +121,32 @@
 
     </main>
 </div>
+
+<!-- Modal para ver detalles del plan -->
+<div class="modal fade" id="verPlanModal" tabindex="-1" aria-labelledby="verPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="verPlanModalLabel">Detalles del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="verPlanModalBody">
+                <!-- El contenido se cargará dinámicamente -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning btn-modal-desactivar" style="display:none;">Desactivar</button>
+                <button type="button" class="btn btn-success btn-modal-reactivar" style="display:none;">Reactivar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -241,6 +286,243 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /** ===============================
+     *  VER PLAN
+     *  =============================== */
+    function verPlan(id, tipo) {
+        const modal = new bootstrap.Modal(document.getElementById('verPlanModal'));
+        const modalBody = document.getElementById('verPlanModalBody');
+        const modalTitle = document.getElementById('verPlanModalLabel');
+
+        // Mostrar el modal
+        modal.show();
+
+        // Resetear contenido
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        `;
+
+        // Cargar detalles del plan
+        fetch(`/planes/ver/${id}/?tipo=${tipo}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.ok) {
+                    modalBody.innerHTML = `<div class="alert alert-danger">${data.msg || 'Error al cargar los detalles'}</div>`;
+                    return;
+                }
+
+                const plan = data.plan;
+                modalTitle.textContent = `Detalles - ${plan.nombre}`;
+
+                // Crear contenido con pestañas
+                let contenido = `
+                    <div class="card text-center">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="verPlanTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="ver-id-tab" data-bs-toggle="tab" data-bs-target="#ver-identificacion" type="button" role="tab">
+                                        Identificación
+                                    </button>
+                                </li>
+                                ${plan.estructura ? `
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="ver-est-tab" data-bs-toggle="tab" data-bs-target="#ver-estructura" type="button" role="tab">
+                                        Estructura
+                                    </button>
+                                </li>
+                                ` : ''}
+                                ${plan.mora ? `
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="ver-mora-tab" data-bs-toggle="tab" data-bs-target="#ver-mora" type="button" role="tab">
+                                        Reglas de Mora
+                                    </button>
+                                </li>
+                                ` : ''}
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="ver-vis-tab" data-bs-toggle="tab" data-bs-target="#ver-visualizacion" type="button" role="tab">
+                                        Visualización
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="verPlanTabContent">
+                                <!-- TAB IDENTIFICACIÓN -->
+                                <div class="tab-pane fade show active" id="ver-identificacion" role="tabpanel">
+                                    <h5 class="card-title mb-4">Datos de Identificación</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">ID</label>
+                                            <input type="text" class="form-control" value="${plan.id}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Fecha de Creación</label>
+                                            <input type="text" class="form-control" value="${plan.fecha_creacion}" readonly>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-bold">Nombre</label>
+                                            <input type="text" class="form-control" value="${plan.nombre}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Carrera</label>
+                                            <input type="text" class="form-control" value="${plan.carrera}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Cohorte</label>
+                                            <input type="text" class="form-control" value="${plan.cohorte}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Modalidad</label>
+                                            <input type="text" class="form-control" value="${plan.modalidad}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Estado</label>
+                                            <input type="text" class="form-control" value="${plan.estado === 'S' ? 'Suspendido' : plan.estado === 'D' ? 'Desactivado' : 'Activo'}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                ${plan.estructura ? `
+                                <!-- TAB ESTRUCTURA -->
+                                <div class="tab-pane fade" id="ver-estructura" role="tabpanel">
+                                    <h5 class="card-title mb-4">Estructura del Plan</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-bold">Origen de la Deuda</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.origen_deuda}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Valor</label>
+                                            <input type="text" class="form-control" value="$${plan.estructura.valor}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Tasa (%)</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.tasa}%" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Pago Inicial</label>
+                                            <input type="text" class="form-control" value="$${plan.estructura.pago_inicial}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Cantidad de Cuotas</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.cantidad_cuotas}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Frecuencia de Pago</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.frecuencia}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Día de Vencimiento</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.dia_vencimiento}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                ${plan.mora ? `
+                                <!-- TAB MORA -->
+                                <div class="tab-pane fade" id="ver-mora" role="tabpanel">
+                                    <h5 class="card-title mb-4">Reglas de Mora</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Tipo de Recargo</label>
+                                            <input type="text" class="form-control" value="${plan.mora.tipo}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Cantidad</label>
+                                            <input type="text" class="form-control" value="${plan.mora.cantidad}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Frecuencia de Aplicación</label>
+                                            <input type="text" class="form-control" value="${plan.mora.frecuencia}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Días de Gracia</label>
+                                            <input type="text" class="form-control" value="${plan.mora.dias_gracia}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Veces de Aplicación</label>
+                                            <input type="text" class="form-control" value="${plan.mora.veces_aplicacion}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <!-- TAB VISUALIZACIÓN -->
+                                <div class="tab-pane fade" id="ver-visualizacion" role="tabpanel">
+                                    <h5 class="card-title mb-4">Simulación del Plan de Pagos</h5>
+                                    ${plan.cuotas && plan.cuotas.length > 0 ? `
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th>Cuota</th>
+                                                    <th>Fecha Vencimiento</th>
+                                                    <th>Monto</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${plan.cuotas.map(c => `
+                                                    <tr>
+                                                        <td>${c.numero}</td>
+                                                        <td>${c.fecha_vencimiento}</td>
+                                                        <td>$${c.monto}</td>
+                                                        <td>${c.estado}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    ` : `
+                                    <div class="alert alert-info text-center" role="alert">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        No hay cuotas generadas para este plan.
+                                        <br>
+                                        <small class="text-muted">Las cuotas se generan al simular el plan durante la creación.</small>
+                                    </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                modalBody.innerHTML = contenido;
+
+                // Mostrar botones según el estado
+                const btnDesactivar = document.querySelector('.btn-modal-desactivar');
+                const btnReactivar = document.querySelector('.btn-modal-reactivar');
+
+                if (plan.estado === 'S') {
+                    btnDesactivar.style.display = 'inline-block';
+                    btnReactivar.style.display = 'inline-block';
+                    btnDesactivar.onclick = () => {
+                        modal.hide();
+                        desactivarObjeto(id, tipo);
+                    };
+                    btnReactivar.onclick = () => {
+                        modal.hide();
+                        reactivar(id, tipo);
+                    };
+                } else if (plan.estado === 'D') {
+                    btnDesactivar.style.display = 'none';
+                    btnReactivar.style.display = 'inline-block';
+                    btnReactivar.onclick = () => {
+                        modal.hide();
+                        reactivar(id, tipo);
+                    };
+                }
+            })
+            .catch(() => {
+                modalBody.innerHTML = `<div class="alert alert-danger">Error al cargar los detalles del plan</div>`;
+            });
+    }
+
+    /** ===============================
      *  EVENTOS
      *  =============================== */
     document.addEventListener("click", (e) => {
@@ -248,6 +530,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!btn) return;
 
         const id = btn.dataset.id;
+        const tipo = btn.dataset.tipo || 'plan';
+
+        // VER PLAN
+        if (btn.classList.contains("btn-ver")) {
+            verPlan(id, tipo);
+            return;
+        }
 
         // REACTIVAR
         if (btn.classList.contains("btn-reactivar")) {
