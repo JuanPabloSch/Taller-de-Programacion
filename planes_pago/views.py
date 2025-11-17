@@ -943,7 +943,7 @@ def plan_suspender(request, pk):
         plan.iEstado = False
         plan.save()
 
-        # 🔥 Registrar historial
+        #  Registrar historial
         registrar_accion(
             usuario=request.user,
             accion="Suspendió un plan",
@@ -977,7 +977,6 @@ def plan_suspender(request, pk):
     return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
 
-
 @require_POST
 @login_required
 def desactivar_objeto(request):
@@ -994,17 +993,29 @@ def desactivar_objeto(request):
 
     try:
         obj = Model.objects.get(pk=pk)
-        obj.estado = "D"
+        obj.estado = "D"   # D = desactivado
         obj.save()
+
+        # -------------------------------------------
+        # REGISTRAR EN HISTORIAL
+        # -------------------------------------------
+        registrar_accion(
+            usuario=request.user,
+            accion=f"Desactivó un {tipo}",
+            plan=obj if tipo == "plan" else None,
+            descripcion=f"{tipo.capitalize()} desactivado: {obj}"
+        )
+        # -------------------------------------------
+
         return JsonResponse({"ok": True, "msg": f"{tipo.capitalize()} desactivado correctamente"})
     
     except Model.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
 
     except Exception as e:
-        # CAPTURA CUALQUIER OTRO ERROR 
         print("ERROR inesperado:", e)
         return JsonResponse({"ok": False, "msg": f"Error inesperado: {str(e)}"}, status=500)
+
 
 # @require_POST -------ESTE ES EL REACTIVAR VIEJO, LO DEJO COMENTADO POR LAS DUDAS-------
 # @login_required
@@ -1038,9 +1049,23 @@ def reactivar_objeto(request):
         obj = Model.objects.get(pk=pk)
         obj.estado = "A"
         obj.save()
+
+        # -------------------------------------------
+        # REGISTRAR EN HISTORIAL
+        # -------------------------------------------
+        registrar_accion(
+            usuario=request.user,
+            accion=f"Reactivó un {tipo}",
+            plan=obj if tipo == "plan" else None,
+            descripcion=f"{tipo.capitalize()} reactivado: {obj}"
+        )
+        # -------------------------------------------
+
         return JsonResponse({"ok": True, "msg": f"{tipo.capitalize()} reactivado correctamente"})
+
     except Model.DoesNotExist:
         return JsonResponse({"ok": False, "msg": "Objeto no encontrado"}, status=404)
+
 
 @login_required
 def historial(request):
