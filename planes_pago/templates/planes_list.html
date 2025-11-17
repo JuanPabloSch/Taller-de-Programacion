@@ -973,105 +973,106 @@ $(document).ready(function() {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   // Buscamos el botón por su id
-  const btnGuardar = document.getElementById("btnGuardarRegularizacion");
+    const btnGuardar = document.getElementById("btnGuardarRegularizacion");
 
-  // le agregamos la acción
-  if (btnGuardar) {
-    btnGuardar.addEventListener("click", function (e) {
-      e.preventDefault(); // Evita que recargue la página
+    // le agregamos la acción
+    if (btnGuardar) {
+        btnGuardar.addEventListener("click", function (e) {
+        e.preventDefault(); // Evita que recargue la página
 
-      // Buscamos el formulario dentro del modal
-      const form = document.querySelector("#modalNuevoPlan form");
-      const formData = new FormData(form);
+        // Buscamos el formulario dentro del modal
+        const form = document.querySelector("#modalNuevoPlan form");
+        const formData = new FormData(form);
 
-      // Si hay cuotas simuladas, las agregamos al formData como JSON
-      if (cuotasSimuladas && cuotasSimuladas.length > 0) {
-        formData.append('cuotas_json', JSON.stringify(cuotasSimuladas));
-      }
-
-      // Verificar si estamos en modo edición
-      const editId = btnGuardar.getAttribute('data-edit-id');
-      let actionUrl = form.action;
-      let mensajeExito = "✅ Plan creado";
-      let textoExito = "El plan se guardó correctamente y está pendiente de activación.";
-
-      if (editId) {
-        // Estamos editando
-        actionUrl = `/planes/regularizaciones/editar/${editId}/`;
-        mensajeExito = "✅ Plan actualizado";
-        textoExito = "El plan se actualizó correctamente.";
-      }
-
-      // Enviamos los datos al backend
-      fetch(actionUrl, {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
-        }
-      })
-      .then(res => res.json().then(data => ({status: res.status, ok: res.ok, data})))
-      .then(({status, ok, data}) => {
-        if (!ok) {
-          // Mostrar errores de validación
-          let errorMsg = "No se pudo guardar la regularización.";
-
-          if (data.errors) {
-            const errores = [];
-            if (data.errors.regularizacion) {
-              Object.values(data.errors.regularizacion).forEach(err => errores.push(...err));
-            }
-            if (data.errors.estructura) {
-              Object.values(data.errors.estructura).forEach(err => errores.push(...err));
-            }
-            if (data.errors.mora) {
-              Object.values(data.errors.mora).forEach(err => errores.push(...err));
-            }
-            if (errores.length > 0) {
-              errorMsg = errores.join('<br>');
-            }
-          } else if (data.error) {
-            errorMsg = data.error;
-          }
-
-          Swal.fire({
-            title: "Error",
-            html: errorMsg,
-            icon: "error"
-          });
-          return;
+        // Si hay cuotas simuladas, las agregamos al formData como JSON
+        if (cuotasSimuladas && cuotasSimuladas.length > 0) {
+            formData.append('cuotas_json', JSON.stringify(cuotasSimuladas));
         }
 
-        // Éxito
-        Swal.fire({
-          title: mensajeExito,
-          text: textoExito,
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false
+        // Verificar si estamos en modo edición
+        const editId = btnGuardar.getAttribute('data-edit-id');
+        let actionUrl = form.action;
+        let mensajeExito = "✅ Plan creado";
+        let textoExito = "El plan se guardó correctamente y está pendiente de activación.";
+
+        if (editId) {
+            // Estamos editando
+            actionUrl = `/planes/regularizaciones/editar/${editId}/`;
+            mensajeExito = "✅ Plan actualizado";
+            textoExito = "El plan se actualizó correctamente.";
+        }
+
+        // Enviamos los datos al backend
+        fetch(actionUrl, {
+            method: "POST",
+            body: formData,
+            headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+            }
+        })
+        .then(res => res.json().then(data => ({status: res.status, ok: res.ok, data})))
+        .then(({status, ok, data}) => {
+            if (!ok) {
+            // Mostrar errores de validación
+            let errorMsg = "No se pudo guardar la regularización.";
+
+            if (data.errors) {
+                const errores = [];
+                if (data.errors.regularizacion) {
+                Object.values(data.errors.regularizacion).forEach(err => errores.push(...err));
+                }
+                if (data.errors.estructura) {
+                Object.values(data.errors.estructura).forEach(err => errores.push(...err));
+                }
+                if (data.errors.mora) {
+                Object.values(data.errors.mora).forEach(err => errores.push(...err));
+                }
+                if (errores.length > 0) {
+                errorMsg = errores.join('<br>');
+                }
+            } else if (data.error) {
+                errorMsg = data.error;
+            }
+
+            Swal.fire({
+                title: "Error",
+                html: errorMsg,
+                icon: "error"
+            });
+            return;
+            }
+
+            // Éxito
+            Swal.fire({
+            title: mensajeExito,
+            text: textoExito,
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+            });
+
+            // Cierra el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevoPlan"));
+            if (modal) {
+            modal.hide();
+            }
+
+            // Refresca la tabla principal
+            if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
+            $('#tablaPlanes').DataTable().ajax.reload();
+            } else {
+            location.reload();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire("Error", "Ocurrió un error al guardar la regularización.", "error");
         });
-
-        // Cierra el modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevoPlan"));
-        if (modal) {
-          modal.hide();
-        }
-
-        // Refresca la tabla principal
-        if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
-          $('#tablaPlanes').DataTable().ajax.reload();
-        } else {
-          location.reload();
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        Swal.fire("Error", "Ocurrió un error al guardar la regularización.", "error");
-      });
-    });
-  }
+        });
+    }
 });
 </script>
+
 
 {% endblock %}

@@ -819,6 +819,10 @@ def planes_suspendidos(request):
         "suspendidos": suspendidos,
         "desactivados": desactivados
     })
+@login_required
+def plan_ver(request, pk):
+    plan = get_object_or_404(PlanPago, pk=pk)
+    return render(request, "planes/ver_plan.html", {"plan": plan})
 
 
 @login_required

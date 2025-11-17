@@ -67,4 +67,6 @@ path("usuarios/crear/", views.usuario_crear, name="usuario_crear"),
 path("usuarios/editar/<int:pk>/", views.usuario_editar, name="usuario_editar"),
 path("usuarios/eliminar/<int:pk>/", views.usuario_eliminar, name="usuario_eliminar"),
 
+path("planes/ver/<int:pk>/", views.plan_ver, name="plan_ver"),
+
 ]
