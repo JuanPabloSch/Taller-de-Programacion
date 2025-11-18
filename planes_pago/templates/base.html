@@ -1,140 +1,199 @@
 {% load static %}
 {% load permisos_tags %}
 
-<!DOCTYPE html>
+<!DOCTYPE d1d6b8.png>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}ISDM Pagos{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ISDM Pagos{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 
     <style>
+    /* === ESTILOS GENERALES Y LAYOUT === */
     body {
         background-color: #d2dde4a2 !important;
-        padding-top: 70px;
+        padding-top: 56px; /* Altura estándar de navbar en Bootstrap 5 */
     }
     .main-content {
         flex: 1;
-
     }
     .layout {
         display: flex;
         min-height: 100vh;
         background: #ffffff;
-        padding:20px;
+        padding: 20px;
         border-radius: 16px;
     }
 
-        .navbar-logo {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            margin-right: 0.5rem;
-            border-radius: 50%;
-            background-color: white;
-        }
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-        }
-
-        @media (max-width: 576px) {
-            .navbar-logo {
-                width: 32px;
-                height: 32px;
-            }
-        }
-    </style>
-
-    {% block extra_head %}{% endblock %}
-  <!-- Bootstrap CSS + Íconos -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><!-- Bootstrap 5 -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-<!-- Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-
-
-
-  <style>
-    /* === SIDEBAR === */
-    #sidebar {
-      position: fixed;
-      top: 56px; /* Altura de la navbar */
-      left: 0;
-      height: 100vh;
-      z-index: 100; /* Debajo de la navbar si esta tiene z-index más alto */
-      width: 250px;
-      position: fixed;
-      left: -250px;
-      background-color: #212529;
-      transition: all 0.3s;
-    }
-
-    #sidebar.active {
-      left: 0;
-    }
-
-    #sidebar .nav-link {
-      color: #ddd;
-      padding: 12px 20px;
-      display: block;
-    }
-
-    #sidebar .nav-link:hover {
-      background-color: #343a40;
-      color: #fff;
-    }
-
-    #content {
-      transition: margin-left 0.3s;
-      padding: 20px;
-    }
-
-    #sidebar.active + #content {
-      margin-left: 250px;
-    }
-
-    .btn-toggle {
-      border: none;
-      background: none;
-      color: white;
-      font-size: 1.5rem;
+    /* Estilos del logo y marca */
+    .navbar-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        margin-right: 0.5rem;
+        border-radius: 50%;
+        background-color: white;
     }
 
     .navbar-brand {
-      font-weight: 600;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
     }
-  </style>
-  </head>
+
+    @media (max-width: 576px) {
+        .navbar-logo {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    /* === SIDEBAR - ESTILOS ADAPTADOS AL MODELO (AZUL OSCURO) === */
+    #sidebar {
+        /* Ajustamos TOP a 0 para que la barra lateral cubra toda la altura */
+        position: fixed;
+        top: 0; 
+        left: 0;
+        height: 100vh;
+        z-index: 1050; /* Aumentado para solaparse sobre el navbar */
+        width: 250px;
+        position: fixed;
+        left: -250px;
+        background-color: #192A41; /* Azul Oscuro Profundo (como el modelo) */
+        transition: all 0.3s;
+        padding-top: 0; /* Aseguramos que el contenido empiece desde arriba */
+    }
+
+    #sidebar.active {
+        left: 0;
+    }
+
+    /* Área de usuario en la Sidebar (Simulación del modelo) */
+    .sidebar-user-info {
+        text-align: center;
+        padding: 40px 0 15px 0; /* Ajustado el padding superior para replicar el modelo */
+        border-bottom: 1px solid #2b3e5a;
+        margin-bottom: 30px; /* Más espacio entre info de usuario y menú */
+    }
+    .sidebar-user-info .bi-person-circle {
+        font-size: 3.5rem;
+        color: #f8f9fa;
+        display: block;
+    }
+    .sidebar-user-info p {
+        margin-top: 5px;
+        margin-bottom: 0;
+        color: #f8f9fa;
+        font-weight: 600;
+    }
+    .sidebar-user-info small {
+        color: #adb5bd;
+    }
+    
+    /* Ocultar el div "Menú" original para reemplazarlo por el área de usuario (si aplica) */
+    #sidebar > div.p-3.text-white.fw-bold.border-bottom {
+        display: none;
+    }
+
+    /* Enlaces de Sidebar: Convertir a botones rectangulares grandes centrados */
+    #sidebar .nav-item {
+        width: 90%; /* Ancho que se ve en el modelo */
+        margin: 10px auto; /* Centrar y dar margen vertical */
+    }
+    
+    #sidebar .nav-link {
+        color: #f8f9fa; /* Texto claro (base para inactivos) */
+        padding: 15px 20px; /* Más padding para que el botón sea alto */
+        display: flex; /* Usamos flex para centrar los iconos/texto si los hay */
+        align-items: center;
+        justify-content: center; /* Centrar el texto/iconos horizontalmente */
+        border-radius: 4px;
+        font-weight: 600;
+        transition: background-color 0.2s, color 0.2s;
+    }
+    
+    /* Estilo para el botón ACTIVO del modelo (Azul claro/lavanda) */
+    #sidebar .nav-link.active {
+        background-color: #7984f1; 
+        color: #192A41; /* Texto oscuro para el activo */
+        border: none;
+    }
+    
+    /* *** CAMBIO SOLICITADO: Texto del <a> activo a color claro al hacer hover *** */
+    #sidebar .nav-link.active:hover {
+        background-color: #929cf8; /* Tono más claro para el fondo */
+        color: #ffffff; /* ¡Texto del activo a color CLARO (blanco) al hacer hover! */
+    }
+
+
+    /* Estilo para los botones INACTIVOS */
+    #sidebar .nav-link:not(.active) {
+        background-color: #2b3e5a; /* Fondo gris oscuro/azul */
+        color: #ffffff;
+        border: 1px solid #4a638a;
+    }
+    
+    /* Estilo para el hover de los botones INACTIVOS */
+    #sidebar .nav-link:not(.active):hover {
+        background-color: #3f587d;
+        color: #ffffff;
+    }
+
+    /* Ajuste de iconos dentro del enlace */
+    #sidebar .nav-link i {
+        margin-right: 8px; /* Espacio entre el icono y el texto */
+    }
+
+    /* Navbar superior (Blanca) */
+    .btn-toggle {
+        border: none;
+        background: none;
+        color: #192A41; /* Color oscuro para el ícono en la navbar blanca */
+        font-size: 1.8rem;
+        margin-left: 10px;
+    }
+
+    #content {
+        transition: margin-left 0.3s;
+        padding: 20px;
+    }
+
+    /* Adaptación del content cuando el sidebar está abierto en pantallas grandes */
+    @media (min-width: 992px) {
+        #sidebar.active + #content {
+            margin-left: 250px;
+        }
+    }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-      <button class="btn-toggle me-2" id="toggleSidebar">
-        <i class="bi bi-list"></i>
-      </button>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm border-bottom">
+        <button class="btn-toggle me-2" id="toggleSidebar">
+            <i class="bi bi-list"></i>
+        </button>
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
+            <a class="navbar-brand text-dark" href="{% url 'home' %}">
                 <img src="{% static 'img/logo.png' %}" alt="ISDM Logo" class="navbar-logo">
                 ISDM Pagos
             </a>
-              <span class="nav-link disabled text-light">{% now "d/m/Y H:i" %}</span>
-              
+            <span class="nav-link disabled text-secondary d-none d-lg-block">{% now "d/m/Y H:i" %}</span>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
                     aria-controls="nav" aria-expanded="false" aria-label="Menú">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <div class="collapse navbar-collapse" id="nav">
                 <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     {% user_role user as rol %}
                     <li class="nav-item">
-                        <span class="navbar-text text-white me-3">
+                        <span class="navbar-text text-dark me-3">
                             <i class="bi bi-person"></i>
                             <strong>{{ user.username }}</strong>
                             <span class="badge bg-secondary">{{ rol }}</span>
@@ -143,89 +202,95 @@
                     <li class="nav-item">
                         <form method="post" action="{% url 'logout' %}" style="display:inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm" title="Salir">
-                              <i class="bi bi-box-arrow-right"></i>
-                          </button>
+                            <button type="submit" class="btn btn-primary btn-sm" title="Salir">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </button>
                         </form>
-
                     </li>
                 {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registro' %}">Registrarse</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark" href="{% url 'login' %}">Ingresar</a></li>
+                    <li class="nav-item"><a class="nav-link text-dark" href="{% url 'registro' %}">Registrarse</a></li>
                 {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-  <!-- === SIDEBAR === -->
-  <nav id="sidebar">
-    <div class="p-3 text-white fw-bold border-bottom">Menú</div>
-    <ul class="nav flex-column">
-      <br>
-      <br>
-      <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
-      {% if user.is_authenticated %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
-        <!-- <li class="nav-item"><a class="nav-link" href="{% url 'cuotas_list' %}"><i class="bi bi-cash-stack"></i> Cuotas</a></li> -->
-        <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
-        {% if user|has_group:"Administrador" %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_list' %}"><i class="bi bi-people"></i> Usuarios y Roles</a></li>
-            <li class="nav-item">
-            <a class="nav-link" href="{% url 'historial' %}">
-            <i class="bi bi-clock-history"></i> Historial
-            </a>
-</li>
+    <nav id="sidebar">
+        <div class="sidebar-user-info">
+            <i class="bi bi-person-circle"></i>
+            <p>Administrador</p>
+            <small>dd/mm/aaa</small>
+        </div>
+        <ul class="nav flex-column">
+            
+            <li class="nav-item"><a class="nav-link active" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
+            {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
+                {% if user|has_group:"Administrador" %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_list' %}"><i class="bi bi-people"></i> Usuarios y Roles</a></li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="{% url 'historial' %}">
+                    <i class="bi bi-clock-history"></i> Historial
+                    </a>
+                </li>
 
-        {% endif %}                      
-      {% endif %}
-    </ul>
-  </nav>
+                {% endif %}                    
+            {% endif %}
+        </ul>
+    </nav>
 
-  <!-- === CONTENIDO PRINCIPAL === -->
-  <div id="content" class="container mt-2">
+    <div id="content" class="container mt-2">
     {% block content %}{% endblock %}
-  </div>
+    </div>
 
-  <!-- === SCRIPTS === -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script>
-    // Toggle sidebar
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const sidebar = document.getElementById('sidebar');
+    <script>
+        // Toggle sidebar
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
 
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
-    });
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+        
+        // Para cerrar la sidebar al hacer clic fuera
+        document.addEventListener('click', (event) => {
+            if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
 
-    // CSRF setup para AJAX
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
+
+        // CSRF setup para AJAX
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
-      }
-      return cookieValue;
-    }
 
-    const csrftoken = getCookie('csrftoken');
-    $.ajaxSetup({
-      beforeSend: function(xhr, settings) {
-        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
-          xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-      }
-    });
-  </script>
+        const csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    </script>
 
-  {% block extra_scripts %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

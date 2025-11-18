@@ -4,16 +4,78 @@
 {% block title %}Planes Suspendidos y Desactivados{% endblock %}
 
 {% block content %}
+<style>
+    /* ------------------------------------------- */
+    /* ESTILOS DE TABLA Y BOTONES (GAMA DE AZULES) */
+    /* ------------------------------------------- */
+
+    /* Color base de encabezados y botones (Azul Oscuro: #0d47a1) */
+    .thead-custom,
+    .btn-ver-custom {
+        background-color: #0d47a1 !important; /* El color de la imagen */
+        color: white !important;
+        border-color: #0d47a1 !important;
+    }
+
+    /* Estilo hover para el botón Ver */
+    .btn-ver-custom:hover {
+        background-color: #1e63c0 !important;
+        border-color: #1e63c0 !important;
+    }
+
+    /* Botón Reactivar (Azul Claro: #42a5f5) */
+    .btn-reactivar-custom {
+        background-color: #42a5f5 !important;
+        color: white !important;
+        border-color: #42a5f5 !important;
+    }
+
+    /* Estilo hover para el botón Reactivar */
+    .btn-reactivar-custom:hover {
+        background-color: #64b5f6 !important;
+        border-color: #64b5f6 !important;
+    }
+
+    /* Botón Desactivar (Azul Intermedio: #1565c0) */
+    .btn-desactivar-custom {
+        background-color: #1565c0 !important;
+        color: white !important;
+        border-color: #1565c0 !important;
+    }
+
+    /* Estilo hover para el botón Desactivar */
+    .btn-desactivar-custom:hover {
+        background-color: #1976d2 !important;
+        border-color: #1976d2 !important;
+    }
+
+    /* Asegurar que las rayas de la tabla sean visibles */
+    .table-striped > tbody > tr:nth-of-type(odd) > * {
+        --bs-table-bg-type: #f8f9fa; /* Color gris claro para las filas impares */
+    }
+
+    /* Asegurar que el modal use el encabezado personalizado */
+    .modal-footer .btn-desactivar {
+        background-color: #1565c0; /* Azul intermedio para el modal */
+        border-color: #1565c0;
+        color: white;
+    }
+    .modal-footer .btn-reactivar {
+        background-color: #42a5f5; /* Azul claro para el modal */
+        border-color: #42a5f5;
+        color: white;
+    }
+
+</style>
 <div class="layout">
     <main class="main-content">
         <h2 class="mb-4">Planes Suspendidos y Desactivados</h2>
         <hr>
 
-        <!-- Tabla de suspendidos -->
         <section class="mt-4">
         <h4 class="mb-3">Suspendidos</h4>
-        <table class="table table-bordered table-sm align-middle text-center">
-            <thead class="table-primary">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="thead-custom text-center"> {# Color personalizado aplicado #}
             <tr>
                 <th>ID</th>
                 <th>Tipo</th>
@@ -29,29 +91,29 @@
             <tbody id="tablaSuspendidos">
             {% for plan in suspendidos %}
             <tr id="plan-{{ plan.id }}">
-                <td>{{ plan.id }}</td>
-                <td>{{ plan.tipo }}</td>
+                <td class="text-center">{{ plan.id }}</td>
+                <td class="text-center">{{ plan.tipo }}</td>
                 <td>{{ plan.nombre }}</td>
-                <td>{{ plan.carrera }}</td>
-                <td>{{ plan.cohorte }}</td>
-                <td>{{ plan.modalidad }}</td>
-                <td>{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                <td>Suspendido</td>
-                <td>
-                    <button class="btn btn-sm btn-info btn-ver"
+                <td class="text-center">{{ plan.carrera }}</td>
+                <td class="text-center">{{ plan.cohorte }}</td>
+                <td class="text-center">{{ plan.modalidad }}</td>
+                <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                <td class="text-center">Suspendido</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-ver-custom btn-ver" {# Clase de azul oscuro #}
                     data-id="{{ plan.id }}"
                     data-tipo="{{ plan.tipo_backend }}"
                     title="Ver detalles">
                     <i class="bi bi-eye"></i> Ver
                     </button>
-                    <button class="btn btn-sm btn-warning btn-desactivar"
+                    <button class="btn btn-sm btn-desactivar-custom btn-desactivar" {# Clase de azul intermedio #}
                     data-id="{{ plan.id }}"
                     data-tipo="{{ plan.tipo_backend }}"
                     title="Desactivar">
                     Desactivar
                     </button>
 
-                <button class="btn btn-sm btn-success btn-reactivar"
+                <button class="btn btn-sm btn-reactivar-custom btn-reactivar" {# Clase de azul claro #}
                 data-id="{{ plan.id }}"
                 data-tipo="{{ plan.tipo_backend }}"
                 title="Reactivar">
@@ -62,17 +124,16 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="9" class="text-muted">No hay planes suspendidos</td></tr>
+            <tr><td colspan="9" class="text-muted text-center">No hay planes suspendidos</td></tr>
             {% endfor %}
             </tbody>
         </table>
         </section>
 
-        <!-- Tabla de desactivados -->
         <section class="mt-5">
         <h4 class="mb-3">Desactivados</h4>
-        <table class="table table-bordered table-sm align-middle text-center">
-            <thead class="table-secondary">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="thead-custom text-center"> {# Color personalizado aplicado #}
             <tr>
                 <th>ID</th>
                 <th>Tipo</th>
@@ -88,22 +149,22 @@
             <tbody id="tablaDesactivados">
             {% for plan in desactivados %}
             <tr id="plan-{{ plan.id }}">
-                <td>{{ plan.id }}</td>
-                <td>{{ plan.tipo }}</td>
+                <td class="text-center">{{ plan.id }}</td>
+                <td class="text-center">{{ plan.tipo }}</td>
                 <td>{{ plan.nombre }}</td>
-                <td>{{ plan.carrera }}</td>
-                <td>{{ plan.cohorte }}</td>
-                <td>{{ plan.modalidad }}</td>
-                <td>{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                <td>Desactivado</td>
-                <td>
-                    <button class="btn btn-sm btn-info btn-ver"
+                <td class="text-center">{{ plan.carrera }}</td>
+                <td class="text-center">{{ plan.cohorte }}</td>
+                <td class="text-center">{{ plan.modalidad }}</td>
+                <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                <td class="text-center">Desactivado</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-ver-custom btn-ver" {# Clase de azul oscuro #}
                     data-id="{{ plan.id }}"
                     data-tipo="{{ plan.tipo_backend }}"
                     title="Ver detalles">
                     <i class="bi bi-eye"></i> Ver
                     </button>
-                    <button class="btn btn-sm btn-success btn-reactivar"
+                    <button class="btn btn-sm btn-reactivar-custom btn-reactivar" {# Clase de azul claro #}
                     data-id="{{ plan.id }}"
                     data-tipo="{{ plan.tipo_backend }}"
                     title="Reactivar">
@@ -113,7 +174,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="9" class="text-muted">No hay planes desactivados</td></tr>
+            <tr><td colspan="9" class="text-muted text-center">No hay planes desactivados</td></tr>
             {% endfor %}
             </tbody>
         </table>
@@ -122,7 +183,6 @@
     </main>
 </div>
 
-<!-- Modal para ver detalles del plan -->
 <div class="modal fade" id="verPlanModal" tabindex="-1" aria-labelledby="verPlanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -131,7 +191,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body" id="verPlanModalBody">
-                <!-- El contenido se cargará dinámicamente -->
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
@@ -140,8 +199,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-warning btn-modal-desactivar" style="display:none;">Desactivar</button>
-                <button type="button" class="btn btn-success btn-modal-reactivar" style="display:none;">Reactivar</button>
+                <button type="button" class="btn btn-desactivar-custom btn-modal-desactivar" style="display:none;">Desactivar</button>
+                <button type="button" class="btn btn-reactivar-custom btn-modal-reactivar" style="display:none;">Reactivar</button>
             </div>
         </div>
     </div>
@@ -160,8 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const csrftoken = "{{ csrf_token }}";
 
     /** ===============================
-     *  SWEETALERT2
-     *  =============================== */
+     * SWEETALERT2
+     * =============================== */
     function confirmarAccion({titulo, texto, confirmText, colorConfirm}) {
         return Swal.fire({
             title: titulo,
@@ -199,14 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** ===============================
-     *  REACTIVAR
-     *  =============================== */
+     * REACTIVAR
+     * =============================== */
     function reactivar(id, tipo) {
     confirmarAccion({
         titulo: `¿Reactivar el ${tipo} #${id}?`,
         texto: "Volverá a la lista de activos.",
         confirmText: "Sí, reactivar",
-        colorConfirm: "#198754"
+        colorConfirm: "#42a5f5" // Azul claro para SweetAlert
     })
     .then(result => {
         if (!result.isConfirmed) return;
@@ -234,8 +293,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /** ===============================
-     *  DESACTIVAR
-     *  =============================== */
+     * DESACTIVAR
+     * =============================== */
     
     function desactivarObjeto(id, tipo) {
     fetch("/desactivar/", {
@@ -262,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         tr.remove();
 
-        // AGREGAR la fila a desactivados
+        // AGREGAR la fila a desactivados (Se usan las nuevas clases de botones)
         const tablaDesactivados = document.getElementById("tablaDesactivados");
 
         const nuevaFila = document.createElement("tr");
@@ -272,9 +331,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cambiar la celda de ESTADO
         nuevaFila.querySelector("td:nth-child(7)").textContent = "Desactivado";
 
-        // Reemplazar botones por solo “Reactivar”
+        // Reemplazar botones por solo “Ver” y “Reactivar”
         nuevaFila.querySelector("td:nth-child(8)").innerHTML = `
-            <button class="btn btn-sm btn-success btn-reactivar" data-id="${id}">
+            <button class="btn btn-sm btn-ver-custom btn-ver"
+            data-id="${id}"
+            data-tipo="${tipo}"
+            title="Ver detalles">
+            <i class="bi bi-eye"></i> Ver
+            </button>
+            <button class="btn btn-sm btn-reactivar-custom btn-reactivar" data-id="${id}" data-tipo="${tipo}">
                 Reactivar
             </button>
         `;
@@ -286,9 +351,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /** ===============================
-     *  VER PLAN
-     *  =============================== */
+     * VER PLAN
+     * =============================== */
     function verPlan(id, tipo) {
+        // ... (El código JavaScript para verPlan permanece igual, solo usa las nuevas clases en el modal)
         const modal = new bootstrap.Modal(document.getElementById('verPlanModal'));
         const modalBody = document.getElementById('verPlanModalBody');
         const modalTitle = document.getElementById('verPlanModalLabel');
@@ -350,7 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                         <div class="card-body">
                             <div class="tab-content" id="verPlanTabContent">
-                                <!-- TAB IDENTIFICACIÓN -->
                                 <div class="tab-pane fade show active" id="ver-identificacion" role="tabpanel">
                                     <h5 class="card-title mb-4">Datos de Identificación</h5>
                                     <div class="row g-3">
@@ -386,7 +451,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
 
                                 ${plan.estructura ? `
-                                <!-- TAB ESTRUCTURA -->
                                 <div class="tab-pane fade" id="ver-estructura" role="tabpanel">
                                     <h5 class="card-title mb-4">Estructura del Plan</h5>
                                     <div class="row g-3">
@@ -423,7 +487,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 ` : ''}
 
                                 ${plan.mora ? `
-                                <!-- TAB MORA -->
                                 <div class="tab-pane fade" id="ver-mora" role="tabpanel">
                                     <h5 class="card-title mb-4">Reglas de Mora</h5>
                                     <div class="row g-3">
@@ -451,13 +514,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                                 ` : ''}
 
-                                <!-- TAB VISUALIZACIÓN -->
                                 <div class="tab-pane fade" id="ver-visualizacion" role="tabpanel">
                                     <h5 class="card-title mb-4">Simulación del Plan de Pagos</h5>
                                     ${plan.cuotas && plan.cuotas.length > 0 ? `
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm">
-                                            <thead class="table-primary">
+                                            <thead class="thead-custom">
                                                 <tr>
                                                     <th>Nro de Cuota</th>
                                                     <th>Base($)</th>
@@ -503,12 +565,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 const btnDesactivar = document.querySelector('.btn-modal-desactivar');
                 const btnReactivar = document.querySelector('.btn-modal-reactivar');
 
+                // Asegurando que los botones del modal sigan el estilo custom
+                btnDesactivar.classList.add('btn-desactivar-custom');
+                btnReactivar.classList.add('btn-reactivar-custom');
+
+
                 if (plan.estado === 'S') {
                     btnDesactivar.style.display = 'inline-block';
                     btnReactivar.style.display = 'inline-block';
                     btnDesactivar.onclick = () => {
                         modal.hide();
-                        desactivarObjeto(id, tipo);
+                        confirmarAccion({
+                            titulo: `¿Desactivar el ${tipo} #${id}?`,
+                            texto: "Pasará a la sección de desactivados.",
+                            confirmText: "Sí, desactivar",
+                            colorConfirm: "#1565c0" 
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                desactivarObjeto(id, tipo);
+                            }
+                        });
                     };
                     btnReactivar.onclick = () => {
                         modal.hide();
@@ -529,8 +605,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** ===============================
-     *  EVENTOS
-     *  =============================== */
+     * EVENTOS
+     * =============================== */
     document.addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
@@ -581,12 +657,12 @@ if (btn.classList.contains("btn-desactivar")) {
         tipo = "regularizacion";
     }
 
-    // MODAL DE CONFIRMACIÓN 
+    // MODAL DE CONFIRMACIÓN (Color de confirmación usa el nuevo azul)
     confirmarAccion({
         titulo: `¿Desactivar el ${tipo} #${id}?`,
         texto: "Pasará a la sección de desactivados.",
         confirmText: "Sí, desactivar",
-        colorConfirm: "#dc3545"
+        colorConfirm: "#1565c0" // Azul intermedio para SweetAlert
     }).then(result => {
         if (result.isConfirmed) {
             desactivarObjeto(id, tipo);
