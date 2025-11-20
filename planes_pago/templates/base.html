@@ -13,6 +13,21 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 
     <style>
+
+.page-subtitle {
+    /* Homogeneizar la fuente a la pila de Bootstrap */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
+    /* El font-weight se mantiene en su valor original (400) o el que esté definido en otro sitio */
+    /* Aquí se omiten los font-weight: bold o 700 */
+    
+    /* Se mantienen los estilos originales para no romper el diseño existente */
+    font-size: 1.2rem;
+    font-weight: 400; /* Mantenemos el peso original de la fuente */
+    color: #555;
+    margin-top: 0;
+}
+
     /* === ESTILOS GENERALES Y LAYOUT === */
     body {
         background-color: #d2dde4a2 !important;
@@ -226,8 +241,8 @@
             
             <li class="nav-item"><a class="nav-link active" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
             {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i class="bi bi-file-earmark-text"></i> Planes activos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"><i class="bi bi-file-earmark-text"></i> Planes Suspendidos/desactivados</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i ></i> Planes activos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"></i> Planes Suspendidos/desactivados</a></li>
                 {% if user|has_group:"Administrador" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_list' %}"><i class="bi bi-people"></i> Usuarios y Roles</a></li>
                     <li class="nav-item">

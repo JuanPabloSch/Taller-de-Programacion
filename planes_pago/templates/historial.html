@@ -5,8 +5,22 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <style>
+.page-head h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #192A41; /* Color de texto oscuro del modelo */
+}
+
+    .main-content {
+    background-color: #FFFFFF; /* Fondo blanco */
+    border-radius: 20px; /* Suele tener esquinas redondeadas */
+    padding: 20px; /* Un padding interno */
+}
+
     header.page-head {
         display: flex;
         justify-content: space-between;
@@ -34,6 +48,7 @@
         color: #14213d;
         background-color: #e9ecef;
     }
+
     table.dataTable td {
         padding: 10px;
         vertical-align: middle;
@@ -49,6 +64,38 @@
     .badge-created { background-color: #007bff; }
     .badge-edited { background-color: #ffc107; color: #000; }
     .badge-deactivated { background-color: #dc3545; }
+
+ /* Contenedor para alinear el botón de imprimir a la derecha */
+.report-actions {
+    display: flex;
+    justify-content: center; /* CAMBIO CLAVE: Centra el contenido horizontalmente */
+    /* Ajustar el padding inferior */
+    padding-bottom: 20px;
+}
+
+/* Botón de Imprimir Reporte */
+.btn-print-report {
+    background-color: #4f87c4; /* Fondo blanco */
+    color: #ffffff; /* Color de texto secundario/neutral */
+    border: 1px solid #6c757d;
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex; /* Para alinear el icono y el texto */
+    align-items: center;
+    cursor: pointer;
+    margin-top: 15px; /* Separación de la tabla */
+}
+.btn-print-report:hover {
+    background-color: #14213d;
+    color: #fff;
+}
+.btn-print-report i {
+    font-size: 1.1rem;
+    margin-right: 5px; /* Espacio entre el icono y el texto */
+}
 </style>
 {% endblock %}
 
@@ -56,8 +103,8 @@
 <main class="main-content">
     <header class="page-head">
         <div>
-            <h1 class="page-title">Planes de Pago</h1>
-            <h2 class="page-subtitle">Historial</h2>
+            <h2 class="page-title">Planes de Pago</h2>
+            <h5 class="page-subtitle">Historial</h5>
         </div>
     </header>
 
@@ -73,6 +120,13 @@
         </thead>
         <tbody></tbody>
     </table>
+
+    <div class="report-actions">
+        <button id="btnPrintReport" class="btn-print-report">
+            <i class="bi bi-file-earmark-text"></i> Imprimir reporte completo
+        </button>
+    </div>
+
 </main>
 {% endblock %}
 
