@@ -731,8 +731,16 @@ def plan_clonar(request, pk):
 # -------------------------------
 @login_required
 def cuotas_list(request):
-    plans = PlanPago.objects.filter(estado='A')  # solo planes activos
-    return render(request, "cuotas_list.html", {"plans": plans})
+    # Obtener tanto PlanPago antiguos como Regularizaciones activas
+    plans_antiguos = PlanPago.objects.filter(estado='A')
+    regularizaciones = Regularizacion.objects.filter(estado='A')
+
+    # Combinar ambas listas en un solo contexto
+    # Nota: el template mostrará tanto planes antiguos como nuevos
+    return render(request, "cuotas_list.html", {
+        "plans": plans_antiguos,
+        "regularizaciones": regularizaciones
+    })
 
 
 @login_required

@@ -68,6 +68,7 @@
         text-decoration: none;
     }
     .btn-edit  { background: #3a86ff; }
+    .btn-detail { background: #6c757d; }
     .btn-clone { background: #8338ec; }
     .btn-enter { background: #05c995; }
     .btn-del   { background: #ff006e; }
@@ -713,6 +714,9 @@ $(function () {
                     // Botón Entrar (todos pueden ver)
                     botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Ver Plan</a>`;
 
+                    // Botón Detalle (todos pueden ver)
+                    botones += `<button class="btn-detail" data-id="${data.id}" data-action="detalle">Detalle</button>`;
+
                     // Botones de edición (solo Administrador y Tesorero)
                     if (puedeModificar) {
                         botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>`;
@@ -828,6 +832,9 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         if (action === 'editar') {
             // Cargar datos de la regularización en el modal con pestañas
             cargarDatosEdicion(id);
+        } else if (action === 'detalle') {
+            // Cargar datos en modo solo lectura
+            cargarDatosDetalle(id);
         } else if (action === 'clonar') {
             let url = `/planes/clonar/${id}/`;
             let titulo = 'Clonar Plan';
@@ -954,6 +961,103 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         });
     }
 
+    // Función para cargar datos en modo solo lectura (Detalle)
+    function cargarDatosDetalle(id) {
+        console.log('Cargando datos en modo detalle para ID:', id);
+
+        // Cambiar el título del modal
+        document.getElementById('modalNuevoPlanLabel').textContent = 'Detalle del Plan de Pago';
+
+        // Ocultar el botón de guardar
+        const btnGuardar = document.getElementById('btnGuardarRegularizacion');
+        if (btnGuardar) {
+            btnGuardar.style.display = 'none';
+        }
+
+        // Ir a la primera pestaña
+        goToTab('identificacion');
+
+        // Hacer fetch para obtener los datos (reutilizamos el mismo endpoint)
+        fetch(`/planes/regularizaciones/editar/${id}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                // Cargar datos de Identificación
+                document.getElementById('id_regularizacion-nombre').value = data.regularizacion.nombre || '';
+                document.getElementById('id_regularizacion-carrera').value = data.regularizacion.carrera || '';
+                document.getElementById('id_regularizacion-modalidad').value = data.regularizacion.modalidad || '';
+                document.getElementById('id_regularizacion-cohorte').value = data.regularizacion.cohorte || '';
+
+                // Cargar datos de Estructura
+                if (data.estructura) {
+                    const origenDeudaField = document.getElementById('id_estructura-origen_deuda');
+                    if (origenDeudaField) {
+                        origenDeudaField.value = data.estructura.origen_deuda || '';
+                    }
+
+                    document.getElementById('id_estructura-valor').value = data.estructura.valor || '';
+                    document.getElementById('id_estructura-tasa').value = data.estructura.tasa || '';
+                    document.getElementById('id_estructura-pago_incial').value = data.estructura.pago_inicial || '';
+                    document.getElementById('id_estructura-cantidad_de_cuotas').value = data.estructura.cantidad_cuotas || '';
+                    document.getElementById('id_estructura-frecuencia_de_pago').value = data.estructura.frecuencia || '';
+                    document.getElementById('id_estructura-dia_vencimiento').value = data.estructura.dia_vencimiento || '';
+                }
+
+                // Cargar datos de Mora
+                if (data.mora) {
+                    document.getElementById('id_mora-tipo_de_recargo').value = data.mora.tipo_recargo || '';
+                    document.getElementById('id_mora-cantidad_recargo').value = data.mora.cantidad || '';
+                    document.getElementById('id_mora-frecuencia_aplicacion').value = data.mora.frecuencia || '';
+                    document.getElementById('id_mora-dias_gracia').value = data.mora.dias_gracia || '';
+                    document.getElementById('id_mora-veces_aplicacion').value = data.mora.veces_aplicacion || '';
+                }
+
+                // Guardar las cuotas para visualización
+                window.cuotasExistentes = data.cuotas || [];
+
+                if (data.cuotas && data.cuotas.length > 0) {
+                    mostrarCuotasExistentes(data.cuotas);
+                }
+
+                // DESHABILITAR TODOS LOS CAMPOS (modo solo lectura)
+                $('#modalNuevoPlan input, #modalNuevoPlan select, #modalNuevoPlan textarea').prop('disabled', true);
+
+                // Cambiar el botón "Simular Plan" a "Siguiente" y que vaya a visualización
+                const btnSimular = document.getElementById('btnSimularPlan');
+                if (btnSimular) {
+                    btnSimular.textContent = 'Siguiente';
+                    btnSimular.setAttribute('data-modo-detalle', 'true');
+                    // Guardar referencia a las cuotas para usarlas luego
+                    btnSimular.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Asegurarse de que las cuotas estén mostradas antes de cambiar de tab
+                        if (window.cuotasExistentes && window.cuotasExistentes.length > 0) {
+                            mostrarCuotasExistentes(window.cuotasExistentes);
+                        }
+                        goToTab('visualizacion');
+                        return false;
+                    };
+                }
+
+                // Mostrar el modal
+                const modal = new bootstrap.Modal(document.getElementById('modalNuevoPlan'));
+                modal.show();
+            } else {
+                alert('Error al cargar los datos: ' + (data.msg || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del plan');
+        });
+    }
+
     // Función para mostrar cuotas existentes en la pestaña de visualización
     function mostrarCuotasExistentes(cuotas) {
         const tbody = document.getElementById('tablaCuotas');
@@ -963,11 +1067,10 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                 const row = `
                     <tr>
                         <td>${cuota.nro}</td>
-                        <td>${cuota.base}</td>
-                        <td>${cuota.interes}</td>
-                        <td>${cuota.monto_total}</td>
-                        <td>${cuota.mora}</td>
-                        <td>${cuota.vto}</td>
+                        <td>${cuota.base ? parseFloat(cuota.base).toFixed(2) : '0.00'}</td>
+                        <td>${cuota.interes ? parseFloat(cuota.interes).toFixed(2) : '0.00'}</td>
+                        <td>${cuota.monto_total ? parseFloat(cuota.monto_total).toFixed(2) : '0.00'}</td>
+                        <td>${cuota.vto || ''}</td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -1237,6 +1340,30 @@ $(document).ready(function() {
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  // Listener para restaurar campos cuando se cierre el modal
+  const modalNuevoPlan = document.getElementById('modalNuevoPlan');
+  if (modalNuevoPlan) {
+    modalNuevoPlan.addEventListener('hidden.bs.modal', function () {
+      // Rehabilitar todos los campos
+      $('#modalNuevoPlan input, #modalNuevoPlan select, #modalNuevoPlan textarea').prop('disabled', false);
+      $('#modalNuevoPlan button[type="button"]').prop('disabled', false);
+
+      // Mostrar el botón de guardar
+      const btnGuardar = document.getElementById('btnGuardarRegularizacion');
+      if (btnGuardar) {
+        btnGuardar.style.display = '';
+      }
+
+      // Restaurar el botón "Simular Plan" si estaba en modo detalle
+      const btnSimular = document.getElementById('btnSimularPlan');
+      if (btnSimular && btnSimular.getAttribute('data-modo-detalle') === 'true') {
+        btnSimular.textContent = 'Simular Plan';
+        btnSimular.removeAttribute('data-modo-detalle');
+        btnSimular.onclick = null; // Remover el onclick personalizado
+      }
+    });
+  }
+
   // Buscamos el botón por su id
   const btnGuardar = document.getElementById("btnGuardarRegularizacion");
 

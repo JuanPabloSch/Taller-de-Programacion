@@ -46,11 +46,22 @@
         <input type="hidden" name="id" id="cuota_id">
         <div class="mb-3">
             <label class="form-label">Plan</label>
-            <select name="plan" class="form-select" required>
+            <select name="plan" id="selectPlan" class="form-select" required>
             <option value="">-- Seleccionar Plan --</option>
-            {% for p in plans %}
-                <option value="{{ p.id }}">{{ p.nombre }}</option>
-            {% endfor %}
+            {% if regularizaciones %}
+                <optgroup label="Planes y Regularizaciones">
+                {% for r in regularizaciones %}
+                    <option value="{{ r.id }}" data-tipo="regularizacion">{{ r.nombre }} ({{ r.tipo }})</option>
+                {% endfor %}
+                </optgroup>
+            {% endif %}
+            {% if plans %}
+                <optgroup label="Planes Antiguos">
+                {% for p in plans %}
+                    <option value="{{ p.id }}" data-tipo="plan">{{ p.nombre }}</option>
+                {% endfor %}
+                </optgroup>
+            {% endif %}
             </select>
         </div>
         <div class="mb-3">
@@ -147,6 +158,13 @@ const puedeEliminar = "{{ user|is_in_groups:'Administrador' }}" === "True";
         $('#tituloModalCuota').text('Nueva Cuota');
         $('#formCuota')[0].reset();
         $('#cuota_id').val('');
+
+        // Si hay un planId en la URL, precargar y deshabilitar el select
+        if (planId) {
+            $('[name="plan"]').val(planId).prop('disabled', true);
+        } else {
+            $('[name="plan"]').prop('disabled', false);
+        }
     });
 
     // Editar
@@ -164,9 +182,26 @@ const puedeEliminar = "{{ user|is_in_groups:'Administrador' }}" === "True";
     // Guardar
     $('#formCuota').on('submit', function (e) {
         e.preventDefault();
+
+        // Si el select de plan está deshabilitado, habilitarlo temporalmente para que se envíe
+        const planSelect = $('[name="plan"]');
+        const wasDisabled = planSelect.prop('disabled');
+        if (wasDisabled) {
+            planSelect.prop('disabled', false);
+        }
+
         $.post('{% url "cuota_guardar" %}', $(this).serialize())
-        .done(() => { modal.hide(); tabla.ajax.reload(null, false); })
-        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'));
+        .done(() => {
+            modal.hide();
+            tabla.ajax.reload(null, false);
+        })
+        .fail((xhr) => alert(xhr.responseJSON?.msg || 'Error al guardar'))
+        .always(() => {
+            // Restaurar el estado disabled
+            if (wasDisabled) {
+                planSelect.prop('disabled', true);
+            }
+        });
     });
 
     // Eliminar
