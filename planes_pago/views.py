@@ -737,16 +737,53 @@ def cuotas_list(request):
 
 @login_required
 def cuotas_data(request):
-    data = [
-        {
-            "id": c.id,
-            "plan": c.plan.nombre,
-            "numero": c.numero,
-            "vencimiento": c.vencimiento.strftime("%Y-%m-%d"),
-            "monto": str(c.monto),
-        }
-        for c in Cuota.objects.filter(iEstado=True)
-    ]
+    plan_id = request.GET.get('plan')
+
+    # Si hay un plan_id, verificar si es Regularizacion o PlanPago
+    if plan_id:
+        try:
+            # Intentar buscar como Regularizacion primero
+            regularizacion = Regularizacion.objects.get(pk=plan_id)
+            # Es una regularización, buscar cuotas de CuotaRegularizacion
+            data = [
+                {
+                    "id": c.id,
+                    "plan": c.regularizacion.nombre,
+                    "numero": c.numero_cuota,
+                    "vencimiento": c.fecha_vencimiento.strftime("%Y-%m-%d") if c.fecha_vencimiento else "",
+                    "monto": str(c.monto_cuota),
+                }
+                for c in CuotaRegularizacion.objects.filter(regularizacion_id=plan_id).order_by('numero_cuota')
+            ]
+        except Regularizacion.DoesNotExist:
+            # No es regularización, intentar como PlanPago
+            try:
+                plan = PlanPago.objects.get(pk=plan_id)
+                data = [
+                    {
+                        "id": c.id,
+                        "plan": c.plan.nombre,
+                        "numero": c.numero,
+                        "vencimiento": c.vencimiento.strftime("%Y-%m-%d"),
+                        "monto": str(c.monto),
+                    }
+                    for c in Cuota.objects.filter(plan_id=plan_id, iEstado=True).order_by('numero')
+                ]
+            except PlanPago.DoesNotExist:
+                data = []
+    else:
+        # Sin filtro, mostrar todas las cuotas (comportamiento anterior)
+        data = [
+            {
+                "id": c.id,
+                "plan": c.plan.nombre,
+                "numero": c.numero,
+                "vencimiento": c.vencimiento.strftime("%Y-%m-%d"),
+                "monto": str(c.monto),
+            }
+            for c in Cuota.objects.filter(iEstado=True)
+        ]
+
     return JsonResponse({"data": data})
 
 
