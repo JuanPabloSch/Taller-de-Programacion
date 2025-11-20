@@ -469,14 +469,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 ${plan.estructura ? `
                                 <div class="tab-pane fade" id="ver-estructura" role="tabpanel">
-                                    <h5 class="card-title mb-4">Estructura del Plan</h5>
+                                    <h5 class="card-title mb-4">${plan.tipo === 'Regularización' ? 'Estructura del Plan' : 'Configuración de Estructura'}</h5>
                                     <div class="row g-3">
+                                        ${plan.tipo === 'Regularización' ? `
+                                        <!-- REGULARIZACIÓN: con Origen de Deuda -->
                                         <div class="col-md-12">
                                             <label class="form-label fw-bold">Origen de la Deuda</label>
                                             <input type="text" class="form-control" value="${plan.estructura.origen_deuda}" readonly>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-bold">Valor</label>
+                                            <label class="form-label fw-bold">Monto</label>
                                             <input type="text" class="form-control" value="$${plan.estructura.valor}" readonly>
                                         </div>
                                         <div class="col-md-6">
@@ -487,6 +489,34 @@ document.addEventListener("DOMContentLoaded", () => {
                                             <label class="form-label fw-bold">Pago Inicial</label>
                                             <input type="text" class="form-control" value="$${plan.estructura.pago_inicial}" readonly>
                                         </div>
+                                        ` : `
+                                        <!-- PLAN NORMAL: sin Origen de Deuda -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Precio Base:</label>
+                                            <input type="text" class="form-control" value="$${plan.estructura.valor}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Tasa de Interés (%):</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.tasa}%" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Matrícula:</label>
+                                            <input type="text" class="form-control" value="$${plan.estructura.pago_inicial}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Cantidad de Cuotas:</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.cantidad_cuotas}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Frecuencia de pago:</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.frecuencia}" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Día de Vencimiento:</label>
+                                            <input type="text" class="form-control" value="${plan.estructura.dia_vencimiento}" readonly>
+                                        </div>
+                                        `}
+                                        ${plan.tipo !== 'Regularización' ? '' : `
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold">Cantidad de Cuotas</label>
                                             <input type="text" class="form-control" value="${plan.estructura.cantidad_cuotas}" readonly>
@@ -499,6 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                             <label class="form-label fw-bold">Día de Vencimiento</label>
                                             <input type="text" class="form-control" value="${plan.estructura.dia_vencimiento}" readonly>
                                         </div>
+                                        `}
                                     </div>
                                 </div>
                                 ` : ''}
@@ -533,6 +564,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 <div class="tab-pane fade" id="ver-visualizacion" role="tabpanel">
                                     <h5 class="card-title mb-4">Simulación del Plan de Pagos</h5>
+
+                                    ${plan.mora ? `
+                                    <!-- Cuadro de información de Mora -->
+                                    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4" role="alert">
+                                        <div>
+                                            <strong>Recargo por Mora:</strong> ${plan.mora.cantidad}% sobre la base de la cuota
+                                        </div>
+                                        <div>
+                                            <strong>Días de Gracia:</strong> ${plan.mora.dias_gracia} día(s)
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-secondary small mb-3" role="alert">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        El recargo por mora se aplica después del día de gracia desde la fecha de vencimiento.
+                                    </div>
+                                    ` : ''}
+
                                     ${plan.cuotas && plan.cuotas.length > 0 ? `
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm">
@@ -542,7 +590,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                                     <th>Base($)</th>
                                                     <th>Interés</th>
                                                     <th>Monto total cuota</th>
-                                                    <th>Recargo por Mora</th>
                                                     <th>Vcto estimado</th>
                                                     <th>Estado</th>
                                                 </tr>
@@ -554,7 +601,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                                         <td>$${c.base}</td>
                                                         <td>$${c.interes}</td>
                                                         <td>$${c.monto}</td>
-                                                        <td>$${c.mora}</td>
                                                         <td>${c.fecha_vencimiento}</td>
                                                         <td><span class="badge bg-secondary">${c.estado}</span></td>
                                                     </tr>

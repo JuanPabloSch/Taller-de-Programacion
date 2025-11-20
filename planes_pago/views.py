@@ -23,7 +23,13 @@ from .models import (
     CuotaRegularizacion,
     HistorialAccion
 )
-from .forms import (PlanPagoForm, RegularizacionForm, ReglaEstructuraForm, ReglaMoraForm)
+from .forms import (
+    PlanPagoForm,
+    RegularizacionForm,
+    ReglaEstructuraForm,
+    ReglaEstructuraRegularizacionForm,
+    ReglaMoraForm
+)
 from .decorators import group_required, can_delete, can_modify
 
 def registrar_accion(usuario, accion, plan=None, descripcion=""):
@@ -69,15 +75,25 @@ def home(request):
 # -------------------------------
 @login_required
 def planes_list(request):
-    # Instanciar los TRES formularios con prefijos únicos
+    # Instanciar los formularios para Planes Normales con prefijos únicos
     regularizacion_form = RegularizacionForm(prefix='regularizacion')
     estructura_form = ReglaEstructuraForm(prefix='estructura')
     mora_form = ReglaMoraForm(prefix='mora')
 
+    # Instanciar formularios para Regularizaciones con prefijos diferentes
+    regularizacion_reg_form = RegularizacionForm(prefix='regularizacion_reg')
+    estructura_reg_form = ReglaEstructuraRegularizacionForm(prefix='estructura_reg')
+    mora_reg_form = ReglaMoraForm(prefix='mora_reg')
+
     context = {
+        # Formularios para Planes Normales
         'regularizacion_form': regularizacion_form,
         'estructura_form': estructura_form,
         'mora_form': mora_form,
+        # Formularios para Regularizaciones
+        'regularizacion_reg_form': regularizacion_reg_form,
+        'estructura_reg_form': estructura_reg_form,
+        'mora_reg_form': mora_reg_form,
     }
 
     return render(request, "planes_list.html", context)
@@ -182,7 +198,16 @@ def plan_borrar(request, pk):
 # -------------------------------
 @login_required
 @group_required('Administrador', 'Tesorero')
+@require_http_methods(["POST"])
 def plan_crear(request):
+<<<<<<< HEAD
+    """Crear un nuevo Plan de Pago (no regularización) con reglas de estructura y mora"""
+    if request.method == 'POST':
+        print("=" * 50)
+        print("VIEW: plan_crear (PLAN NORMAL)")
+        print("POST keys:", list(request.POST.keys()))
+        print("=" * 50)
+=======
     if request.method == "POST":
         form = PlanPagoForm(request.POST)
         if form.is_valid():
@@ -202,19 +227,98 @@ def plan_crear(request):
             return redirect("planes_suspendidos")
     else:
         form = PlanPagoForm()
+>>>>>>> 43070387846f4c7f5fc02e7f411c8eb590dc3714
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, "planes/plan_form.html", {"form": form})
-    return render(request, "planes/plan_form.html", {"form": form})
+        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion')
+        estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
+        mora_form = ReglaMoraForm(request.POST, prefix='mora')
+
+        if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
+            try:
+                with transaction.atomic():
+                    regularizacion = regularizacion_form.save(commit=False)
+                    regularizacion.tipo = 'Plan de Pago'  # Importante: marcar como Plan, no Regularización
+                    regularizacion.estado = 'S'  # Se marca como suspendido
+                    regularizacion.save()
+
+                    estructura = estructura_form.save(commit=False)
+                    estructura.regularizacion = regularizacion
+                    estructura.save()
+
+                    mora = mora_form.save(commit=False)
+                    mora.regularizacion = regularizacion
+                    mora.save()
+
+                    # Guardar las cuotas si fueron enviadas
+                    cuotas_json = request.POST.get('cuotas_json')
+                    if cuotas_json:
+                        import json
+                        from datetime import datetime
+                        try:
+                            cuotas_data = json.loads(cuotas_json)
+                            for cuota in cuotas_data:
+                                # Parsear la fecha de vencimiento
+                                fecha_vto = None
+                                if cuota.get('vto'):
+                                    try:
+                                        # Intentar formato DD/MM/YYYY
+                                        fecha_vto = datetime.strptime(cuota['vto'], '%d/%m/%Y').date()
+                                    except:
+                                        try:
+                                            # Intentar formato YYYY-MM-DD (ISO)
+                                            fecha_vto = datetime.strptime(cuota['vto'], '%Y-%m-%d').date()
+                                        except:
+                                            pass
+
+                                CuotaRegularizacion.objects.create(
+                                    regularizacion=regularizacion,
+                                    numero_cuota=cuota.get('nro', 0),
+                                    fecha_vencimiento=fecha_vto,
+                                    monto_base=cuota.get('base', 0),
+                                    monto_interes=cuota.get('interes', 0),
+                                    monto_cuota=cuota.get('monto_total', 0),
+                                    monto_mora=cuota.get('mora', 0),
+                                    estado='P'  # Pendiente por defecto
+                                )
+                        except Exception as e:
+                            # Si hay error al guardar cuotas, log pero no falla la transacción
+                            print(f"Error al guardar cuotas: {e}")
+
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': 'Plan creado correctamente.'})
+
+                messages.success(request, 'El plan fue creado exitosamente.')
+                return redirect('planes_list')
+
+            except Exception as e:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': str(e)}, status=500)
+                messages.error(request, f'Ocurrió un error al guardar: {e}')
+
+        else:
+            # Responder errores (AJAX o normal)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': {
+                        'regularizacion': regularizacion_form.errors,
+                        'estructura': estructura_form.errors,
+                        'mora': mora_form.errors
+                    }
+                }, status=400)
+
+            messages.error(request, 'Hay errores en los formularios.')
+
+    return redirect('planes_list')
 
 
 # Regularizaciones (combinado con reglas)
 @require_http_methods(["POST"])
 def regularizacion_crear(request):
     if request.method == 'POST':
-        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion')
-        estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
-        mora_form = ReglaMoraForm(request.POST, prefix='mora')
+        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion_reg')
+        estructura_form = ReglaEstructuraRegularizacionForm(request.POST, prefix='estructura_reg')
+        mora_form = ReglaMoraForm(request.POST, prefix='mora_reg')
 
         if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
             try:
@@ -247,7 +351,11 @@ def regularizacion_crear(request):
                                         # Intentar formato DD/MM/YYYY
                                         fecha_vto = datetime.strptime(cuota['vto'], '%d/%m/%Y').date()
                                     except:
-                                        pass
+                                        try:
+                                            # Intentar formato YYYY-MM-DD (ISO)
+                                            fecha_vto = datetime.strptime(cuota['vto'], '%Y-%m-%d').date()
+                                        except:
+                                            pass
 
                                 CuotaRegularizacion.objects.create(
                                     regularizacion=regularizacion,
@@ -280,9 +388,9 @@ def regularizacion_crear(request):
                 return JsonResponse({
                     'success': False,
                     'errors': {
-                        'regularizacion': regularizacion_form.errors,
-                        'estructura': estructura_form.errors,
-                        'mora': mora_form.errors
+                        'regularizacion_reg': regularizacion_form.errors,
+                        'estructura_reg': estructura_form.errors,
+                        'mora_reg': mora_form.errors
                     }
                 }, status=400)
 
@@ -358,7 +466,7 @@ def regularizacion_editar(request, pk):
         return JsonResponse(data)
 
     elif request.method == 'POST':
-        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion', instance=regularizacion)
+        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion_reg', instance=regularizacion)
 
         # Obtener o crear las reglas asociadas
         try:
@@ -371,8 +479,8 @@ def regularizacion_editar(request, pk):
         except ReglaMora.DoesNotExist:
             mora_instance = None
 
-        estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura', instance=estructura_instance)
-        mora_form = ReglaMoraForm(request.POST, prefix='mora', instance=mora_instance)
+        estructura_form = ReglaEstructuraRegularizacionForm(request.POST, prefix='estructura_reg', instance=estructura_instance)
+        mora_form = ReglaMoraForm(request.POST, prefix='mora_reg', instance=mora_instance)
 
         if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
             try:
@@ -434,9 +542,9 @@ def regularizacion_editar(request, pk):
                 return JsonResponse({
                     'success': False,
                     'errors': {
-                        'regularizacion': regularizacion_form.errors,
-                        'estructura': estructura_form.errors,
-                        'mora': mora_form.errors
+                        'regularizacion_reg': regularizacion_form.errors,
+                        'estructura_reg': estructura_form.errors,
+                        'mora_reg': mora_form.errors
                     }
                 }, status=400)
 
@@ -448,20 +556,158 @@ def regularizacion_editar(request, pk):
 @login_required
 @group_required('Administrador', 'Tesorero')
 def plan_editar(request, pk):
-    plan = get_object_or_404(PlanPago, pk=pk)
-    if request.method == "POST":
-        form = PlanPagoForm(request.POST, instance=plan)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"success": True})
-            return redirect("planes_list")
-    else:
-        form = PlanPagoForm(instance=plan)
+    """
+    Editar un plan de pago existente con sus reglas de estructura y mora.
+    Devuelve los datos del plan en formato JSON para cargar en el modal.
+    """
+    regularizacion = get_object_or_404(Regularizacion, pk=pk, tipo='Plan de Pago')
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, "planes/plan_form.html", {"form": form})
-    return render(request, "planes/plan_form.html", {"form": form})
+    if request.method == 'GET':
+        # Obtener las reglas asociadas
+        try:
+            estructura = ReglaEstructura.objects.get(regularizacion=regularizacion)
+        except ReglaEstructura.DoesNotExist:
+            estructura = None
+
+        try:
+            mora = ReglaMora.objects.get(regularizacion=regularizacion)
+        except ReglaMora.DoesNotExist:
+            mora = None
+
+        # Obtener las cuotas existentes
+        cuotas = CuotaRegularizacion.objects.filter(regularizacion=regularizacion).order_by('numero_cuota')
+
+        # Preparar datos para enviar al frontend
+        data = {
+            'ok': True,
+            'regularizacion': {
+                'id': regularizacion.id,
+                'nombre': regularizacion.nombre,
+                'carrera': regularizacion.carrera,
+                'modalidad': regularizacion.modalidad,
+                'cohorte': regularizacion.cohorte,
+            },
+            'estructura': {
+                'valor': str(estructura.valor) if estructura else '',
+                'tasa': str(estructura.tasa) if estructura else '',
+                'pago_inicial': str(estructura.pago_incial) if estructura else '',
+                'cantidad_cuotas': estructura.cantidad_de_cuotas if estructura else '',
+                'frecuencia': estructura.frecuencia_de_pago if estructura else '',
+                'dia_vencimiento': estructura.dia_vencimiento if estructura else '',
+            } if estructura else None,
+            'mora': {
+                'tipo_recargo': mora.tipo_de_recargo if mora else '',
+                'cantidad': str(mora.cantidad_recargo) if mora else '',
+                'frecuencia': mora.frecuencia_aplicacion if mora else '',
+                'dias_gracia': mora.dias_gracia if mora else '',
+                'veces_aplicacion': mora.veces_aplicacion if mora else '',
+            } if mora else None,
+            'cuotas': [
+                {
+                    'nro': c.numero_cuota,
+                    'base': str(c.monto_base),
+                    'interes': str(c.monto_interes),
+                    'monto_total': str(c.monto_cuota),
+                    'mora': str(c.monto_mora),
+                    'vto': c.fecha_vencimiento.strftime('%d/%m/%Y') if c.fecha_vencimiento else '',
+                    'estado': c.get_estado_display(),
+                }
+                for c in cuotas
+            ]
+        }
+
+        return JsonResponse(data)
+
+    elif request.method == 'POST':
+        regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion', instance=regularizacion)
+
+        # Obtener o crear las reglas asociadas
+        try:
+            estructura_instance = ReglaEstructura.objects.get(regularizacion=regularizacion)
+        except ReglaEstructura.DoesNotExist:
+            estructura_instance = None
+
+        try:
+            mora_instance = ReglaMora.objects.get(regularizacion=regularizacion)
+        except ReglaMora.DoesNotExist:
+            mora_instance = None
+
+        estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura', instance=estructura_instance)
+        mora_form = ReglaMoraForm(request.POST, prefix='mora', instance=mora_instance)
+
+        if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
+            try:
+                with transaction.atomic():
+                    regularizacion = regularizacion_form.save()
+
+                    estructura = estructura_form.save(commit=False)
+                    estructura.regularizacion = regularizacion
+                    estructura.save()
+
+                    mora = mora_form.save(commit=False)
+                    mora.regularizacion = regularizacion
+                    mora.save()
+
+                    # Actualizar las cuotas si fueron enviadas
+                    cuotas_json = request.POST.get('cuotas_json')
+                    if cuotas_json:
+                        import json
+                        from datetime import datetime
+                        try:
+                            # Eliminar cuotas antiguas
+                            CuotaRegularizacion.objects.filter(regularizacion=regularizacion).delete()
+
+                            cuotas_data = json.loads(cuotas_json)
+                            for cuota in cuotas_data:
+                                # Parsear la fecha de vencimiento
+                                fecha_vto = None
+                                if cuota.get('vto'):
+                                    try:
+                                        fecha_vto = datetime.strptime(cuota['vto'], '%d/%m/%Y').date()
+                                    except:
+                                        try:
+                                            fecha_vto = datetime.strptime(cuota['vto'], '%Y-%m-%d').date()
+                                        except:
+                                            pass
+
+                                CuotaRegularizacion.objects.create(
+                                    regularizacion=regularizacion,
+                                    numero_cuota=cuota.get('nro', 0),
+                                    fecha_vencimiento=fecha_vto,
+                                    monto_base=cuota.get('base', 0),
+                                    monto_interes=cuota.get('interes', 0),
+                                    monto_cuota=cuota.get('monto_total', 0),
+                                    monto_mora=cuota.get('mora', 0),
+                                    estado='P'
+                                )
+                        except Exception as e:
+                            print(f"Error al actualizar cuotas: {e}")
+
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': 'Plan actualizado correctamente.'})
+
+                messages.success(request, 'El plan fue actualizado exitosamente.')
+                return redirect('planes_list')
+
+            except Exception as e:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': str(e)}, status=500)
+                messages.error(request, f'Ocurrió un error al actualizar: {e}')
+
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': {
+                        'regularizacion': regularizacion_form.errors,
+                        'estructura': estructura_form.errors,
+                        'mora': mora_form.errors
+                    }
+                }, status=400)
+
+            messages.error(request, 'Hay errores en los formularios.')
+
+    return redirect('planes_list')
 
 
 @login_required
@@ -842,6 +1088,7 @@ def plan_ver_detalle(request, pk):
                 'cohorte': obj.cohorte,
                 'modalidad': obj.modalidad,
                 'estado': obj.estado,
+                'tipo': obj.tipo,  # Agregamos el tipo para identificarlo en el frontend
                 'fecha_creacion': obj.fecha_creacion.strftime('%d/%m/%Y %H:%M') if hasattr(obj, 'fecha_creacion') and obj.fecha_creacion else 'N/A',
             }
 
@@ -896,7 +1143,8 @@ def plan_ver_detalle(request, pk):
                 print(f"Error al obtener cuotas: {e}")
 
         else:  # plan
-            obj = PlanPago.objects.get(pk=pk)
+            # Para planes normales, buscar en la tabla Regularizacion con tipo='Plan de Pago'
+            obj = Regularizacion.objects.get(pk=pk, tipo='Plan de Pago')
             plan_data = {
                 'id': obj.id,
                 'nombre': obj.nombre,
@@ -904,8 +1152,58 @@ def plan_ver_detalle(request, pk):
                 'cohorte': obj.cohorte,
                 'modalidad': obj.modalidad,
                 'estado': obj.estado,
+                'tipo': 'Plan de Pago',  # Agregamos el tipo para identificarlo en el frontend
                 'fecha_creacion': obj.fecha_creacion.strftime('%d/%m/%Y %H:%M') if hasattr(obj, 'fecha_creacion') and obj.fecha_creacion else 'N/A',
             }
+
+            # Buscar estructura asociada (NO tiene origen_deuda)
+            try:
+                estructura = ReglaEstructura.objects.filter(regularizacion=obj).first()
+                if estructura:
+                    plan_data['estructura'] = {
+                        # NO incluir origen_deuda para planes normales
+                        'valor': str(estructura.valor),
+                        'tasa': str(estructura.tasa),
+                        'pago_inicial': str(estructura.pago_incial),
+                        'cantidad_cuotas': estructura.cantidad_de_cuotas,
+                        'frecuencia': estructura.get_frecuencia_de_pago_display(),
+                        'dia_vencimiento': estructura.dia_vencimiento,
+                    }
+            except:
+                pass
+
+            # Buscar reglas de mora asociadas
+            try:
+                mora = ReglaMora.objects.filter(regularizacion=obj).first()
+                if mora:
+                    plan_data['mora'] = {
+                        'tipo': mora.get_tipo_de_recargo_display() if mora.tipo_de_recargo else 'N/A',
+                        'cantidad': str(mora.cantidad_recargo) if mora.cantidad_recargo else 'N/A',
+                        'frecuencia': mora.get_frecuencia_aplicacion_display() if mora.frecuencia_aplicacion else 'N/A',
+                        'dias_gracia': mora.dias_gracia if mora.dias_gracia else 0,
+                        'veces_aplicacion': mora.veces_aplicacion if mora.veces_aplicacion else 0,
+                    }
+            except:
+                pass
+
+            # Buscar cuotas asociadas
+            try:
+                cuotas = CuotaRegularizacion.objects.filter(regularizacion=obj).order_by('numero_cuota')
+                if cuotas.exists():
+                    plan_data['cuotas'] = [
+                        {
+                            'numero': c.numero_cuota,
+                            'fecha_vencimiento': c.fecha_vencimiento.strftime('%d/%m/%Y') if c.fecha_vencimiento else 'N/A',
+                            'base': str(c.monto_base),
+                            'interes': str(c.monto_interes),
+                            'monto': str(c.monto_cuota),
+                            'mora': str(c.monto_mora),
+                            'estado': c.get_estado_display(),
+                        }
+                        for c in cuotas
+                    ]
+            except Exception as e:
+                print(f"Error al obtener cuotas: {e}")
 
         return JsonResponse({'ok': True, 'plan': plan_data})
 

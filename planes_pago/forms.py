@@ -43,7 +43,7 @@ class PlanPagoForm(forms.ModelForm):
 class RegularizacionForm(forms.ModelForm):
     class Meta:
         model = Regularizacion
-        fields = ['nombre', 'carrera', 'modalidad', 'cohorte']
+        fields = ['tipo', 'nombre', 'carrera', 'modalidad', 'cohorte']
         labels = {
                 'nombre': 'Nombre de la Regularización',
                 'carrera': 'Carrera',
@@ -75,19 +75,19 @@ class RegularizacionForm(forms.ModelForm):
 class ReglaEstructuraForm(forms.ModelForm):
     # Definición explícita de campos numéricos para agregar validación min_value
     valor = forms.DecimalField(
-        label='Valor',
+        label='Precio Base',
         max_digits=10,
         decimal_places=2,
         min_value=0,
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ej: 5000.00',
+            'placeholder': 'Ej: 88000.00 (monto del año escolar)',
             'required': True
         })
     )
 
     tasa = forms.DecimalField(
-        label='Tasa (%)',
+        label='Tasa de Interés (%)',
         max_digits=5,
         decimal_places=2,
         min_value=0,
@@ -99,13 +99,13 @@ class ReglaEstructuraForm(forms.ModelForm):
     )
 
     pago_incial = forms.DecimalField(
-        label='Pago Inicial',
+        label='Matrícula',
         max_digits=10,
         decimal_places=2,
         min_value=0,
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ej: 2000.00',
+            'placeholder': 'Ej: 2000.00 (pago inicial)',
             'required': True
         })
     )
@@ -134,6 +134,84 @@ class ReglaEstructuraForm(forms.ModelForm):
     class Meta:
         model = ReglaEstructura
         fields = [
+            'valor',
+            'tasa',
+            'pago_incial',
+            'cantidad_de_cuotas',
+            'frecuencia_de_pago',
+            'dia_vencimiento'
+        ]
+        widgets = {
+            'frecuencia_de_pago': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+        }
+
+class ReglaEstructuraRegularizacionForm(forms.ModelForm):
+    """Formulario de estructura específico para Regularizaciones"""
+
+    valor = forms.DecimalField(
+        label='Monto',
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 50000.00 (solo si es Monto Fijo)',
+            'id': 'id_estructura_reg-valor'
+        })
+    )
+
+    tasa = forms.DecimalField(
+        label='Tasa de Interés (%)',
+        max_digits=5,
+        decimal_places=2,
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 10.5',
+            'required': True
+        })
+    )
+
+    pago_incial = forms.DecimalField(
+        label='Pago Inicial',
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 2000.00',
+            'required': True
+        })
+    )
+
+    cantidad_de_cuotas = forms.IntegerField(
+        label='Cantidad de Cuotas',
+        min_value=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 12',
+            'required': True
+        })
+    )
+
+    dia_vencimiento = forms.IntegerField(
+        label='Día de Vencimiento',
+        min_value=1,
+        max_value=31,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 15',
+            'required': True
+        })
+    )
+
+    class Meta:
+        model = ReglaEstructura
+        fields = [
             'origen_deuda',
             'valor',
             'tasa',
@@ -145,12 +223,18 @@ class ReglaEstructuraForm(forms.ModelForm):
         widgets = {
             'origen_deuda': forms.Select(attrs={
                 'class': 'form-select',
+                'id': 'id_estructura_reg-origen_deuda',
+                'required': True
             }),
             'frecuencia_de_pago': forms.Select(attrs={
                 'class': 'form-select',
                 'required': True
             }),
         }
+        labels = {
+            'origen_deuda': 'Origen de Deuda',
+        }
+
 class ReglaMoraForm(forms.ModelForm):
     # Definiciones explícitas para asegurar required=False y usar los choices del modelo
 

@@ -3,317 +3,286 @@
 {% load permisos_tags %}
 {% block title %}Planes de Pago{% endblock %}
 
+{% block navbar %}{% endblock %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+<!-- Bootstrap para el modal -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 
 <style>
-/* === AJUSTES GLOBALES DEL LAYOUT === */
-body {
-    background-color: #d2dde4a2 !important;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    body {
+        background-color: #d2dde4a2 !important;
+        }
+    .layout {
+        display: flex;
+        min-height: 100vh;
+        background: #ffffff;
+        padding:20px;
+        border-radius: 16px;
+    }
+    /* MAIN CONTENT */
+    .main-content {
+        flex: 1;
+
+    }
+    header.page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .btn-new {
+        background: #3a86ff;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    /* TABLE */
+    table.dataTable {
+        width: 100% !important;
+        margin-top: 20px;
+    }
+    table.dataTable th,
+    table.dataTable td {
+        padding: 10px;
+    }
+
+    /* BOTONES CRUD */
+    .acciones a, .acciones button {
+        margin: 0 2px;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 8px;
+        cursor: pointer;
+        color: #fff;
+        text-decoration: none;
+    }
+    .btn-edit  { background: #3a86ff; }
+    .btn-clone { background: #8338ec; }
+    .btn-enter { background: #05c995; }
+    .btn-del   { background: #ff006e; }
+    .btn-susp  {background: #eb8939;}
+
+    /* Modal general */
+#regularizacionModal .modal-content {
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  border: none;
+  overflow: hidden;
 }
 
-/* El .layout ya está en base.html. Aquí ajustamos el contenido principal */
-.main-content {
-    flex: 1;
-    /* Eliminar el padding para que la tabla ocupe todo el ancho del contenedor */
-    padding: 0; 
+#regularizacionModal .modal-header {
+  background: linear-gradient(135deg, #004aad, #007bff);
+  color: white;
+  border-bottom: none;
 }
 
-/* === ENCABEZADO Y ACCIONES === */
-header.page-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-top: 10px; /* Separación de la parte superior del contenedor */
-    padding-left: 20px;
-    padding-right: 20px;
-}
-.page-head h2 {
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #192A41; /* Color de texto oscuro del modelo */
-}
-.page-head span {
-    display: block;
-    color: #6c757d;
-    font-size: 1rem;
+#regularizacionModal .modal-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-
-.actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
+#regularizacionModal .btn-close {
+  filter: invert(1);
 }
 
-/* Botón Nuevo Plan */
-.btn-new {
-    background-color: #ffffff; /* Fondo blanco */
-    color: #007bff; /* Texto azul de Bootstrap */
-    border: 1px solid #007bff;
-    padding: 8px 15px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-}
-.btn-new:hover {
-    background-color: #007bff;
-    color: #fff;
-}
-.btn-new i {
-    font-size: 1.1rem;
-    margin-right: 5px;
+/*Cuerpo del modal*/
+#regularizacionModal .modal-body {
+  background-color: #f8f9fa;
+  padding: 2rem;
 }
 
-
-/* === ESTILOS DE LA TABLA DATATABLES === */
-/* Contenedor principal de la tabla (para el margen y el separador) */
-.table-container {
-    padding: 20px;
-    padding-top: 0;
+/* Tarjeta con tabs */
+#regularizacionModal .card {
+  border: none;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-radius: 12px;
 }
 
-/* Encabezado de la tabla (Fondo Azul Oscuro del modelo) */
-#tablaPlanes thead th {
-    background-color: #192A41 !important; /* Azul Oscuro Profundo */
-    color: #ffffff !important;
-    font-weight: 600;
-    border: none;
-    padding: 10px 15px;
+#regularizacionModal .card-header {
+  background-color: #f1f4f8;
+  border-bottom: 2px solid #dee2e6;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 0.5rem;
+}
+#regularizacionModal .nav-tabs {
+  border-bottom: none;
+  justify-content: center;
 }
 
-/* Filas de la tabla */
-#tablaPlanes tbody tr {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e9ecef;
-    transition: background-color 0.2s;
+#regularizacionModal .nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
 }
 
-#tablaPlanes tbody tr:hover {
-    background-color: #f8f9fa;
+#regularizacionModal .nav-tabs .nav-link.active {
+  background-color: white;
+  color: #004aad;
+  font-weight: 600;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
 }
 
-#tablaPlanes tbody td {
-    padding: 10px 15px;
-    color: #343a40;
-    vertical-align: middle;
+#regularizacionModal .card-body {
+  padding: 2rem;
 }
 
-/* Estilo para los botones de la tabla */
-.acciones {
-    display: flex;
-    gap: 5px;
-}
-.acciones a, .acciones button {
-    border: none;
-    border-radius: 4px;
-    padding: 6px 10px;
-    cursor: pointer;
-    color: #fff;
-    background-color: #4A86C1;
-    display: flex; 
-    align-items: center;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    opacity: 0.6; /* Opacidad baja por defecto */
-    transition: background-color 0.2s, opacity 0.2s, transform 0.2s; /* Aseguramos la transición suave */
+#regularizacionModal h5.card-title {
+  color: #004aad;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
 }
 
-.acciones a i,
-.acciones button i {
-    margin-right: 5px;
+/* Botones modal */
+#regularizacionModal .btn {
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
 }
 
-#tablaPlanes tbody tr:hover .acciones a,
-#tablaPlanes tbody tr:hover .acciones button {
-    opacity: 1.0; /* Opacidad máxima (totalmente opaco) */
+#regularizacionModal .btn-primary {
+  background-color: #3cb9c2;
+  border-color: #3cb9c2;
 }
 
-/* Colores de los botones de la tabla según el modelo 
-.btn-enter { 
-    background-color: #4A86C1; 
-    color: #FFFFFF; 
-}
-.btn-edit { 
-    background-color: #457B9D; 
-    color: #FFFFFF; 
-}
-.btn-clone { 
-    background-color: #7DA7CC; 
-    color: #192A41; 
-}
-.btn-susp {
-    background-color: #243A5E; 
-    color: #FFFFFF; 
-}*/
-
-/* Efectos hover para los botones */
-.acciones a:hover,
-.acciones button:hover {
-    background-color: #192A41;
-    transform: scale(1.1); /* Hace que el botón crezca un 10% */
-    /* Se elimina cualquier regla de background-color para mantener el color base. */
+#regularizacionModal .btn-primary:hover {
+  background-color: #3cb9c2;
 }
 
-/* Paginación de DataTables con Bootstrap */
-.dataTables_wrapper .pagination .page-item.active .page-link {
-    background-color: #192A41;
-    border-color: #192A41;
-}
-.dataTables_wrapper .pagination .page-link {
-    color: #192A41;
-}
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter {
-    padding: 0 20px;
+#regularizacionModal .btn-success {
+  background-color: #198754;
 }
 
-/* === MODAL ESTILOS (Mantenidos y limpiados) === */
-#modalNuevoPlan .modal-content {
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: none;
-    overflow: hidden;
+#regularizacionModal .btn-success:hover {
+  background-color: #157347;
 }
 
-#modalNuevoPlan .modal-header {
-    background-color: #192A41; /* Color del sidebar */
-    color: white;
-    border-bottom: none;
+#regularizacionModal .btn-danger {
+  background-color: #dc3545;
 }
 
-#modalNuevoPlan .modal-title {
-    font-weight: 600;
+#regularizacionModal .btn-danger:hover {
+  background-color: #c82333;
 }
 
-#modalNuevoPlan .btn-close {
-    filter: invert(1);
+/*  Inputs y selects */
+#regularizacionModal input.form-control,
+#regularizacionModal select.form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease-in-out;
 }
 
-#modalNuevoPlan .modal-body {
-    background-color: #f8f9fa;
-    padding: 2rem;
+#regularizacionModal input.form-control:focus,
+#regularizacionModal select.form-select:focus {
+  border-color: #3cb9c2;
+  box-shadow: 0 0 0 0.2rem rgba(0,74,173,0.15);
 }
 
-#modalNuevoPlan .card {
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-radius: 12px;
+/* ===== Validación ===== */
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+  border-color: #dc3545;
 }
 
-#modalNuevoPlan .card-header {
-    background-color: #f1f4f8;
-    border-bottom: 2px solid #dee2e6;
-    padding: 0.5rem;
-}
-#modalNuevoPlan .nav-tabs {
-    border-bottom: none;
-    justify-content: center;
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+  border-color: #198754;
 }
 
-#modalNuevoPlan .nav-tabs .nav-link {
-    border: none;
-    color: #6c757d;
-    font-weight: 500;
-    border-radius: 8px 8px 0 0;
+/* ===== Alertas de visualización ===== */
+#visualizacion-resultados .alert {
+  background-color: #e9f5ff;
+  color: #3cb9c2;
+  border: 1px solid #b6d9ff;
+  border-radius: 8px;
+}
+.tab-pane form p,
+.tab-pane p {
+  margin-bottom: 1rem;
 }
 
-#modalNuevoPlan .nav-tabs .nav-link.active {
-    background-color: white;
-    color: #192A41;
-    font-weight: 600;
-    box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+.tab-pane label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
 }
 
-/* Botones dentro del modal */
-#modalNuevoPlan .btn-primary {
-    background-color: #7984f1; /* Botón azul principal */
-    border-color: #7984f1;
-}
-#modalNuevoPlan .btn-primary:hover {
-    background-color: #606be4;
-    border-color: #606be4;
+.tab-pane input,
+.tab-pane select,
+.tab-pane textarea {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  box-sizing: border-box;
 }
 
-/* Ajustes de estilo para el form.as_p */
-.tab-pane form p {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
+.tab-pane input:focus,
+.tab-pane select:focus,
+.tab-pane textarea:focus {
+  outline: none;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
 }
-.tab-pane form label {
-    font-weight: 500;
-    margin-bottom: .25rem;
-}
-.tab-pane form input,
-.tab-pane form select {
-    border-radius: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #ced4da;
-}
+
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="layout">
+    <!-- MAIN -->
     <main class="main-content">
         <header class="page-head">
             <div>
-                <h2 class="page-title">Planes de Pago</h2>
-                <h5 class="page-subtitle">Recientes</h5>
+                <h2>Planes de Pago</h2>
             </div>
             <div class="actions">
+                <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</a>
+                <a href="{% url 'exportar_planes_csv' %}" class="btn btn-success btn-sm"><i class="bi bi-filetype-csv"></i>CSV</a>
+                <a href="{% url 'exportar_planes_excel' %}" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-excel"></i>Excel</a>
+                <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir</a>
                 {% if user|is_in_groups:"Administrador,Tesorero" %}
-                <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan" onclick="resetFormulario()">
-                    <i class="bi bi-plus-circle"></i> Nuevo Plan
-                </button>
+                <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan" onclick="resetFormulario()">+ Nuevo Plan</button>
+                <button type="button" class="btn-new" style="background-color: #ff6b35;" data-bs-toggle="modal" data-bs-target="#modalNuevaRegularizacion" onclick="resetFormularioRegularizacion()">+ Regularización</button>
                 {% endif %}
-                
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <h6 class="dropdown-header">Filtros por:</h6>
-                        <li><a class="dropdown-item" href="#">Año</a></li>
-                        <li><a class="dropdown-item" href="#">Carrera</a></li>
-                        <li><a class="dropdown-item" href="#">Modalidad</a></li>
-                        <li><a class="dropdown-item" href="#">Cohorte</a></li>
-                        <li><a class="dropdown-item" href="#">Tipo</a></li>
-                    </ul>
-                </div>
             </div>
         </header>
-
-        <div class="table-container">
-            <table id="tablaPlanes" class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Nombre</th>
-                        <th>Carrera</th>
-                        <th>Cohorte</th>
-                        <th>Modalidad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <br>
+        <hr>
+        <table id="tablaPlanes" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Carrera</th>
+                    <th>Cohorte</th>
+                    <th>Modalidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
         
+        <!-- Modal genérico para Crear/Editar/Clonar -->
         <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -322,113 +291,374 @@ header.page-head {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body" id="modalBody">
-                    </div>
+                    <!-- El formulario se carga aquí por AJAX -->
+                </div>
                 </div>
             </div>
         </div>
+        <!-- Fin Modal -->
+
+
+        <!-- Modal genérico para Regularización -->
         <div class="modal fade" id="modalNuevoPlan" tabindex="-1" aria-labelledby="modalNuevoPlanLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalNuevoPlanLabel">Crear Nuevo Plan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <!--DATOS DE IDENTIFICACION-->
+            <h5 class="modal-title" id="modalNuevoPlanLabel">Crear Nuevo Plan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+      <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacion">
+        {% csrf_token %} 
+        <div class="modal-body">
+          <div class="card text-center">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="identificacion-tab" data-bs-toggle="tab" data-bs-target="#identificacion" type="button" role="tab" aria-controls="identificacion" aria-selected="true">Detalles de identificación</button>
+                </li>
+                <!--ESTRUCTURA-->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab" aria-controls="estructura" aria-selected="false">Estructura</button>
+                </li>
+                <!--REGLAS DE MORA-->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="mora-tab" data-bs-toggle="tab" data-bs-target="#mora" type="button" role="tab" aria-controls="mora" aria-selected="false">Reglas de mora</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab" aria-controls="visualizacion" aria-selected="false">Visualización</button>
+                </li>
+              </ul>
             </div>
-            <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacion">
-                {% csrf_token %} 
-                <div class="modal-body">
-                <div class="card text-center">
-                    <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="identificacion-tab" data-bs-toggle="tab" data-bs-target="#identificacion" type="button" role="tab" aria-controls="identificacion" aria-selected="true">Detalles de identificación</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="estructura-tab" data-bs-toggle="tab" data-bs-target="#estructura" type="button" role="tab" aria-controls="estructura" aria-selected="false">Estructura</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="mora-tab" data-bs-toggle="tab" data-bs-target="#mora" type="button" role="tab" aria-controls="mora" aria-selected="false">Reglas de mora</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab" aria-controls="visualizacion" aria-selected="false">Visualización</button>
-                        </li>
-                    </ul>
-                    </div>
 
-                    <div class="card-body">
-                    <div class="tab-content" id="myTabContent">
-
-                    <div class="tab-pane fade show active" id="identificacion" role="tabpanel" aria-labelledby="identificacion-tab">
-                        <h5 class="card-title">Datos de Identificación de la Regularización</h5>
-                        {{ regularizacion_form.as_p }} 
-                        
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="button" class="btn btn-primary" onclick="goToTab('estructura')">Continuar</button>
+            <div class="card-body">
+              <div class="tab-content" id="myTabContent">
+                <!-- TAB IDENTIFICACION -->
+                <div class="tab-pane fade show active" id="identificacion" role="tabpanel" aria-labelledby="identificacion-tab">
+                    <h5 class="card-title">Detalles de Identificación</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_regularizacion-nombre" class="form-label">Nombre del Plan</label>
+                            {{ regularizacion_form.nombre }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion-carrera" class="form-label">Carrera</label>
+                            {{ regularizacion_form.carrera }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion-modalidad" class="form-label">Modalidad</label>
+                            {{ regularizacion_form.modalidad }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion-cohorte" class="form-label">Cohorte</label>
+                            {{ regularizacion_form.cohorte }}
                         </div>
                     </div>
-                        
-                    <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
-                        <h5 class="card-title">Configuración de Estructura</h5>
-                        {{ estructura_form.as_p }} 
-                        <div class="d-flex justify-content-between mt-4">
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-primary" onclick="goToTab('estructura')">Siguiente</button>
+                    </div>
+                </div>
+
+                <!-- TAB ESTRUCTURA -->
+                <div class="tab-pane fade" id="estructura" role="tabpanel" aria-labelledby="estructura-tab">
+                    <h5 class="card-title">Estructura del Plan</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_estructura-valor" class="form-label">Precio Base</label>
+                            {{ estructura_form.valor }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura-tasa" class="form-label">Tasa de Interés (%)</label>
+                            {{ estructura_form.tasa }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura-pago_incial" class="form-label">Matrícula</label>
+                            {{ estructura_form.pago_incial }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura-cantidad_de_cuotas" class="form-label">Cantidad de Cuotas</label>
+                            {{ estructura_form.cantidad_de_cuotas }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura-frecuencia_de_pago" class="form-label">Frecuencia de Pago</label>
+                            {{ estructura_form.frecuencia_de_pago }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura-dia_vencimiento" class="form-label">Día de Vencimiento</label>
+                            {{ estructura_form.dia_vencimiento }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-secondary" onclick="goToTab('identificacion')">Volver</button>
-                        <button type="button" class="btn btn-primary" onclick="goToTab('mora')">Continuar</button>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
-                        <h5 class="card-title">Parámetros de Reglas de Mora</h5>
-                        {{ mora_form.as_p }}
-                        <div class="d-flex justify-content-between mt-4">
-                            <button type="button" class="btn btn-secondary" onclick="goToTab('estructura')">Volver</button>
-                            <button type="button" id="btnSimularPlan" class="btn btn-primary" onclick="goToTab('visualizacion')">Simular Plan</button>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
-                        <h5 class="card-title">Simulación del Plan de Pagos</h5>
-
-                        <div id="visualizacion-resultados" class="mt-3">
-                            <table class="table table-bordered table-striped">
-                                <thead class="table-primary">
-                                    <tr>
-                                        <th>Nro de Cuota</th>
-                                        <th>Base($)</th>
-                                        <th>Interés</th>
-                                        <th>Monto total cuota</th>
-                                        <th>Recargo por Mora</th>
-                                        <th>Vcto estimado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaCuotas">
-                                    <tr>
-                                        <td colspan="6" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="d-flex justify-content-between mt-4">
-                            <button type="button" class="btn btn-secondary" onclick="goToTab('mora')">Volver </button>
-                            <div>
-                                <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-success" id="btnGuardarRegularizacion">Guardar Plan</button>
-                            </div>
-                        </div>
-                    </div> 
+                        <button type="button" class="btn btn-primary" onclick="goToTab('mora')">Siguiente</button>
                     </div>
                 </div>
+
+                <!-- TAB MORA -->
+                <div class="tab-pane fade" id="mora" role="tabpanel" aria-labelledby="mora-tab">
+                    <h5 class="card-title">Reglas de Mora</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_mora-tipo_de_recargo" class="form-label">Tipo de Recargo</label>
+                            {{ mora_form.tipo_de_recargo }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora-cantidad_recargo" class="form-label">Cantidad de Recargo</label>
+                            {{ mora_form.cantidad_recargo }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora-frecuencia_aplicacion" class="form-label">Frecuencia de Aplicación</label>
+                            {{ mora_form.frecuencia_aplicacion }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora-dias_gracia" class="form-label">Días de Gracia</label>
+                            {{ mora_form.dias_gracia }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora-veces_aplicacion" class="form-label">Veces de Aplicación</label>
+                            {{ mora_form.veces_aplicacion }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTab('estructura')">Volver</button>
+                        <button type="button" id="btnSimularPlan" class="btn btn-primary">Simular Plan</button>
+                    </div>
                 </div>
+
+                <!-- TAB VISUALIZACION -->
+                <div class="tab-pane fade" id="visualizacion" role="tabpanel" aria-labelledby="visualizacion-tab">
+                    <h5 class="card-title">Simulación del Plan de Pagos</h5>
+
+                    <!-- Cuadro de información de Mora -->
+                    <div id="infoMora" class="alert alert-info d-flex justify-content-between align-items-center mb-3" style="display: none !important;">
+                        <div>
+                            <strong>Recargo por Mora:</strong> <span id="infoRecargo"></span>
+                        </div>
+                        <div>
+                            <strong>Días de Gracia:</strong> <span id="infoDiasGracia"></span>
+                        </div>
+                    </div>
+                    <div id="infoMoraMsg" class="alert alert-secondary small mb-3" style="display: none !important;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        El recargo por mora se aplica después del día de gracia desde la fecha de vencimiento.
+                    </div>
+
+                    <div id="visualizacion-resultados" class="mt-3">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Nro de Cuota</th>
+                                    <th>Base($)</th>
+                                    <th>Interés</th>
+                                    <th>Monto total cuota</th>
+                                    <th>Vcto estimado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuotas">
+                                <tr>
+                                    <td colspan="5" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTab('mora')">Volver</button>
+                        <button type="button" id="btnGuardarRegularizacion" class="btn btn-success">Guardar Plan</button>
+                    </div>
+                </div>
+              </div>
             </div>
-            </form>
+          </div>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+        <!-- Fin Modal -->
+
+        <!-- Modal para Regularización -->
+        <div class="modal fade" id="modalNuevaRegularizacion" tabindex="-1" aria-labelledby="modalNuevaRegularizacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="modalNuevaRegularizacionLabel">Crear Nueva Regularización</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+      <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacionReg">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="card text-center">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs" id="myTabReg" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="identificacion-reg-tab" data-bs-toggle="tab" data-bs-target="#identificacion-reg" type="button" role="tab" aria-controls="identificacion-reg" aria-selected="true">Detalles de identificación</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="estructura-reg-tab" data-bs-toggle="tab" data-bs-target="#estructura-reg" type="button" role="tab" aria-controls="estructura-reg" aria-selected="false">Estructura</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="mora-reg-tab" data-bs-toggle="tab" data-bs-target="#mora-reg" type="button" role="tab" aria-controls="mora-reg" aria-selected="false">Reglas de Mora</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="visualizacion-reg-tab" data-bs-toggle="tab" data-bs-target="#visualizacion-reg" type="button" role="tab" aria-controls="visualizacion-reg" aria-selected="false">Visualización</button>
+                </li>
+              </ul>
             </div>
-        </div>
-        </div>
-        </main>
+            <div class="card-body">
+              <div class="tab-content" id="myTabContentReg">
+                <!-- TAB IDENTIFICACION -->
+                <div class="tab-pane fade show active" id="identificacion-reg" role="tabpanel" aria-labelledby="identificacion-reg-tab">
+                    <h5 class="card-title">Detalles de Identificación</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_regularizacion_reg-nombre" class="form-label">Nombre del Plan</label>
+                            {{ regularizacion_reg_form.nombre }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion_reg-carrera" class="form-label">Carrera</label>
+                            {{ regularizacion_reg_form.carrera }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion_reg-modalidad" class="form-label">Modalidad</label>
+                            {{ regularizacion_reg_form.modalidad }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_regularizacion_reg-cohorte" class="form-label">Cohorte</label>
+                            {{ regularizacion_reg_form.cohorte }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-primary" onclick="goToTabReg('estructura-reg')">Siguiente</button>
+                    </div>
+                </div>
+
+                <!-- TAB ESTRUCTURA -->
+                <div class="tab-pane fade" id="estructura-reg" role="tabpanel" aria-labelledby="estructura-reg-tab">
+                    <h5 class="card-title">Estructura del Plan</h5>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="id_estructura_reg-origen_deuda" class="form-label">Origen de Deuda</label>
+                            {{ estructura_reg_form.origen_deuda }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-valor" class="form-label">Valor</label>
+                            {{ estructura_reg_form.valor }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-tasa" class="form-label">Tasa de Interés (%)</label>
+                            {{ estructura_reg_form.tasa }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-pago_incial" class="form-label">Pago Inicial</label>
+                            {{ estructura_reg_form.pago_incial }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-cantidad_de_cuotas" class="form-label">Cantidad de Cuotas</label>
+                            {{ estructura_reg_form.cantidad_de_cuotas }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-frecuencia_de_pago" class="form-label">Frecuencia de Pago</label>
+                            {{ estructura_reg_form.frecuencia_de_pago }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_estructura_reg-dia_vencimiento" class="form-label">Día de Vencimiento</label>
+                            {{ estructura_reg_form.dia_vencimiento }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTabReg('identificacion-reg')">Volver</button>
+                        <button type="button" class="btn btn-primary" onclick="goToTabReg('mora-reg')">Siguiente</button>
+                    </div>
+                </div>
+
+                <!-- TAB MORA -->
+                <div class="tab-pane fade" id="mora-reg" role="tabpanel" aria-labelledby="mora-reg-tab">
+                    <h5 class="card-title">Reglas de Mora</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="id_mora_reg-tipo_de_recargo" class="form-label">Tipo de Recargo</label>
+                            {{ mora_reg_form.tipo_de_recargo }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora_reg-cantidad_recargo" class="form-label">Cantidad de Recargo</label>
+                            {{ mora_reg_form.cantidad_recargo }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora_reg-frecuencia_aplicacion" class="form-label">Frecuencia de Aplicación</label>
+                            {{ mora_reg_form.frecuencia_aplicacion }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora_reg-dias_gracia" class="form-label">Días de Gracia</label>
+                            {{ mora_reg_form.dias_gracia }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_mora_reg-veces_aplicacion" class="form-label">Veces de Aplicación</label>
+                            {{ mora_reg_form.veces_aplicacion }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTabReg('estructura-reg')">Volver</button>
+                        <button type="button" id="btnSimularPlanReg" class="btn btn-primary" onclick="simularPlanReg()">Simular Plan</button>
+                    </div>
+                </div>
+
+                <!-- TAB VISUALIZACION -->
+                <div class="tab-pane fade" id="visualizacion-reg" role="tabpanel" aria-labelledby="visualizacion-reg-tab">
+                    <h5 class="card-title">Simulación del Plan de Pagos</h5>
+
+                    <!-- Cuadro de información de Mora -->
+                    <div id="infoMoraReg" class="alert alert-info d-flex justify-content-between align-items-center mb-3" style="display: none !important;">
+                        <div>
+                            <strong>Recargo por Mora:</strong> <span id="infoRecargoReg"></span>
+                        </div>
+                        <div>
+                            <strong>Días de Gracia:</strong> <span id="infoDiasGraciaReg"></span>
+                        </div>
+                    </div>
+                    <div id="infoMoraMsgReg" class="alert alert-secondary small mb-3" style="display: none !important;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        El recargo por mora se aplica después del día de gracia desde la fecha de vencimiento.
+                    </div>
+
+                    <div id="visualizacion-resultados-reg" class="mt-3">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Nro de Cuota</th>
+                                    <th>Base($)</th>
+                                    <th>Interés</th>
+                                    <th>Monto total cuota</th>
+                                    <th>Vcto estimado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuotasReg">
+                                <tr>
+                                    <td colspan="5" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="goToTabReg('mora-reg')">Volver</button>
+                        <button type="button" id="btnGuardarRegularizacionReg" class="btn btn-success">Guardar Plan</button>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+        <!-- Fin Modal Regularización -->
+    </main>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -448,7 +678,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-const csrftoken = getCookie('csrftoken'); // Definir csrftoken aquí
 
 // Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
@@ -459,158 +688,11 @@ $.ajaxSetup({
     }
 });
 
-// Función para cambiar de pestaña de Bootstrap 
-function goToTab(tabId) {
-    const tabElement = document.querySelector(`#${tabId}-tab`); 
-    if (tabElement) {
-        const tab = new bootstrap.Tab(tabElement);
-        tab.show();
-    } else {
-        console.error(`Error: No se encontró el elemento de la pestaña con ID: ${tabId}-tab`);
-    }
-}
-
-// Función para parsear la data del formulario
-function getFormData(formElement) {
-    const data = {};
-    const formData = new FormData(formElement);
-    for (let [key, value] of formData.entries()) {
-        data[key] = value;
-    }
-    return data;
-}
-
-// Implementación de la función calcularCuotas
-function calcularCuotas(data) {
-    const valor_origen = parseFloat(data['estructura-valor']) || 0;
-    const tasa_interes = parseFloat(data['estructura-tasa']) || 0;
-    const pago_inicial = parseFloat(data['estructura-pago_incial']) || 0; 
-    const cantidad_de_cuotas = parseInt(data['estructura-cantidad_de_cuotas']) || 0;
-    const frecuencia_de_pago = data['estructura-frecuencia_de_pago'];
-    const dia_vencimiento = parseInt(data['estructura-dia_vencimiento']) || 1;
-    
-    const tipo_recargo = data['mora-tipo_de_recargo'];
-    const cantidad_recargo = parseFloat(data['mora-cantidad_recargo']) || 0;
-    const dias_gracia = parseInt(data['mora-dias_gracia']) || 0;
-    const origen_deuda = data['estructura-origen_deuda'];
-
-    if (cantidad_de_cuotas <= 0) {
-        return { status: 'error', message: 'La cantidad de cuotas debe ser un número positivo.' };
-    }
-    if (valor_origen <= 0 && origen_deuda === 'FIJO') {
-        return { status: 'error', message: 'El valor de la deuda fija debe ser un número positivo.' };
-    }
-    
-    const round2 = (num) => Math.round(num * 100) / 100;
-    
-    let deuda_total_completa = (origen_deuda === 'FIJO') ? valor_origen : 100000; 
-
-    // Monto a financiar 
-    let monto_base_total = round2(deuda_total_completa - pago_inicial);
-    
-    if (monto_base_total <= 0) {
-        return { status: 'error', message: 'El monto total a financiar debe ser mayor que cero. Revise la deuda y el pago inicial.' };
-    }
-
-    const base = monto_base_total / cantidad_de_cuotas;
-    
-    // Fechas
-    const fecha_asignacion = new Date(); 
-    let anio_inicio = fecha_asignacion.getFullYear();
-    let mes_inicio = fecha_asignacion.getMonth();
-
-    if (fecha_asignacion.getDate() > dia_vencimiento) {
-        mes_inicio += 1;
-        if (mes_inicio > 11) {
-            mes_inicio = 0;
-            anio_inicio += 1;
-        }
-    }
-    
-    let vto_inicial = new Date(anio_inicio, mes_inicio, dia_vencimiento);
-    vto_inicial.setDate(vto_inicial.getDate() + dias_gracia);
-
-    const frecuencia_a_meses = { 'MENSUAL': 1, 'BIMESTRAL': 2, 'TRIMESTRAL': 3 };
-    const intervalo_meses = frecuencia_a_meses[frecuencia_de_pago] || 1;
-
-    //Generar Cuotas --
-    const cuotas_data = [];
-    
-    for (let i = 1; i <= cantidad_de_cuotas; i++) {
-        let vto = new Date(vto_inicial);
-        vto.setMonth(vto.getMonth() + (intervalo_meses * (i - 1)));
-        
-        const monto_interes = round2(base * (tasa_interes / 100));
-        const monto_cuota = round2(base + monto_interes);
-
-        let mora = 0;
-        if (tipo_recargo === 'FIJO') {
-            mora = cantidad_recargo;
-        } else if (tipo_recargo === 'PORCENTUAL') {
-            mora = round2(base * (cantidad_recargo / 100));
-        }
-
-        cuotas_data.push({
-            nro: i,
-            base: base.toFixed(2),
-            interes: monto_interes.toFixed(2),
-            monto_total: monto_cuota.toFixed(2),
-            mora: mora.toFixed(2),
-            vto: `${vto.getDate()}/${vto.getMonth() + 1}/${vto.getFullYear()}`
-        });
-    }
-
-    return { status: 'ok', cuotas: cuotas_data, pago_inicial: pago_inicial.toFixed(2) };
-}
-
-// Variable global para almacenar las cuotas simuladas
-let cuotasSimuladas = [];
-
-// Evento al hacer clic en el botón Simular Plan
-$('#btnSimularPlan').on('click', function() {
-    const formElement = document.querySelector('#modalNuevoPlan form');
-    const formData = getFormData(formElement);
-
-    const resultado = calcularCuotas(formData);
-    
-    if (resultado.status === 'ok') {
-        cuotasSimuladas = resultado.cuotas;
-        mostrarCuotasSimuladas(resultado.cuotas);
-        goToTab('visualizacion');
-    } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de Cálculo',
-            text: resultado.message
-        });
-    }
-});
-
-// Función para mostrar cuotas simuladas
-function mostrarCuotasSimuladas(cuotas) {
-    const tbody = document.getElementById('tablaCuotas');
-    if (tbody) {
-        tbody.innerHTML = '';
-        cuotas.forEach(cuota => {
-            const row = `
-                <tr>
-                    <td>${cuota.nro}</td>
-                    <td>${cuota.base}</td>
-                    <td>${cuota.interes}</td>
-                    <td>${cuota.monto_total}</td>
-                    <td>${cuota.mora}</td>
-                    <td>${cuota.vto}</td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', row);
-        });
-    }
-}
-
-
 </script>
 <script>
-// DATA TABLES Y MANEJO DE ACCIONES
+// Permisos del usuario
+const puedeModificar = {% if user|is_in_groups:"Administrador,Tesorero" %}true{% else %}false{% endif %};
+const puedeEliminar = {% if user|has_group:"Administrador" %}true{% else %}false{% endif %};
 $(function () {
     const tabla = $('#tablaPlanes').DataTable({
         ajax: '{% url "planes_data" %}',
@@ -621,52 +703,40 @@ $(function () {
             { data: 'carrera' },
             { data: 'cohorte' },
             { data: 'modalidad' },
+
             {
                 data: null,
                 orderable: false,
                 render: (data) => {
                     let botones = '<div class="acciones">';
 
-                    // Botón Entrar/Ver Plan con Icono
-                    botones += `
-                    <a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">
-                    Entrar
-                    </a>`;
+                    // Botón Entrar (todos pueden ver)
+                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Ver Plan</a>`;
 
-                    // Botones de edición (solo Admin y Tesorero)
-                    const puedeModificar = "{{ user|is_in_groups:'Administrador,Tesorero' }}" === "True";
+                    // Botones de edición (solo Administrador y Tesorero)
                     if (puedeModificar) {
-                        botones += `
-                        <button class="btn-edit" data-id="${data.id}" data-action="editar" title="Editar">
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </button>`;
-                        botones += `
-                        <button class="btn-clone" data-id="${data.id}" data-action="clonar" title="Clonar">
-                            <i class="bi bi-files"></i> Clonar
-                        </button>`;
+                        botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>`;
+                        botones += `<button class="btn-clone" data-id="${data.id}" data-action="clonar">Clonar</button>`;
                     }
 
-                    // Botón Desactivar/Suspender (solo Admin)
-                    const puedeEliminar = "{{ user|has_group:'Administrador' }}" === "True";
+                    // Botón Suspender (solo Administrador)
                     if (puedeEliminar) {
                         botones += `
-                        <button class="btn-susp"
+                        <button class="btn-susp btn btn-warning btn-sm"
                                 data-id="${data.id}"
-                                data-tipo="${data.tipo}"
-                                title="Desactivar">
-                            <i class="bi bi-x-circle"></i> Desactivar
+                                data-tipo="${data.tipo}">
+                            Suspender
                         </button>`;
+
                     }
+
                     botones += '</div>';
                     return botones;
                 }
             },
         ],
-//... (El resto del script se mantiene)
         language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-        pageLength: 10,
-        // Clases de Bootstrap para la tabla
-        dom: 'lfrtip', // Mostrar length, filter, table, info, pagination
+        pageLength: 10
     });
 
     
@@ -685,21 +755,21 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
     }
 
     Swal.fire({
-        title: `¿Desactivar el plan #${planId}?`,
+        title: `¿Suspender el plan #${planId}?`,
         text: "El plan pasará a la sección de suspendidos.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Sí, Desactivar",
+        confirmButtonText: "Sí, suspender",
         cancelButtonText: "Cancelar",
-        confirmButtonColor: "#721c24", // Rojo oscuro
-        cancelButtonColor: "#192A41", // Azul oscuro
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
     }).then((result) => {
         if (!result.isConfirmed) return;
 
         fetch(`/planes/suspender/${planId}/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrftoken,
+                'X-CSRFToken': getCookie('csrftoken'),
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
@@ -710,8 +780,8 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         .then(resp => {
             Swal.fire({
                 icon: "success",
-                title: "Plan desactivado",
-                text: resp.msg || "El plan pasó a la sección de desactivados",
+                title: "Plan suspendido",
+                text: resp.msg || "El plan pasó a la sección de suspendidos",
                 timer: 1800,
                 showConfirmButton: false
             });
@@ -720,21 +790,20 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         })
         .catch(error => {
             console.error(error);
-            Swal.fire("Error", "No se pudo desactivar el plan.", "error");
+            Swal.fire("Error", "No se pudo suspender el plan.", "error");
         });
     });
 });
 
     // Modal de Bootstrap
-    const planModal = new bootstrap.Modal(document.getElementById('planModal'));
-    const nuevoPlanModal = new bootstrap.Modal(document.getElementById('modalNuevoPlan'));
-
+    const modal = new bootstrap.Modal(document.getElementById('planModal'));
 
     // Función genérica para abrir el formulario en modal
     function abrirModal(titulo, url) {
         $('#modalTitle').text(titulo);
         $('#modalBody').html('<div class="text-center p-5">Cargando...</div>');
-        planModal.show(); // Usar el modal genérico
+        modal.show();
+
         // AJAX con header explícito
         $.ajax({
             url: url,
@@ -749,6 +818,8 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         });
     }
 
+    // Botón Nuevo Plan ya no necesita JavaScript - usa data-bs-toggle en el HTML
+
     // Editar / Clonar Plan
     $('#tablaPlanes').on('click', 'button[data-action]', function() {
         const id = $(this).data('id');
@@ -757,7 +828,6 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         if (action === 'editar') {
             // Cargar datos de la regularización en el modal con pestañas
             cargarDatosEdicion(id);
-            nuevoPlanModal.show(); // Mostrar el modal de nuevo/edición
         } else if (action === 'clonar') {
             let url = `/planes/clonar/${id}/`;
             let titulo = 'Clonar Plan';
@@ -767,6 +837,8 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
 
     // Función para cargar datos de edición en el modal
     function cargarDatosEdicion(id) {
+        console.log('Cargando datos de edición para ID:', id);
+
         // Cambiar el título del modal
         document.getElementById('modalNuevoPlanLabel').textContent = 'Editar Plan de Pago';
 
@@ -798,7 +870,12 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
 
                 // Cargar datos de Estructura
                 if (data.estructura) {
-                    document.getElementById('id_estructura-origen_deuda').value = data.estructura.origen_deuda || '';
+                    // Solo intentar cargar origen_deuda si el campo existe (modal de Regularización)
+                    const origenDeudaField = document.getElementById('id_estructura-origen_deuda');
+                    if (origenDeudaField) {
+                        origenDeudaField.value = data.estructura.origen_deuda || '';
+                    }
+
                     document.getElementById('id_estructura-valor').value = data.estructura.valor || '';
                     document.getElementById('id_estructura-tasa').value = data.estructura.tasa || '';
                     document.getElementById('id_estructura-pago_incial').value = data.estructura.pago_inicial || '';
@@ -822,6 +899,7 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                 // Verificar si las cuotas tienen valores válidos (no todos en 0)
                 let cuotasValidas = false;
                 if (data.cuotas && data.cuotas.length > 0) {
+                    // Verificar si al menos una cuota tiene valores diferentes de 0
                     cuotasValidas = data.cuotas.some(c =>
                         parseFloat(c.base) !== 0 ||
                         parseFloat(c.interes) !== 0
@@ -833,10 +911,12 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                     mostrarCuotasExistentes(data.cuotas);
                 } else if (data.estructura && data.mora) {
                     // Si las cuotas no son válidas pero tenemos datos de estructura y mora,
-                    // recalcular las cuotas automáticamente (usando la función local)
+                    // recalcular las cuotas automáticamente
                     console.log('Cuotas con valores en 0, recalculando automáticamente...');
 
+                    // Esperar un momento para que el modal se muestre
                     setTimeout(() => {
+                        // Simular el click en el botón de simular
                         const formElement = document.querySelector('#modalNuevoPlan form');
                         if (formElement) {
                             const formData = getFormData(formElement);
@@ -852,6 +932,10 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                     // Mostrar las cuotas aunque estén en 0
                     mostrarCuotasExistentes(data.cuotas);
                 }
+
+                // Mostrar el modal después de cargar todos los datos
+                const modal = new bootstrap.Modal(document.getElementById('modalNuevoPlan'));
+                modal.show();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -902,18 +986,705 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         // Resetear el título y el botón
         document.getElementById('modalNuevoPlanLabel').textContent = 'Crear Nuevo Plan';
         const btnGuardar = document.getElementById('btnGuardarRegularizacion');
-        btnGuardar.textContent = 'Guardar Plan';
-        btnGuardar.removeAttribute('data-edit-id');
+        if (btnGuardar) {
+            btnGuardar.textContent = 'Guardar Plan';
+            btnGuardar.removeAttribute('data-edit-id');
+        }
 
         // Limpiar la tabla de cuotas
         const tbody = document.getElementById('tablaCuotas');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td></tr>';
         }
+
+        // Ocultar información de mora
+        $('#infoMora').hide();
+        $('#infoMoraMsg').hide();
+
+        // Limpiar cuotas simuladas
+        cuotasSimuladas = [];
 
         // Volver a la primera pestaña
         goToTab('identificacion');
     };
 });
 </script>
+<script>
+function goToTab(tabId) {
+    const tabTrigger = new bootstrap.Tab(document.querySelector(`#${tabId}-tab`));
+    tabTrigger.show();
+}
+</script>
+
+<script>
+// FUNCIONES CÁLCULO
+
+// Función para cambiar de pestaña de Bootstrap 
+function goToTab(tabId) {
+    const tabElement = document.querySelector(`#${tabId}-tab`); 
+    if (tabElement) {
+        const tab = new bootstrap.Tab(tabElement);
+        tab.show();
+    } else {
+        console.error(`Error: No se encontró el elemento de la pestaña con ID: ${tabId}-tab`);
+    }
+}
+
+// Función para parsear la data del formulari
+window.getFormData = function(formElement) {
+    const data = {};
+    const formData = new FormData(formElement);
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    return data;
+};
+//Función de cálculo con la inclusión del pago inicial en la información de retorno.
+
+window.calcularCuotas = function(data) {
+    const valor_origen = parseFloat(data['estructura-valor']) || 0;
+    const tasa_interes = parseFloat(data['estructura-tasa']) || 0;
+    const pago_inicial = parseFloat(data['estructura-pago_incial']) || 0;
+    const cantidad_de_cuotas = parseInt(data['estructura-cantidad_de_cuotas']) || 0;
+    const frecuencia_de_pago = data['estructura-frecuencia_de_pago'];
+    const dia_vencimiento = parseInt(data['estructura-dia_vencimiento']) || 1;
+
+    const tipo_recargo = data['mora-tipo_de_recargo'];
+    const cantidad_recargo = parseFloat(data['mora-cantidad_recargo']) || 0;
+    const dias_gracia = parseInt(data['mora-dias_gracia']) || 0;
+    const origen_deuda = data['estructura-origen_deuda'];
+
+    if (cantidad_de_cuotas <= 0) {
+        return { status: 'error', message: 'La cantidad de cuotas debe ser un número positivo.' };
+    }
+
+    // Si no hay origen_deuda (modal Nuevo Plan), usar el valor_origen directamente
+    // Si origen_deuda es FIJO, validar que valor_origen sea positivo
+    if (origen_deuda === 'FIJO' && valor_origen <= 0) {
+        return { status: 'error', message: 'El valor de la deuda fija debe ser un número positivo.' };
+    }
+
+    // Si no hay origen_deuda definido, validar que valor_origen sea positivo
+    if (!origen_deuda && valor_origen <= 0) {
+        return { status: 'error', message: 'El precio base debe ser un número positivo.' };
+    }
+
+    const round2 = (num) => Math.round(num * 100) / 100;
+
+
+    // Si origen_deuda es FIJO, usar valor_origen. Si es VARIABLE o undefined (Nuevo Plan), usar valor_origen también
+    let deuda_total_completa = valor_origen; 
+
+    // Monto a financiar 
+    let monto_base_total = round2(deuda_total_completa - pago_inicial);
+    
+    if (monto_base_total <= 0) {
+        return { status: 'error', message: 'El monto total a financiar debe ser mayor que cero. Revise la deuda y el pago inicial.' };
+    }
+
+    const base = monto_base_total / cantidad_de_cuotas;
+    
+    // Fechas
+    const fecha_asignacion = new Date(); 
+    let anio_inicio = fecha_asignacion.getFullYear();
+    let mes_inicio = fecha_asignacion.getMonth();
+
+    if (fecha_asignacion.getDate() > dia_vencimiento) {
+        mes_inicio += 1;
+        if (mes_inicio > 11) {
+            mes_inicio = 0;
+            anio_inicio += 1;
+        }
+    }
+
+    let vto_inicial = new Date(anio_inicio, mes_inicio, dia_vencimiento);
+    // NOTA: Los días de gracia NO se suman a la fecha de vencimiento.
+    // El día de gracia es el período DESPUÉS del vencimiento donde no se aplica mora.
+
+    const frecuencia_a_meses = { 'MENSUAL': 1, 'BIMESTRAL': 2, 'TRIMESTRAL': 3 };
+    const intervalo_meses = frecuencia_a_meses[frecuencia_de_pago] || 1;
+
+    //Generar Cuotas --
+    const cuotas_data = [];
+    
+    for (let i = 1; i <= cantidad_de_cuotas; i++) {
+        let vto = new Date(vto_inicial);
+        vto.setMonth(vto.getMonth() + (intervalo_meses * (i - 1)));
+        
+        const monto_interes = round2(base * (tasa_interes / 100));
+        const monto_cuota = round2(base + monto_interes);
+
+        let mora = 0;
+        if (tipo_recargo === 'FIJO') {
+            mora = cantidad_recargo;
+        } else if (tipo_recargo === 'PORCENTUAL') {
+            mora = round2(base * (cantidad_recargo / 100));
+        }
+
+        cuotas_data.push({
+            'nro': i, 'base': base.toFixed(2), 'interes': monto_interes.toFixed(2),
+            'monto_total': monto_cuota.toFixed(2), 'mora': mora.toFixed(2),
+            'vto': vto.toLocaleDateString('es-AR', {day: '2-digit', month: '2-digit', year: 'numeric'}),
+        });
+    }
+
+    // Devolver información adicional para el resumen
+    let descripcion_mora = '';
+    if (tipo_recargo === 'FIJO') {
+        descripcion_mora = `$${cantidad_recargo.toFixed(2)} Fijo`;
+    } else if (tipo_recargo === 'PORCENTUAL') {
+        descripcion_mora = `${cantidad_recargo.toFixed(2)}% sobre la base de la cuota`;
+    } else {
+        descripcion_mora = 'No aplica recargo de mora';
+    }
+
+    return { 
+        status: 'ok', 
+        cuotas: cuotas_data,
+        extra_info: {
+            total_original: deuda_total_completa.toFixed(2),
+            pago_inicial: pago_inicial.toFixed(2), 
+            total_a_financiar: monto_base_total.toFixed(2), 
+            frecuencia: frecuencia_de_pago,
+            interes: tasa_interes.toFixed(2) + '%',
+            recargo_mora: descripcion_mora,
+            dias_gracia: dias_gracia,
+        }
+    };
+};
+
+
+
+//MANEJADOR DEL BOTÓN DE SIMULACIÓN (jQuery)
+// Variable global para almacenar las cuotas simuladas
+let cuotasSimuladas = null;
+
+$(document).ready(function() {
+
+    $('#btnSimularPlan').on('click', function() {
+
+        const $tbody = $('#tablaCuotas');
+
+        // Mostrar spinner/cargando en la tabla
+        $tbody.html(`
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Calculando...</span>
+                    </div>
+                    <p class="mt-2">Calculando plan de cuotas localmente...</p>
+                </td>
+            </tr>
+        `);
+
+        //ejecutar la simulación localmente
+        const formElement = document.querySelector('#modalNuevoPlan form');
+        const data = getFormData(formElement);
+        const response = calcularCuotas(data);
+
+        // generar la visualización
+        if (response.status === 'ok') {
+            // Guardar las cuotas en la variable global
+            cuotasSimuladas = response.cuotas;
+
+            // Mostrar información de mora
+            if (response.extra_info) {
+                $('#infoRecargo').text(response.extra_info.recargo_mora);
+                $('#infoDiasGracia').text(response.extra_info.dias_gracia + ' día(s)');
+                $('#infoMora').show();
+                $('#infoMoraMsg').show();
+            }
+
+            // Limpiar y llenar la tabla con las cuotas
+            $tbody.html('');
+            response.cuotas.forEach(c => {
+                $tbody.append(`
+                    <tr>
+                        <td>${c.nro}</td>
+                        <td>$${c.base}</td>
+                        <td>$${c.interes}</td>
+                        <td><strong>$${c.monto_total}</strong></td>
+                        <td>${c.vto}</td>
+                    </tr>
+                `);
+            });
+
+            // Cambiar a la pestaña de Visualización
+            goToTab('visualizacion');
+        } else {
+            // Ocultar información de mora
+            $('#infoMora').hide();
+            $('#infoMoraMsg').hide();
+
+            // Manejo de errores
+            const errorMessage = response.message || 'Error desconocido en la simulación.';
+            $tbody.html(`
+                <tr>
+                    <td colspan="5" class="text-center">
+                        <div class="alert alert-danger" role="alert">
+                            <h4>⚠️ Error de Simulación:</h4>
+                            <p>${errorMessage}</p>
+                            <p>Por favor, revisa los datos ingresados en las pestañas Estructura y Reglas de Mora.</p>
+                        </div>
+                    </td>
+                </tr>`
+            );
+            goToTab('visualizacion');
+        }
+    });
+
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Buscamos el botón por su id
+  const btnGuardar = document.getElementById("btnGuardarRegularizacion");
+
+  // le agregamos la acción
+  if (btnGuardar) {
+    btnGuardar.addEventListener("click", function (e) {
+      e.preventDefault(); // Evita que recargue la página
+
+      // Buscamos el formulario dentro del modal
+      const form = document.querySelector("#modalNuevoPlan form");
+
+      // Crear FormData vacío y agregar campos manualmente con conversión de prefijos
+      const formData = new FormData();
+
+      // Agregar CSRF token
+      const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]");
+      if (csrfToken) {
+        formData.append('csrfmiddlewaretoken', csrfToken.value);
+      }
+
+      // Obtener todos los campos del formulario y convertir prefijos
+      const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea');
+      inputs.forEach(input => {
+        if (input.name && input.name !== 'csrfmiddlewaretoken') {
+          // Convertir prefijos: regularizacion- -> regularizacion_reg-, etc.
+          let fieldName = input.name;
+          if (fieldName.startsWith('regularizacion-')) {
+            fieldName = fieldName.replace('regularizacion-', 'regularizacion_reg-');
+          } else if (fieldName.startsWith('estructura-')) {
+            fieldName = fieldName.replace('estructura-', 'estructura_reg-');
+          } else if (fieldName.startsWith('mora-')) {
+            fieldName = fieldName.replace('mora-', 'mora_reg-');
+          }
+
+          // Agregar el campo con el nombre convertido
+          if (input.type === 'checkbox') {
+            if (input.checked) {
+              formData.append(fieldName, input.value);
+            }
+          } else if (input.type === 'radio') {
+            if (input.checked) {
+              formData.append(fieldName, input.value);
+            }
+          } else {
+            formData.append(fieldName, input.value);
+          }
+        }
+      });
+
+      // El modal "Nuevo Plan" no tiene campo origen_deuda, pero el backend lo requiere
+      // Agregar origen_deuda como FIJO por defecto si no existe
+      let hasOrigenDeuda = false;
+      for (let [key, value] of formData.entries()) {
+        if (key === 'estructura_reg-origen_deuda') {
+          hasOrigenDeuda = true;
+          break;
+        }
+      }
+      if (!hasOrigenDeuda) {
+        formData.append('estructura_reg-origen_deuda', 'FIJO');
+      }
+
+      // Agregar el campo tipo como "Plan normal" para diferenciar de "Regularización"
+      formData.append('regularizacion_reg-tipo', 'Plan normal');
+
+      // Si hay cuotas simuladas, las agregamos al formData como JSON
+      if (cuotasSimuladas && cuotasSimuladas.length > 0) {
+        formData.append('cuotas_json', JSON.stringify(cuotasSimuladas));
+      }
+
+      // Verificar si estamos en modo edición
+      const editId = btnGuardar.getAttribute('data-edit-id');
+      let actionUrl = form.action;
+      let mensajeExito = "✅ Plan creado";
+      let textoExito = "El plan se guardó correctamente y está pendiente de activación.";
+
+      if (editId) {
+        // Estamos editando
+        actionUrl = `/planes/regularizaciones/editar/${editId}/`;
+        mensajeExito = "✅ Plan actualizado";
+        textoExito = "El plan se actualizó correctamente.";
+      }
+
+      // Enviamos los datos al backend
+      fetch(actionUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+      })
+      .then(res => res.json().then(data => ({status: res.status, ok: res.ok, data})))
+      .then(({status, ok, data}) => {
+        if (!ok) {
+          // Mostrar errores de validación
+          let errorMsg = "No se pudo guardar la regularización.";
+
+          if (data.errors) {
+            const errores = [];
+            // El backend devuelve errores con _reg suffix
+            if (data.errors.regularizacion_reg) {
+              Object.values(data.errors.regularizacion_reg).forEach(err => errores.push(...err));
+            }
+            if (data.errors.estructura_reg) {
+              Object.values(data.errors.estructura_reg).forEach(err => errores.push(...err));
+            }
+            if (data.errors.mora_reg) {
+              Object.values(data.errors.mora_reg).forEach(err => errores.push(...err));
+            }
+            if (errores.length > 0) {
+              errorMsg = errores.join('<br>');
+            }
+          } else if (data.error) {
+            errorMsg = data.error;
+          }
+
+          Swal.fire({
+            title: "Error",
+            html: errorMsg,
+            icon: "error"
+          });
+          return;
+        }
+
+        // Éxito
+        Swal.fire({
+          title: mensajeExito,
+          text: textoExito,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Cierra el modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevoPlan"));
+        if (modal) {
+          modal.hide();
+        }
+
+        // Refresca la tabla principal
+        if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
+          $('#tablaPlanes').DataTable().ajax.reload();
+        } else {
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Ocurrió un error al guardar la regularización.", "error");
+      });
+    });
+  }
+});
+</script>
+
+<script>
+// ========================================
+// FUNCIONES PARA MODAL DE REGULARIZACIÓN
+// ========================================
+
+// Variable global para almacenar cuotas simuladas del modal de regularización
+let cuotasSimuladasReg = [];
+
+// Función para navegar entre pestañas del modal de regularización
+window.goToTabReg = function(tabId) {
+    const tabElement = document.querySelector(`#${tabId}-tab`);
+    if (tabElement) {
+        const tab = new bootstrap.Tab(tabElement);
+        tab.show();
+    } else {
+        console.error(`Error: No se encontró el elemento de la pestaña con ID: ${tabId}-tab`);
+    }
+};
+
+// Función para resetear el formulario de regularización
+window.resetFormularioRegularizacion = function() {
+    const form = document.getElementById('formRegularizacionReg');
+    if (form) {
+        form.reset();
+        form.action = "{% url 'regularizacion_crear' %}";
+    }
+
+    // Resetear el título y el botón
+    document.getElementById('modalNuevaRegularizacionLabel').textContent = 'Crear Nueva Regularización';
+    const btnGuardar = document.getElementById('btnGuardarRegularizacionReg');
+    if (btnGuardar) {
+        btnGuardar.textContent = 'Guardar Plan';
+        btnGuardar.removeAttribute('data-edit-id');
+    }
+
+    // Limpiar la tabla de cuotas
+    const tbody = document.getElementById('tablaCuotasReg');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Haga clic en "Simular Plan" para generar las cuotas</td></tr>';
+    }
+
+    // Ocultar información de mora
+    $('#infoMoraReg').hide();
+    $('#infoMoraMsgReg').hide();
+
+    // Limpiar cuotas simuladas
+    cuotasSimuladasReg = [];
+
+    // Volver a la primera pestaña
+    goToTabReg('identificacion-reg');
+};
+
+// Función para simular plan de regularización
+window.simularPlanReg = function() {
+    const $tbody = $('#tablaCuotasReg');
+
+    // Mostrar spinner/cargando en la tabla
+    $tbody.html(`
+        <tr>
+            <td colspan="5" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Calculando...</span>
+                </div>
+                <p class="mt-2">Calculando plan de cuotas localmente...</p>
+            </td>
+        </tr>
+    `);
+
+    //ejecutar la simulación localmente
+    const formElement = document.querySelector('#modalNuevaRegularizacion form');
+    const rawData = window.getFormData(formElement);
+
+    // Convertir los prefijos de regularizacion_reg, estructura_reg y mora_reg a los estándar
+    const data = {};
+    for (let key in rawData) {
+        let newKey = key;
+        newKey = newKey.replace('regularizacion_reg-', 'regularizacion-');
+        newKey = newKey.replace('estructura_reg-', 'estructura-');
+        newKey = newKey.replace('mora_reg-', 'mora-');
+        data[newKey] = rawData[key];
+    }
+
+    const response = window.calcularCuotas(data);
+
+    // generar la visualización
+    if (response.status === 'ok') {
+        // Guardar las cuotas en la variable global
+        cuotasSimuladasReg = response.cuotas;
+
+        // Mostrar información de mora
+        if (response.extra_info) {
+            $('#infoRecargoReg').text(response.extra_info.recargo_mora);
+            $('#infoDiasGraciaReg').text(response.extra_info.dias_gracia + ' día(s)');
+            $('#infoMoraReg').show();
+            $('#infoMoraMsgReg').show();
+        }
+
+        // Limpiar y llenar la tabla con las cuotas
+        $tbody.html('');
+        response.cuotas.forEach(c => {
+            $tbody.append(`
+                <tr>
+                    <td>${c.nro}</td>
+                    <td>$${c.base}</td>
+                    <td>$${c.interes}</td>
+                    <td><strong>$${c.monto_total}</strong></td>
+                    <td>${c.vto}</td>
+                </tr>
+            `);
+        });
+
+        // Cambiar a la pestaña de Visualización
+        window.goToTabReg('visualizacion-reg');
+    } else {
+        // Ocultar información de mora
+        $('#infoMoraReg').hide();
+        $('#infoMoraMsgReg').hide();
+
+        // Manejo de errores
+        const errorMessage = response.message || 'Error desconocido en la simulación.';
+        $tbody.html(`
+            <tr>
+                <td colspan="5" class="text-center">
+                    <div class="alert alert-danger" role="alert">
+                        <h4>⚠️ Error de Simulación:</h4>
+                        <p>${errorMessage}</p>
+                        <p>Por favor, revisa los datos ingresados en las pestañas Estructura y Reglas de Mora.</p>
+                    </div>
+                </td>
+            </tr>`
+        );
+        window.goToTabReg('visualizacion-reg');
+    }
+};
+
+$(document).ready(function() {
+
+    // Event listener para el botón de guardar regularización
+    const btnGuardarReg = document.getElementById("btnGuardarRegularizacionReg");
+    if (btnGuardarReg) {
+        btnGuardarReg.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            // Buscamos el formulario dentro del modal
+            const form = document.querySelector("#modalNuevaRegularizacion form");
+
+            // Crear FormData manualmente incluyendo todos los campos, incluso los de pestañas ocultas
+            const formData = new FormData();
+
+            // Agregar CSRF token
+            const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]");
+            if (csrfToken) {
+                formData.append('csrfmiddlewaretoken', csrfToken.value);
+            }
+
+            // Obtener todos los inputs, selects y textareas del formulario
+            const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea');
+            console.log(`Total inputs found: ${inputs.length}`);
+
+            let fieldCount = 0;
+            inputs.forEach(input => {
+                console.log(`Field: name="${input.name}", id="${input.id}", type="${input.type}", value="${input.value}"`);
+                if (input.name && input.name !== 'csrfmiddlewaretoken') {
+                    if (input.type === 'checkbox') {
+                        if (input.checked) {
+                            formData.append(input.name, input.value);
+                            fieldCount++;
+                        }
+                    } else if (input.type === 'radio') {
+                        if (input.checked) {
+                            formData.append(input.name, input.value);
+                            fieldCount++;
+                        }
+                    } else {
+                        formData.append(input.name, input.value);
+                        fieldCount++;
+                    }
+                }
+            });
+
+            console.log(`Total fields added to FormData: ${fieldCount}`);
+
+            // Debug: Log form data
+            console.log("=== FormData being sent ===");
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+
+            // Si hay cuotas simuladas, las agregamos al formData como JSON
+            if (cuotasSimuladasReg && cuotasSimuladasReg.length > 0) {
+                formData.append('cuotas_json', JSON.stringify(cuotasSimuladasReg));
+                console.log('cuotas_json added:', cuotasSimuladasReg.length + ' cuotas');
+            }
+
+            // Verificar si estamos en modo edición
+            const editId = btnGuardarReg.getAttribute('data-edit-id');
+            let actionUrl = form.action;
+            let mensajeExito = "✅ Regularización creada";
+            let textoExito = "La regularización se guardó correctamente y está pendiente de activación.";
+
+            if (editId) {
+                // Estamos editando
+                actionUrl = `/planes/regularizaciones/editar/${editId}/`;
+                mensajeExito = "✅ Regularización actualizada";
+                textoExito = "La regularización se actualizó correctamente.";
+            }
+
+            console.log("Action URL:", actionUrl);
+
+            // Enviamos los datos al backend
+            fetch(actionUrl, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            })
+            .then(res => res.json().then(data => ({status: res.status, ok: res.ok, data})))
+            .then(({status, ok, data}) => {
+                if (!ok) {
+                    // Mostrar errores de validación
+                    let errorMsg = "No se pudo guardar la regularización.";
+
+                    console.log("Validation errors:", data.errors);
+
+                    if (data.errors) {
+                        const errores = [];
+                        // Buscar errores con los prefijos correctos del backend
+                        if (data.errors.regularizacion_reg) {
+                            Object.values(data.errors.regularizacion_reg).forEach(err => errores.push(...err));
+                        }
+                        if (data.errors.estructura_reg) {
+                            Object.values(data.errors.estructura_reg).forEach(err => errores.push(...err));
+                        }
+                        if (data.errors.mora_reg) {
+                            Object.values(data.errors.mora_reg).forEach(err => errores.push(...err));
+                        }
+                        // También buscar sin prefijo por compatibilidad
+                        if (data.errors.regularizacion) {
+                            Object.values(data.errors.regularizacion).forEach(err => errores.push(...err));
+                        }
+                        if (data.errors.estructura) {
+                            Object.values(data.errors.estructura).forEach(err => errores.push(...err));
+                        }
+                        if (data.errors.mora) {
+                            Object.values(data.errors.mora).forEach(err => errores.push(...err));
+                        }
+                        if (errores.length > 0) {
+                            errorMsg += "<br><br>" + errores.join("<br>");
+                        }
+                    } else if (data.message) {
+                        errorMsg = data.message;
+                    }
+
+                    Swal.fire({
+                        title: "Error de validación",
+                        html: errorMsg,
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                // Éxito
+                Swal.fire({
+                    title: mensajeExito,
+                    text: textoExito,
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Cierra el modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevaRegularizacion"));
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Refresca la tabla principal
+                if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
+                    $('#tablaPlanes').DataTable().ajax.reload();
+                } else {
+                    location.reload();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire("Error", "Ocurrió un error al guardar la regularización.", "error");
+            });
+        });
+    }
+});
+</script>
+
 {% endblock %}

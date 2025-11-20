@@ -29,3 +29,8 @@ htmlcov/
 .coverage
 .tox/
 pytest_cache/
+
+# Claude Code
+.claude/
+temp_*.html
+nul
