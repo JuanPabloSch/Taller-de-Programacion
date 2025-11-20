@@ -898,6 +898,32 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                     document.getElementById('id_mora-frecuencia_aplicacion').value = data.mora.frecuencia || '';
                     document.getElementById('id_mora-dias_gracia').value = data.mora.dias_gracia || '';
                     document.getElementById('id_mora-veces_aplicacion').value = data.mora.veces_aplicacion || '';
+
+                    // Mostrar información de mora en la pestaña de visualización
+                    const tipoRecargo = data.mora.tipo_recargo || '';
+                    const cantidadRecargo = data.mora.cantidad || '0';
+                    const diasGracia = data.mora.dias_gracia || '0';
+
+                    console.log('Datos de mora (Edición):', data.mora);
+                    console.log('Tipo recargo:', tipoRecargo, 'Cantidad:', cantidadRecargo, 'Días gracia:', diasGracia);
+
+                    if (tipoRecargo) {
+                        let textoRecargo = '';
+                        if (tipoRecargo === 'PORCENTUAL') {
+                            textoRecargo = parseFloat(cantidadRecargo).toFixed(2) + '% sobre la base de la cuota';
+                        } else if (tipoRecargo === 'FIJO') {
+                            textoRecargo = '$' + parseFloat(cantidadRecargo).toFixed(2) + ' (monto fijo)';
+                        } else {
+                            textoRecargo = 'No definido (Tipo: ' + tipoRecargo + ')';
+                        }
+
+                        document.getElementById('infoRecargo').textContent = textoRecargo;
+                        document.getElementById('infoDiasGracia').textContent = diasGracia + ' día(s)';
+
+                        // Mostrar los elementos
+                        document.getElementById('infoMora').style.display = 'flex';
+                        document.getElementById('infoMoraMsg').style.display = 'block';
+                    }
                 }
 
                 // Guardar las cuotas en una variable global para mostrarlas en la visualización
@@ -1015,6 +1041,32 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                     document.getElementById('id_mora-frecuencia_aplicacion').value = data.mora.frecuencia || '';
                     document.getElementById('id_mora-dias_gracia').value = data.mora.dias_gracia || '';
                     document.getElementById('id_mora-veces_aplicacion').value = data.mora.veces_aplicacion || '';
+
+                    // Mostrar información de mora en la pestaña de visualización
+                    const tipoRecargo = data.mora.tipo_recargo || '';
+                    const cantidadRecargo = data.mora.cantidad || '0';
+                    const diasGracia = data.mora.dias_gracia || '0';
+
+                    console.log('Datos de mora (Detalle):', data.mora);
+                    console.log('Tipo recargo:', tipoRecargo, 'Cantidad:', cantidadRecargo, 'Días gracia:', diasGracia);
+
+                    if (tipoRecargo) {
+                        let textoRecargo = '';
+                        if (tipoRecargo === 'PORCENTUAL') {
+                            textoRecargo = parseFloat(cantidadRecargo).toFixed(2) + '% sobre la base de la cuota';
+                        } else if (tipoRecargo === 'FIJO') {
+                            textoRecargo = '$' + parseFloat(cantidadRecargo).toFixed(2) + ' (monto fijo)';
+                        } else {
+                            textoRecargo = 'No definido (Tipo: ' + tipoRecargo + ')';
+                        }
+
+                        document.getElementById('infoRecargo').textContent = textoRecargo;
+                        document.getElementById('infoDiasGracia').textContent = diasGracia + ' día(s)';
+
+                        // Mostrar los elementos
+                        document.getElementById('infoMora').style.display = 'flex';
+                        document.getElementById('infoMoraMsg').style.display = 'block';
+                    }
                 }
 
                 // Guardar las cuotas para visualización
@@ -1361,6 +1413,10 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSimular.removeAttribute('data-modo-detalle');
         btnSimular.onclick = null; // Remover el onclick personalizado
       }
+
+      // Ocultar información de mora
+      document.getElementById('infoMora').style.display = 'none';
+      document.getElementById('infoMoraMsg').style.display = 'none';
     });
   }
 
