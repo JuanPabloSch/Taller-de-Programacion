@@ -200,34 +200,12 @@ def plan_borrar(request, pk):
 @group_required('Administrador', 'Tesorero')
 @require_http_methods(["POST"])
 def plan_crear(request):
-<<<<<<< HEAD
     """Crear un nuevo Plan de Pago (no regularización) con reglas de estructura y mora"""
     if request.method == 'POST':
         print("=" * 50)
         print("VIEW: plan_crear (PLAN NORMAL)")
         print("POST keys:", list(request.POST.keys()))
         print("=" * 50)
-=======
-    if request.method == "POST":
-        form = PlanPagoForm(request.POST)
-        if form.is_valid():
-            plan = form.save(commit=False)
-            # Si el flujo requiere que nuevos planes queden en 'S' (suspendidos) para validacion:
-            plan.estado = 'S'
-            plan.save()
-            # REGISTRAR EN HISTORIAL
-            registrar_accion(
-                usuario=request.user,
-                accion="Creó un plan",
-                plan=plan,
-                descripcion=f"Plan creado: {plan}"
-            )
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"success": True})
-            return redirect("planes_suspendidos")
-    else:
-        form = PlanPagoForm()
->>>>>>> 43070387846f4c7f5fc02e7f411c8eb590dc3714
 
         regularizacion_form = RegularizacionForm(request.POST, prefix='regularizacion')
         estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
