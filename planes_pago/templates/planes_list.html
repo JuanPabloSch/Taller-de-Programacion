@@ -44,7 +44,7 @@ header.page-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     padding: 20px 20px 0;
 }
 .page-head h2 {
@@ -209,18 +209,120 @@ header.page-head {
     /* Se elimina cualquier regla de background-color para mantener el color base. */
 }
 
-/* Paginación de DataTables con Bootstrap */
+/* === PAGINACIÓN Y CONTROLES DE DATATABLES === */
+/* Contenedor principal de controles de DataTables */
+.dataTables_wrapper {
+    padding: 20px;
+    padding-top: 5px;
+}
+
+/* Fila de controles superiores */
+.dataTables_wrapper .row:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Controles superiores (mostrar registros y buscar) */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    padding: 0;
+    margin: 0;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    padding: 5px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin: 0 5px;
+    background-color: white;
+    color: #495057;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-left: 8px;
+    background-color: white;
+    color: #495057;
+}
+
+/* Contenedor de la fila de paginación */
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    padding: 20px;
+    background-color: #e9ecef;
+    margin: 0;
+}
+
+/* Información de paginación */
+.dataTables_wrapper .dataTables_info {
+    color: #495057;
+    font-size: 0.95rem;
+    font-weight: 400;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+/* Contenedor de paginación */
+.dataTables_wrapper .dataTables_paginate {
+    text-align: right;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* Estilos de los botones de paginación */
+.dataTables_wrapper .pagination {
+    margin: 0;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dataTables_wrapper .pagination .page-item .page-link {
+    color: #007bff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin: 0;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    min-width: 45px;
+    text-align: center;
+}
+
+.dataTables_wrapper .pagination .page-item .page-link:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #0056b3;
+}
+
 .dataTables_wrapper .pagination .page-item.active .page-link {
     background-color: #192A41;
     border-color: #192A41;
+    color: white;
 }
-.dataTables_wrapper .pagination .page-link {
-    color: #192A41;
+
+.dataTables_wrapper .pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: transparent;
+    cursor: not-allowed;
 }
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter {
-    padding: 0 20px;
+
+/* Botones Previous/Next */
+.dataTables_wrapper .pagination .page-item.previous .page-link,
+.dataTables_wrapper .pagination .page-item.next .page-link {
+    font-weight: 500;
+    background-color: transparent;
+}
+
+/* Ajuste del fondo de la fila completa */
+.dataTables_wrapper .row:last-child {
+    background-color: #e9ecef;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 0 8px 8px;
 }
 
 /* === MODAL ESTILOS (Mantenidos y limpiados) === */
@@ -884,7 +986,13 @@ $(function () {
                 }
             },
         ],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
+            paginate: {
+                previous: "Anterior",
+                next: "Siguiente"
+            }
+        },
         pageLength: 10
     });
 
