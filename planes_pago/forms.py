@@ -243,7 +243,11 @@ class ReglaMoraForm(forms.ModelForm):
         choices=ReglaMora.TIPO_RECARGO_CHOICES,
         required=False, # <--- Es opcional ahora
         label="Tipo de recargo",
-        help_text="FIJO (ej: 100pesos) o PORCENTUAL A LA CUOTA (2%)"
+        help_text="FIJO (ej: 100pesos) o PORCENTUAL A LA CUOTA (2%)",
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'placeholder': 'Seleccione tipo de recargo'
+        })
     )
 
     cantidad_recargo = forms.DecimalField(
@@ -252,7 +256,11 @@ class ReglaMoraForm(forms.ModelForm):
         required=False, # <--- Es opcional ahora
         label="Cantidad",
         help_text="Monto fijo o porcentaje según el tipo de recargo seleccionado",
-        min_value=0
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 10'
+        })
     )
 
     frecuencia_aplicacion = forms.ChoiceField(
@@ -260,7 +268,11 @@ class ReglaMoraForm(forms.ModelForm):
         choices=ReglaMora.FRECUENCIA_APLICACION_CHOICES,
         required=False, # <--- Es opcional ahora
         label="Frecuencia de aplicación",
-        help_text="diaria/semanal/mensual"
+        help_text="diaria/semanal/mensual",
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'placeholder': 'Seleccione frecuencia'
+        })
     )
 
 
@@ -271,14 +283,22 @@ class ReglaMoraForm(forms.ModelForm):
         required=False,
         label='Días de gracia',
         help_text="cantidad de días antes de que se aplique recargo post vencimiento",
-        min_value=0
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 5'
+        })
     )
 
     veces_aplicacion = forms.IntegerField(
         required=False,
         label='Veces de Aplicación',
         help_text="Cantidad de veces que se aplicará el recargo por mora",
-        min_value=0
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 1'
+        })
     )
     
     class Meta:

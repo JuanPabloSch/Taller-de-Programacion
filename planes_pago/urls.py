@@ -23,6 +23,7 @@ urlpatterns = [
         #formulario regularizaciones
     path("planes/regularizaciones/nuevo/", views.regularizacion_crear, name="regularizacion_crear"),
     path("planes/regularizaciones/editar/<int:pk>/", views.regularizacion_editar, name="regularizacion_editar"),
+    path("planes/regularizaciones/clonar/<int:pk>/", views.regularizacion_clonar, name="regularizacion_clonar"),
     path("desactivar/", views.desactivar_objeto, name="desactivar_objeto"),
 
 

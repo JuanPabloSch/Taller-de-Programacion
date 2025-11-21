@@ -5,92 +5,206 @@
 
 {% block content %}
 <style>
+/* === AJUSTES GLOBALES DEL LAYOUT === */
+body {
+    background-color: #d2dde4a2 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif;
+}
 
-    
-    /* ------------------------------------------- */
-    /* ESTILOS DE TABLA Y BOTONES (GAMA DE AZULES) */
-    /* ------------------------------------------- */
+/* El .layout ya está en base.html. Aquí ajustamos el contenido principal */
+.main-content {
+    flex: 1;
+    padding: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
 
-    .page-head h2 {
-    font-size: 1.8rem;
-    font-weight: 600;
+/* Contenedor de la tabla con fondo blanco */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin: 20px;
+    padding: 20px;
+}
+
+/* === ENCABEZADO Y ACCIONES === */
+header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-head h2 {
+    font-size: 2rem;
+    font-weight: 700;
     margin-bottom: 5px;
-    color: #192A41; /* Color de texto oscuro del modelo */
-}
-
-.thead-custom th{
-    background-color: #c9d0f7 !important; 
     color: #192A41;
+    letter-spacing: -0.5px;
 }
-    /* Color base de encabezados y botones (Azul Oscuro: #0d47a1)
-    .thead-custom,
-    .btn-ver-custom {
-        background-color: #0d47a1 !important;
-        color: white !important;
-        border-color: #0d47a1 !important;
-    } */
 
-    /* Estilo hover para el botón Ver */
-    .btn-ver-custom:hover {
-        background-color: #1e63c0 !important;
-        border-color: #1e63c0 !important;
-    }
+.page-head span {
+    display: block;
+    color: #6c757d;
+    font-size: 0.95rem;
+    font-weight: 400;
+}
 
-    /* Botón Reactivar (Azul Claro: #42a5f5) */
-    .btn-reactivar-custom {
-        background-color: #42a5f5 !important;
-        color: white !important;
-        border-color: #42a5f5 !important;
-    }
+/* === ESTILOS DE LA TABLA === */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
 
-    /* Estilo hover para el botón Reactivar */
-    .btn-reactivar-custom:hover {
-        background-color: #64b5f6 !important;
-        border-color: #64b5f6 !important;
-    }
+/* Encabezado de la tabla */
+.thead-custom th {
+    background-color: #192A41 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border: none;
+    padding: 12px 15px;
+}
 
-    /* Botón Desactivar (Azul Intermedio: #1565c0) */
-    .btn-desactivar-custom {
-        background-color: #1565c0 !important;
-        color: white !important;
-        border-color: #1565c0 !important;
-    }
+/* Filas de la tabla */
+.table tbody tr {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
 
-    /* Estilo hover para el botón Desactivar */
-    .btn-desactivar-custom:hover {
-        background-color: #1976d2 !important;
-        border-color: #1976d2 !important;
-    }
+.table tbody tr:hover {
+    background-color: #f0f4f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
 
-    /* Asegurar que las rayas de la tabla sean visibles */
-    .table-striped > tbody > tr:nth-of-type(odd) > * {
-        --bs-table-bg-type: #f8f9fa; /* Color gris claro para las filas impares */
-    }
+.table tbody td {
+    padding: 16px 15px;
+    color: #495057;
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
 
-    /* Asegurar que el modal use el encabezado personalizado */
-    .modal-footer .btn-desactivar {
-        background-color: #1565c0; /* Azul intermedio para el modal */
-        border-color: #1565c0;
-        color: white;
-    }
-    .modal-footer .btn-reactivar {
-        background-color: #42a5f5; /* Azul claro para el modal */
-        border-color: #42a5f5;
-        color: white;
-    }
+/* Estilo para badges de tipo */
+.badge-tipo {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
 
+.badge-regularizacion {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-plan {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* Estilo para badges de estado */
+.badge-estado {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.badge-suspendido {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.badge-desactivado {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* === BOTONES DE ACCIONES === */
+/* Estilo para los botones de la tabla */
+.acciones {
+    display: flex;
+    gap: 5px;
+}
+
+.acciones a, .acciones button {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #fff;
+    background-color: #4A86C1;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.6; /* Opacidad baja por defecto */
+    transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.acciones a i,
+.acciones button i {
+    margin-right: 5px;
+}
+
+/* Opacidad completa al hacer hover en la fila */
+.table tbody tr:hover .acciones a,
+.table tbody tr:hover .acciones button {
+    opacity: 1.0;
+}
+
+/* Efectos hover para los botones */
+.acciones a:hover,
+.acciones button:hover {
+    background-color: #192A41;
+    transform: scale(1.1);
+}
+
+/* Colores específicos para cada tipo de botón */
+.btn-enter {
+    background-color: #4A86C1;
+}
+
+.btn-detail {
+    background-color: #dc3545;
+}
+
+.btn-clone {
+    background-color: #28a745;
+}
+
+/* === SECCIONES === */
+section {
+    margin-bottom: 40px;
+}
+
+section h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #192A41;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
 </style>
 <div class="layout">
     <main class="main-content">
-        <div class="page-head">
-        <h2 >Planes Suspendidos y Desactivados</h2>
-        <hr>
-        </div>
+        <header class="page-head" style="padding: 20px; margin-bottom: 0;">
+            <div>
+                <h2>Planes Suspendidos y Desactivados</h2>
+                <span>Gestión de planes inactivos</span>
+            </div>
+        </header>
 
-        
-        <section class="mt-4">
-        <h4 class="mb-3">Suspendidos</h4>
-        <table class="table table-striped table-hover align-middle">
+        <div class="table-container">
+            <section>
+                <h4>Suspendidos</h4>
+                <table id="tablaSuspendidos" class="table table-hover align-middle">
             <thead class="thead-custom">
             <tr>
                 <th>ID</th>
@@ -108,35 +222,40 @@
             {% for plan in suspendidos %}
             <tr id="plan-{{ plan.id }}">
                 <td class="text-center">{{ plan.id }}</td>
-                <td class="text-center">{{ plan.tipo }}</td>
+                <td class="text-center">
+                    {% if plan.tipo == 'Regularización' %}
+                        <span class="badge-tipo badge-regularizacion">{{ plan.tipo }}</span>
+                    {% else %}
+                        <span class="badge-tipo badge-plan">{{ plan.tipo }}</span>
+                    {% endif %}
+                </td>
                 <td>{{ plan.nombre }}</td>
                 <td class="text-center">{{ plan.carrera }}</td>
                 <td class="text-center">{{ plan.cohorte }}</td>
                 <td class="text-center">{{ plan.modalidad }}</td>
                 <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                <td class="text-center">Suspendido</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-ver-custom btn-ver" {# Clase de azul oscuro #}
-                    data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}"
-                    title="Ver detalles">
-                    <i class="bi bi-eye"></i> Ver
-                    </button>
-                    <button class="btn btn-sm btn-desactivar-custom btn-desactivar" {# Clase de azul intermedio #}
-                    data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}"
-                    title="Desactivar">
-                    Desactivar
-                    </button>
-
-                <button class="btn btn-sm btn-reactivar-custom btn-reactivar" {# Clase de azul claro #}
-                data-id="{{ plan.id }}"
-                data-tipo="{{ plan.tipo_backend }}"
-                title="Reactivar">
-                Reactivar
-                </button>
-
-
+                <td class="text-center"><span class="badge-estado badge-suspendido">Suspendido</span></td>
+                <td>
+                    <div class="acciones">
+                        <button class="btn-enter btn-ver"
+                        data-id="{{ plan.id }}"
+                        data-tipo="{{ plan.tipo_backend }}"
+                        title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn-detail btn-desactivar"
+                        data-id="{{ plan.id }}"
+                        data-tipo="{{ plan.tipo_backend }}"
+                        title="Desactivar">
+                        Desactivar
+                        </button>
+                        <button class="btn-clone btn-reactivar"
+                        data-id="{{ plan.id }}"
+                        data-tipo="{{ plan.tipo_backend }}"
+                        title="Reactivar">
+                        <i class="bi bi-arrow-clockwise"></i> Reactivar
+                        </button>
+                    </div>
                 </td>
             </tr>
             {% empty %}
@@ -145,11 +264,11 @@
             </tbody>
         </table>
         </section>
-        
 
-        <section class="mt-5">
-        <h4 class="mb-3">Desactivados</h4>
-        <table class="table table-striped table-hover align-middle">
+
+        <section>
+        <h4>Desactivados</h4>
+        <table id="tablaDesactivados" class="table table-hover align-middle">
             <thead class="thead-custom">
             <tr>
                 <th>ID</th>
@@ -167,27 +286,34 @@
             {% for plan in desactivados %}
             <tr id="plan-{{ plan.id }}">
                 <td class="text-center">{{ plan.id }}</td>
-                <td class="text-center">{{ plan.tipo }}</td>
+                <td class="text-center">
+                    {% if plan.tipo == 'Regularización' %}
+                        <span class="badge-tipo badge-regularizacion">{{ plan.tipo }}</span>
+                    {% else %}
+                        <span class="badge-tipo badge-plan">{{ plan.tipo }}</span>
+                    {% endif %}
+                </td>
                 <td>{{ plan.nombre }}</td>
                 <td class="text-center">{{ plan.carrera }}</td>
                 <td class="text-center">{{ plan.cohorte }}</td>
                 <td class="text-center">{{ plan.modalidad }}</td>
                 <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                <td class="text-center">Desactivado</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-ver-custom btn-ver" {# Clase de azul oscuro #}
-                    data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}"
-                    title="Ver detalles">
-                    <i class="bi bi-eye"></i> Ver
-                    </button>
-                    <button class="btn btn-sm btn-reactivar-custom btn-reactivar" {# Clase de azul claro #}
-                    data-id="{{ plan.id }}"
-                    data-tipo="{{ plan.tipo_backend }}"
-                    title="Reactivar">
-                    Reactivar
-                    </button>
-
+                <td class="text-center"><span class="badge-estado badge-desactivado">Desactivado</span></td>
+                <td>
+                    <div class="acciones">
+                        <button class="btn-enter btn-ver"
+                        data-id="{{ plan.id }}"
+                        data-tipo="{{ plan.tipo_backend }}"
+                        title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn-clone btn-reactivar"
+                        data-id="{{ plan.id }}"
+                        data-tipo="{{ plan.tipo_backend }}"
+                        title="Reactivar">
+                        <i class="bi bi-arrow-clockwise"></i> Reactivar
+                        </button>
+                    </div>
                 </td>
             </tr>
             {% empty %}
@@ -196,6 +322,7 @@
             </tbody>
         </table>
         </section>
+        </div>
 
     </main>
 </div>

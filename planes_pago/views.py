@@ -32,11 +32,11 @@ from .forms import (
 )
 from .decorators import group_required, can_delete, can_modify
 
-def registrar_accion(usuario, accion, plan=None, descripcion=""):
+def registrar_accion(usuario, accion, plan=None, regularizacion=None, descripcion=""):
     HistorialAccion.objects.create(
         usuario=usuario,
         accion=accion,
-        plan=plan,
+        plan=plan if plan else regularizacion,
         descripcion=descripcion
     )
 
@@ -689,10 +689,180 @@ def plan_editar(request, pk):
 
 
 @login_required
+def regularizacion_clonar(request, pk):
+    """Clonar una regularización o plan existente"""
+
+    if request.method == "GET":
+        # Intentar buscar en Regularizacion primero
+        try:
+            original = Regularizacion.objects.get(pk=pk)
+            es_regularizacion = True
+        except Regularizacion.DoesNotExist:
+            # Si no está en Regularizacion, buscar en PlanPago
+            try:
+                original = PlanPago.objects.get(pk=pk)
+                es_regularizacion = False
+            except PlanPago.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Plan no encontrado'}, status=404)
+
+        # Preparar datos básicos
+        data = {
+            'id': None,  # Nuevo registro
+            'nombre': f"{original.nombre} (Copia)",
+            'carrera': original.carrera,
+            'cohorte': original.cohorte,
+            'modalidad': original.modalidad,
+            'estado': 'S',  # Suspendido por defecto
+        }
+
+        # Si es una regularización, agregar datos específicos
+        if es_regularizacion:
+            data['tipo'] = original.tipo
+
+            # Agregar datos de estructura si existe
+            if hasattr(original, 'estructura') and original.estructura:
+                estructura = original.estructura
+                data.update({
+                    'pago_incial': str(estructura.pago_incial),
+                    'cantidad_cuotas': estructura.cantidad_cuotas,
+                    'interes': str(estructura.interes),
+                    'vencimiento': estructura.vencimiento.strftime('%Y-%m-%d') if estructura.vencimiento else '',
+                })
+
+            # Agregar datos de mora si existe
+            if hasattr(original, 'mora') and original.mora:
+                mora = original.mora
+                data.update({
+                    'tipo_recargo': mora.tipo_recargo,
+                    'cantidad_recargo': str(mora.cantidad_recargo),
+                    'dias_gracia': mora.dias_gracia,
+                })
+        else:
+            # Es un PlanPago antiguo
+            data['tipo'] = original.tipo if hasattr(original, 'tipo') else 'P'
+
+        return JsonResponse({'success': True, 'data': data})
+
+    elif request.method == "POST":
+        # Clonar directamente el plan
+        try:
+            # Intentar buscar en Regularizacion primero
+            try:
+                original = Regularizacion.objects.get(pk=pk)
+                es_regularizacion = True
+            except Regularizacion.DoesNotExist:
+                # Si no está en Regularizacion, buscar en PlanPago
+                try:
+                    original = PlanPago.objects.get(pk=pk)
+                    es_regularizacion = False
+                except PlanPago.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'Plan no encontrado'}, status=404)
+
+            if es_regularizacion:
+                # Clonar regularización
+                nueva = Regularizacion.objects.create(
+                    nombre=f"{original.nombre} (Copia)",
+                    carrera=original.carrera,
+                    cohorte=original.cohorte,
+                    modalidad=original.modalidad,
+                    tipo=original.tipo,
+                    estado='S'  # Suspendido por defecto
+                )
+
+                # Clonar estructura si existe
+                if hasattr(original, 'estructura') and original.estructura:
+                    ReglaEstructura.objects.create(
+                        regularizacion=nueva,
+                        pago_incial=original.estructura.pago_incial,
+                        cantidad_cuotas=original.estructura.cantidad_cuotas,
+                        interes=original.estructura.interes,
+                        vencimiento=original.estructura.vencimiento
+                    )
+
+                # Clonar mora si existe
+                if hasattr(original, 'mora') and original.mora:
+                    ReglaMora.objects.create(
+                        regularizacion=nueva,
+                        tipo_recargo=original.mora.tipo_recargo,
+                        cantidad_recargo=original.mora.cantidad_recargo,
+                        dias_gracia=original.mora.dias_gracia
+                    )
+
+                # Registrar en historial
+                registrar_accion(
+                    usuario=request.user,
+                    accion="Clonó una regularización",
+                    regularizacion=nueva,
+                    descripcion=f"Clonó la regularización '{original.nombre}' → Nuevo: '{nueva.nombre}'"
+                )
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Se clonó exitosamente: {nueva.nombre}',
+                    'plan_id': nueva.id
+                })
+            else:
+                # Clonar PlanPago antiguo
+                nuevo = PlanPago.objects.create(
+                    nombre=f"{original.nombre} (Copia)",
+                    carrera=original.carrera,
+                    cohorte=original.cohorte,
+                    modalidad=original.modalidad,
+                    tipo=original.tipo if hasattr(original, 'tipo') else 'P',
+                    estado='S'
+                )
+
+                # Registrar en historial
+                registrar_accion(
+                    usuario=request.user,
+                    accion="Clonó un plan",
+                    plan=nuevo,
+                    descripcion=f"Clonó el plan '{original.nombre}' → Nuevo: '{nuevo.nombre}'"
+                )
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Se clonó exitosamente: {nuevo.nombre}',
+                    'plan_id': nuevo.id
+                })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required
 def plan_clonar(request, pk):
     original = get_object_or_404(PlanPago, pk=pk)
-    
-    if request.method == "POST":
+
+    if request.method == "GET":
+        # Si es petición AJAX, retornar JSON con los datos
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            data = {
+                'id': None,  # Nuevo registro
+                'tipo': original.tipo if hasattr(original, 'tipo') else 'P',
+                'nombre': f"{original.nombre} (Copia)",
+                'carrera': original.carrera,
+                'cohorte': original.cohorte,
+                'modalidad': original.modalidad,
+                'estado': 'S',  # Suspendido por defecto
+            }
+            return JsonResponse({'success': True, 'data': data})
+
+        # Si no es AJAX, usar el formulario antiguo
+        data_inicial = {
+            "nombre": f"{original.nombre} (Copia)",
+            "carrera": original.carrera,
+            "cohorte": original.cohorte,
+            "modalidad": original.modalidad,
+            "iEstado": True,
+            "estado": "S",
+        }
+        form = PlanPagoForm(initial=data_inicial)
+        return render(request, "planes/plan_form.html", {"form": form})
+
+    elif request.method == "POST":
         form = PlanPagoForm(request.POST)
         if form.is_valid():
             nuevo_plan = form.save()   # ⚠️ Guardamos el nuevo plan y lo usamos abajo
@@ -709,20 +879,7 @@ def plan_clonar(request, pk):
                 return JsonResponse({"success": True})
             return redirect("planes_list")
 
-    else:
-        data_inicial = {
-            "nombre": f"{original.nombre} (Copia)",
-            "carrera": original.carrera,
-            "cohorte": original.cohorte,
-            "modalidad": original.modalidad,
-            "iEstado": True,
-            "estado": "S",
-        }
-        form = PlanPagoForm(initial=data_inicial)
-
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, "planes/plan_form.html", {"form": form})
-    return render(request, "planes/plan_form.html", {"form": form})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
 
 
 

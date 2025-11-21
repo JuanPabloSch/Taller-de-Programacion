@@ -25,8 +25,18 @@ body {
 /* El .layout ya está en base.html. Aquí ajustamos el contenido principal */
 .main-content {
     flex: 1;
-    /* Eliminar el padding para que la tabla ocupe todo el ancho del contenedor */
-    padding: 0; 
+    padding: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* Contenedor de la tabla con fondo blanco */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin: 20px;
+    padding: 0;
 }
 
 /* === ENCABEZADO Y ACCIONES === */
@@ -34,21 +44,21 @@ header.page-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-top: 10px; /* Separación de la parte superior del contenedor */
-    padding-left: 20px;
-    padding-right: 20px;
+    margin-bottom: 30px;
+    padding: 20px 20px 0;
 }
 .page-head h2 {
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 700;
     margin-bottom: 5px;
-    color: #192A41; /* Color de texto oscuro del modelo */
+    color: #192A41;
+    letter-spacing: -0.5px;
 }
 .page-head span {
     display: block;
     color: #6c757d;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    font-weight: 400;
 }
 
 
@@ -102,17 +112,44 @@ header.page-head {
 #tablaPlanes tbody tr {
     background-color: #ffffff;
     border-bottom: 1px solid #e9ecef;
-    transition: background-color 0.2s;
+    transition: all 0.3s ease;
 }
 
 #tablaPlanes tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #f0f4f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
 }
 
 #tablaPlanes tbody td {
-    padding: 10px 15px;
-    color: #343a40;
+    padding: 16px 15px;
+    color: #495057;
     vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+/* Columna de tipo con badge */
+#tablaPlanes tbody td:nth-child(2) {
+    font-weight: 500;
+}
+
+/* Estilo para badges de tipo */
+.badge-tipo {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.badge-regularizacion {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-plan {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
 }
 
 /* Estilo para los botones de la tabla */
@@ -187,56 +224,66 @@ header.page-head {
 }
 
 /* === MODAL ESTILOS (Mantenidos y limpiados) === */
-#modalNuevoPlan .modal-content {
+#modalNuevoPlan .modal-content,
+#modalNuevaRegularizacion .modal-content {
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     border: none;
     overflow: hidden;
 }
 
-#modalNuevoPlan .modal-header {
+#modalNuevoPlan .modal-header,
+#modalNuevaRegularizacion .modal-header {
     background-color: #192A41; /* Color del sidebar */
     color: white;
     border-bottom: none;
 }
 
-#modalNuevoPlan .modal-title {
+#modalNuevoPlan .modal-title,
+#modalNuevaRegularizacion .modal-title {
     font-weight: 600;
 }
 
-#modalNuevoPlan .btn-close {
+#modalNuevoPlan .btn-close,
+#modalNuevaRegularizacion .btn-close {
     filter: invert(1);
 }
 
-#modalNuevoPlan .modal-body {
+#modalNuevoPlan .modal-body,
+#modalNuevaRegularizacion .modal-body {
     background-color: #f8f9fa;
     padding: 2rem;
 }
 
-#modalNuevoPlan .card {
+#modalNuevoPlan .card,
+#modalNuevaRegularizacion .card {
     border: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     border-radius: 12px;
 }
 
-#modalNuevoPlan .card-header {
+#modalNuevoPlan .card-header,
+#modalNuevaRegularizacion .card-header {
     background-color: #f1f4f8;
     border-bottom: 2px solid #dee2e6;
     padding: 0.5rem;
 }
-#modalNuevoPlan .nav-tabs {
+#modalNuevoPlan .nav-tabs,
+#modalNuevaRegularizacion .nav-tabs {
     border-bottom: none;
     justify-content: center;
 }
 
-#modalNuevoPlan .nav-tabs .nav-link {
+#modalNuevoPlan .nav-tabs .nav-link,
+#modalNuevaRegularizacion .nav-tabs .nav-link {
     border: none;
     color: #6c757d;
     font-weight: 500;
     border-radius: 8px 8px 0 0;
 }
 
-#modalNuevoPlan .nav-tabs .nav-link.active {
+#modalNuevoPlan .nav-tabs .nav-link.active,
+#modalNuevaRegularizacion .nav-tabs .nav-link.active {
     background-color: white;
     color: #192A41;
     font-weight: 600;
@@ -244,11 +291,13 @@ header.page-head {
 }
 
 /* Botones dentro del modal */
-#modalNuevoPlan .btn-primary {
+#modalNuevoPlan .btn-primary,
+#modalNuevaRegularizacion .btn-primary {
     background-color: #7984f1; /* Botón azul principal */
     border-color: #7984f1;
 }
-#modalNuevoPlan .btn-primary:hover {
+#modalNuevoPlan .btn-primary:hover,
+#modalNuevaRegularizacion .btn-primary:hover {
     background-color: #606be4;
     border-color: #606be4;
 }
@@ -268,6 +317,47 @@ header.page-head {
     border-radius: 0.375rem;
     padding: 0.5rem 0.75rem;
     border: 1px solid #ced4da;
+}
+
+/* === BOTONES DE EXPORTACIÓN === */
+.btn-group .btn {
+    border-radius: 8px !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+}
+
+/* === TABLA MEJORADA === */
+.dataTables_wrapper {
+    padding: 20px !important;
+}
+
+#tablaPlanes {
+    border-radius: 8px;
+    overflow: hidden;
 }
 </style>
 {% endblock %}
@@ -350,9 +440,9 @@ header.page-head {
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
       <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacion">
-        {% csrf_token %} 
+        {% csrf_token %}
         <div class="modal-body">
-          <div class="card text-center">
+          <div class="card">
             <div class="card-header">
               <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -528,7 +618,7 @@ header.page-head {
       <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacionReg">
         {% csrf_token %}
         <div class="modal-body">
-          <div class="card text-center">
+          <div class="card">
             <div class="card-header">
               <ul class="nav nav-tabs card-header-tabs" id="myTabReg" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -566,6 +656,9 @@ header.page-head {
                         <div class="col-md-6">
                             <label for="id_regularizacion_reg-cohorte" class="form-label">Cohorte</label>
                             {{ regularizacion_reg_form.cohorte }}
+                        </div>
+                        <div class="col-md-6" style="display: none;">
+                            {{ regularizacion_reg_form.tipo }}
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
@@ -720,6 +813,8 @@ function getCookie(name) {
     return cookieValue;
 }
 
+const csrftoken = getCookie('csrftoken');
+
 // Se aplica automáticamente a todos los POST/PUT/DELETE de jQuery
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
@@ -739,7 +834,13 @@ $(function () {
         ajax: '{% url "planes_data" %}',
         columns: [
             { data: 'id' },
-            { data:'tipo'},
+            {
+                data: 'tipo',
+                render: (data) => {
+                    const clase = data === 'Regularización' ? 'badge-regularizacion' : 'badge-plan';
+                    return `<span class="badge-tipo ${clase}">${data}</span>`;
+                }
+            },
             { data: 'nombre' },
             { data: 'carrera' },
             { data: 'cohorte' },
@@ -763,7 +864,7 @@ $(function () {
                     if (puedeModificar) {
                         botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">
                             <i class="bi bi-pencil-square"></i> Editar</button>`;
-                        botones += `<button class="btn-clone" data-id="${data.id}" data-action="clonar">
+                        botones += `<button class="btn-clone" data-id="${data.id}" data-tipo="${data.tipo}" data-action="clonar">
                             <i class="bi bi-files"></i>Clonar</button>`;
                     }
 
@@ -872,6 +973,7 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
     $('#tablaPlanes').on('click', 'button[data-action]', function() {
         const id = $(this).data('id');
         const action = $(this).data('action');
+        const tipo = $(this).data('tipo');
 
         if (action === 'editar') {
             // Cargar datos de la regularización en el modal con pestañas
@@ -880,9 +982,9 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
             // Cargar datos en modo solo lectura
             cargarDatosDetalle(id);
         } else if (action === 'clonar') {
-            let url = `/planes/clonar/${id}/`;
-            let titulo = 'Clonar Plan';
-            abrirModal(titulo, url);
+            console.log('Clonar clickeado - ID:', id, 'Tipo:', tipo);
+            // Obtener los datos del plan para mostrar en el modal de confirmación
+            mostrarModalClonar(id, tipo);
         }
     });
 
@@ -1028,6 +1130,240 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                 title: 'Error',
                 text: 'Error al cargar los datos del plan'
             });
+        });
+    }
+
+    // Función para mostrar modal de confirmación y clonar el plan
+    function mostrarModalClonar(id, tipo) {
+        console.log('Mostrando modal de confirmación para clonar ID:', id, 'Tipo:', tipo);
+
+        // Primero obtener los datos del plan para mostrar el nombre
+        fetch(`/planes/regularizaciones/clonar/${id}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success && result.data) {
+                const nombrePlan = result.data.nombre.replace(' (Copia)', ''); // Quitar (Copia) temporal
+                const tipoPlan = tipo || 'Plan';
+
+                // Mostrar modal de confirmación con SweetAlert2
+                Swal.fire({
+                    title: '¿Desea clonar este plan?',
+                    html: `<p>Se clonará el <strong>${tipoPlan}</strong>:</p><p><strong>"${nombrePlan}"</strong></p>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#192A41',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, clonar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Usuario confirmó, proceder a clonar
+                        clonarPlan(id, nombrePlan, tipoPlan);
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los datos del plan'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar los datos del plan'
+            });
+        });
+    }
+
+    // Función para clonar el plan (POST)
+    function clonarPlan(id, nombrePlan, tipoPlan) {
+        // Mostrar loader
+        Swal.fire({
+            title: 'Clonando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Hacer POST para clonar el plan
+        fetch(`/planes/regularizaciones/clonar/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Clonado exitosamente!',
+                    text: result.message,
+                    confirmButtonColor: '#192A41'
+                }).then(() => {
+                    // Recargar la tabla
+                    tabla.ajax.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al clonar',
+                    text: result.error || 'No se pudo clonar el plan'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al clonar el plan'
+            });
+        });
+    }
+
+    // Función para cargar datos para clonar una regularización
+    function cargarDatosClonar(id, tipo) {
+        console.log('Cargando datos para clonar ID:', id, 'Tipo:', tipo);
+
+        // Cambiar el título del modal
+        document.getElementById('modalNuevoPlanLabel').textContent = 'Clonar Plan de Pago';
+
+        // Cambiar el texto del botón de guardar
+        const btnGuardar = document.getElementById('btnGuardarRegularizacion');
+        if (btnGuardar) {
+            btnGuardar.textContent = 'Crear Plan Clonado';
+            btnGuardar.removeAttribute('data-edit-id'); // No es edición, es nuevo
+        }
+
+        // Ir a la primera pestaña
+        goToTab('identificacion');
+
+        // Todos los planes activos usan la ruta de regularizaciones (sistema nuevo)
+        let url = `/planes/regularizaciones/clonar/${id}/`;
+
+        console.log('URL de clonación:', url);
+
+        // Hacer fetch para obtener los datos
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success && result.data) {
+                const data = result.data;
+
+                // Cargar datos de Identificación
+                document.getElementById('id_regularizacion_reg-nombre').value = data.nombre || '';
+                document.getElementById('id_regularizacion_reg-carrera').value = data.carrera || '';
+                document.getElementById('id_regularizacion_reg-modalidad').value = data.modalidad || '';
+                document.getElementById('id_regularizacion_reg-cohorte').value = data.cohorte || '';
+
+                // Cargar tipo si existe el campo
+                const tipoField = document.getElementById('id_regularizacion_reg-tipo');
+                if (tipoField && data.tipo) {
+                    tipoField.value = data.tipo;
+                }
+
+                // Cargar datos de Estructura si existen
+                if (data.pago_incial !== undefined) {
+                    document.getElementById('id_estructura_reg-pago_incial').value = data.pago_incial || '';
+                }
+                if (data.cantidad_cuotas !== undefined) {
+                    document.getElementById('id_estructura_reg-cantidad_de_cuotas').value = data.cantidad_cuotas || '';
+                }
+                if (data.interes !== undefined) {
+                    document.getElementById('id_estructura_reg-tasa').value = data.interes || '';
+                }
+                if (data.vencimiento !== undefined) {
+                    document.getElementById('id_estructura_reg-dia_vencimiento').value = data.vencimiento || '';
+                }
+
+                // Cargar datos de Mora si existen
+                if (data.tipo_recargo !== undefined) {
+                    document.getElementById('id_mora_reg-tipo_de_recargo').value = data.tipo_recargo || '';
+                }
+                if (data.cantidad_recargo !== undefined) {
+                    document.getElementById('id_mora_reg-cantidad_recargo').value = data.cantidad_recargo || '';
+                }
+                if (data.dias_gracia !== undefined) {
+                    document.getElementById('id_mora_reg-dias_gracia').value = data.dias_gracia || '';
+                }
+
+                // Abrir el modal
+                $('#modalNuevaRegularizacion').modal('show');
+            } else {
+                alert('Error al cargar los datos para clonar');
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar datos para clonar:', error);
+            alert('Error al cargar los datos para clonar');
+        });
+    }
+
+    // Función para cargar datos para clonar un plan antiguo
+    function cargarDatosClonarPlanAntiguo(id) {
+        console.log('Cargando datos para clonar plan antiguo ID:', id);
+
+        // Hacer fetch para obtener los datos del plan antiguo
+        fetch(`/planes/clonar/${id}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Crear un div temporal para parsear el HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Encontrar el formulario en el HTML retornado
+            const form = temp.querySelector('form');
+
+            if (form) {
+                // Abrir el modal de plan antiguo
+                const modal = document.getElementById('modalNuevoPlan');
+                const modalBody = modal.querySelector('.modal-body');
+                const modalTitle = modal.querySelector('.modal-title');
+
+                // Cambiar el título
+                modalTitle.textContent = 'Clonar Plan';
+
+                // Insertar el formulario en el modal
+                modalBody.innerHTML = form.outerHTML;
+
+                // Cambiar el botón de envío
+                const submitBtn = modalBody.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Clonar Plan';
+                }
+
+                // Abrir el modal usando Bootstrap
+                $('#modalNuevoPlan').modal('show');
+            } else {
+                alert('Error al cargar el formulario de clonación');
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar datos para clonar plan antiguo:', error);
+            alert('Error al cargar los datos para clonar');
         });
     }
 
@@ -1526,8 +1862,17 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append('estructura_reg-origen_deuda', 'FIJO');
       }
 
-      // Agregar el campo tipo como "Plan normal" para diferenciar de "Regularización"
-      formData.append('regularizacion_reg-tipo', 'Plan normal');
+      // Asegurarse de que el campo tipo tenga un valor por defecto si está vacío
+      let hasTipo = false;
+      for (let [key, value] of formData.entries()) {
+        if (key === 'regularizacion_reg-tipo' && value) {
+          hasTipo = true;
+          break;
+        }
+      }
+      if (!hasTipo) {
+        formData.append('regularizacion_reg-tipo', 'Regularización');
+      }
 
       // Si hay cuotas simuladas, las agregamos al formData como JSON
       if (cuotasSimuladas && cuotasSimuladas.length > 0) {
@@ -1598,10 +1943,10 @@ document.addEventListener("DOMContentLoaded", () => {
           showConfirmButton: false
         });
 
-        // Cierra el modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById("modalNuevoPlan"));
-        if (modal) {
-          modal.hide();
+        // Cierra el modal de regularizaciones
+        const modalReg = bootstrap.Modal.getInstance(document.getElementById("modalNuevaRegularizacion"));
+        if (modalReg) {
+          modalReg.hide();
         }
 
         // Refresca la tabla principal
@@ -1645,6 +1990,12 @@ window.resetFormularioRegularizacion = function() {
     if (form) {
         form.reset();
         form.action = "{% url 'regularizacion_crear' %}";
+    }
+
+    // Establecer el valor del campo tipo a 'Regularización'
+    const tipoField = document.getElementById('id_regularizacion_reg-tipo');
+    if (tipoField) {
+        tipoField.value = 'Regularización';
     }
 
     // Resetear el título y el botón
