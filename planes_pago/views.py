@@ -215,13 +215,19 @@ def plan_crear(request):
         estructura_form = ReglaEstructuraForm(request.POST, prefix='estructura')
         mora_form = ReglaMoraForm(request.POST, prefix='mora')
 
+        # Hacer que el campo 'tipo' no sea requerido para planes normales (lo establecemos manualmente)
+        if 'tipo' in regularizacion_form.fields:
+            regularizacion_form.fields['tipo'].required = False
+
         if all([regularizacion_form.is_valid(), estructura_form.is_valid(), mora_form.is_valid()]):
             try:
                 with transaction.atomic():
                     regularizacion = regularizacion_form.save(commit=False)
-                    regularizacion.tipo = 'Plan de Pago'  # Importante: marcar como Plan, no Regularización
+                    regularizacion.tipo = 'Plan Normal'  # Importante: marcar como Plan Normal
                     regularizacion.estado = 'S'  # Se marca como suspendido
+                    print(f"DEBUG: Guardando plan con tipo: {regularizacion.tipo}")  # Debug
                     regularizacion.save()
+                    print(f"DEBUG: Plan guardado con ID: {regularizacion.id}, tipo: {regularizacion.tipo}")  # Debug
 
                     estructura = estructura_form.save(commit=False)
                     estructura.regularizacion = regularizacion
@@ -279,6 +285,11 @@ def plan_crear(request):
 
         else:
             # Responder errores (AJAX o normal)
+            print("DEBUG: Formularios con errores")
+            print(f"Errores regularizacion: {regularizacion_form.errors}")
+            print(f"Errores estructura: {estructura_form.errors}")
+            print(f"Errores mora: {mora_form.errors}")
+
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
@@ -542,7 +553,7 @@ def plan_editar(request, pk):
     Editar un plan de pago existente con sus reglas de estructura y mora.
     Devuelve los datos del plan en formato JSON para cargar en el modal.
     """
-    regularizacion = get_object_or_404(Regularizacion, pk=pk, tipo='Plan de Pago')
+    regularizacion = get_object_or_404(Regularizacion, pk=pk, tipo='Plan Normal')
 
     if request.method == 'GET':
         # Obtener las reglas asociadas
@@ -1411,8 +1422,8 @@ def plan_ver_detalle(request, pk):
                 print(f"Error al obtener cuotas: {e}")
 
         else:  # plan
-            # Para planes normales, buscar en la tabla Regularizacion con tipo='Plan de Pago'
-            obj = Regularizacion.objects.get(pk=pk, tipo='Plan de Pago')
+            # Para planes normales, buscar en la tabla Regularizacion con tipo='Plan Normal'
+            obj = Regularizacion.objects.get(pk=pk, tipo='Plan Normal')
             plan_data = {
                 'id': obj.id,
                 'nombre': obj.nombre,
@@ -1420,7 +1431,7 @@ def plan_ver_detalle(request, pk):
                 'cohorte': obj.cohorte,
                 'modalidad': obj.modalidad,
                 'estado': obj.estado,
-                'tipo': 'Plan de Pago',  # Agregamos el tipo para identificarlo en el frontend
+                'tipo': 'Plan Normal',  # Agregamos el tipo para identificarlo en el frontend
                 'fecha_creacion': obj.fecha_creacion.strftime('%d/%m/%Y %H:%M') if hasattr(obj, 'fecha_creacion') and obj.fecha_creacion else 'N/A',
             }
 

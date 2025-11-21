@@ -575,7 +575,7 @@ header.page-head {
             <h5 class="modal-title" id="modalNuevoPlanLabel">Crear Nuevo Plan</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-      <form method="post" action="{% url 'regularizacion_crear' %}" id="formRegularizacion">
+      <form method="post" action="{% url 'plan_crear' %}" id="formRegularizacion">
         {% csrf_token %}
         <div class="modal-body">
           <div class="card">
@@ -1743,7 +1743,7 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
         const form = document.getElementById('formRegularizacion');
         if (form) {
             form.reset();
-            form.action = "{% url 'regularizacion_crear' %}";
+            form.action = "{% url 'plan_crear' %}";
         }
 
         // Resetear el título y el botón
@@ -2048,21 +2048,14 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append('csrfmiddlewaretoken', csrfToken.value);
       }
 
-      // Obtener todos los campos del formulario y convertir prefijos
+      // Obtener todos los campos del formulario SIN convertir prefijos (este es el modal de Plan Normal)
       const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea');
       inputs.forEach(input => {
         if (input.name && input.name !== 'csrfmiddlewaretoken') {
-          // Convertir prefijos: regularizacion- -> regularizacion_reg-, etc.
+          // NO convertir prefijos - usar los nombres originales del formulario
           let fieldName = input.name;
-          if (fieldName.startsWith('regularizacion-')) {
-            fieldName = fieldName.replace('regularizacion-', 'regularizacion_reg-');
-          } else if (fieldName.startsWith('estructura-')) {
-            fieldName = fieldName.replace('estructura-', 'estructura_reg-');
-          } else if (fieldName.startsWith('mora-')) {
-            fieldName = fieldName.replace('mora-', 'mora_reg-');
-          }
 
-          // Agregar el campo con el nombre convertido
+          // Agregar el campo con el nombre original
           if (input.type === 'checkbox') {
             if (input.checked) {
               formData.append(fieldName, input.value);
@@ -2077,30 +2070,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // El modal "Nuevo Plan" no tiene campo origen_deuda, pero el backend lo requiere
-      // Agregar origen_deuda como FIJO por defecto si no existe
-      let hasOrigenDeuda = false;
-      for (let [key, value] of formData.entries()) {
-        if (key === 'estructura_reg-origen_deuda') {
-          hasOrigenDeuda = true;
-          break;
-        }
-      }
-      if (!hasOrigenDeuda) {
-        formData.append('estructura_reg-origen_deuda', 'FIJO');
-      }
-
-      // Asegurarse de que el campo tipo tenga un valor por defecto si está vacío
-      let hasTipo = false;
-      for (let [key, value] of formData.entries()) {
-        if (key === 'regularizacion_reg-tipo' && value) {
-          hasTipo = true;
-          break;
-        }
-      }
-      if (!hasTipo) {
-        formData.append('regularizacion_reg-tipo', 'Regularización');
-      }
+      // El modal "Nuevo Plan" no tiene campo origen_deuda en el FormularioPlan (ReglaEstructuraForm)
+      // Los planes normales NO necesitan origen_deuda, así que no lo agregamos
 
       // Si hay cuotas simuladas, las agregamos al formData como JSON
       if (cuotasSimuladas && cuotasSimuladas.length > 0) {
@@ -2163,6 +2134,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Éxito
+        console.log("Plan guardado exitosamente, cerrando modal...");
+
         Swal.fire({
           title: mensajeExito,
           text: textoExito,
@@ -2171,18 +2144,23 @@ document.addEventListener("DOMContentLoaded", () => {
           showConfirmButton: false
         });
 
-        // Cierra el modal de regularizaciones
-        const modalReg = bootstrap.Modal.getInstance(document.getElementById("modalNuevaRegularizacion"));
-        if (modalReg) {
-          modalReg.hide();
-        }
+        // Cierra el modal de planes normales usando jQuery (ya que se abrió con jQuery)
+        console.log("Cerrando modal con jQuery...");
+        $('#modalNuevoPlan').modal('hide');
 
-        // Refresca la tabla principal
-        if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
-          $('#tablaPlanes').DataTable().ajax.reload();
-        } else {
-          location.reload();
-        }
+        // Limpiar el formulario
+        form.reset();
+        cuotasSimuladas = [];
+
+        // Refresca la tabla principal después de un breve delay para que se cierre el modal
+        console.log("Recargando tabla...");
+        setTimeout(() => {
+          if ($.fn.DataTable.isDataTable('#tablaPlanes')) {
+            $('#tablaPlanes').DataTable().ajax.reload();
+          } else {
+            location.reload();
+          }
+        }, 300);
       })
       .catch(err => {
         console.error(err);
