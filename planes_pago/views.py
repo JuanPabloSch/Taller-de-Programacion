@@ -857,18 +857,46 @@ def exportar_planes_pdf(request):
     pdf.cell(0, 10, f"Generado por: {usuario} - Fecha: {fecha}", ln=True, align="C")
     pdf.ln(10)
 
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(40, 10, "Nombre", 1, 0, "C")
+    # Headers con anchos ajustados para que quepan en la página
+    pdf.set_font("Arial", "B", 9)
+    pdf.cell(30, 10, "Tipo", 1, 0, "C")
+    pdf.cell(50, 10, "Nombre", 1, 0, "C")
     pdf.cell(40, 10, "Carrera", 1, 0, "C")
-    pdf.cell(40, 10, "Cohorte", 1, 0, "C")
-    pdf.cell(40, 10, "Modalidad", 1, 1, "C")
+    pdf.cell(30, 10, "Cohorte", 1, 0, "C")
+    pdf.cell(30, 10, "Modalidad", 1, 1, "C")
 
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("Arial", size=8)
+
+    # Exportar Regularizaciones (nuevos planes)
+    for reg in Regularizacion.objects.filter(estado='A'):
+        tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
+
+        # Acortar strings si son muy largos
+        tipo_str = str(tipo)[:15] if len(str(tipo)) > 15 else str(tipo)
+        nombre = str(reg.nombre)[:30] if len(str(reg.nombre)) > 30 else str(reg.nombre)
+        carrera = str(reg.carrera)[:25] if len(str(reg.carrera)) > 25 else str(reg.carrera)
+        cohorte = str(reg.cohorte)[:15] if len(str(reg.cohorte)) > 15 else str(reg.cohorte)
+        modalidad = str(reg.modalidad)[:15] if len(str(reg.modalidad)) > 15 else str(reg.modalidad)
+
+        pdf.cell(30, 8, tipo_str, 1)
+        pdf.cell(50, 8, nombre, 1)
+        pdf.cell(40, 8, carrera, 1)
+        pdf.cell(30, 8, cohorte, 1)
+        pdf.cell(30, 8, modalidad, 1)
+        pdf.ln()
+
+    # Exportar PlanPago antiguos (si existen)
     for p in PlanPago.objects.filter(estado='A'):
-        pdf.cell(40, 10, str(p.nombre), 1)
-        pdf.cell(40, 10, str(p.carrera), 1)
-        pdf.cell(40, 10, str(p.cohorte), 1)
-        pdf.cell(40, 10, str(p.modalidad), 1)
+        nombre = str(p.nombre)[:30] if len(str(p.nombre)) > 30 else str(p.nombre)
+        carrera = str(p.carrera)[:25] if len(str(p.carrera)) > 25 else str(p.carrera)
+        cohorte = str(p.cohorte)[:15] if len(str(p.cohorte)) > 15 else str(p.cohorte)
+        modalidad = str(p.modalidad)[:15] if len(str(p.modalidad)) > 15 else str(p.modalidad)
+
+        pdf.cell(30, 8, "Plan Antiguo", 1)
+        pdf.cell(50, 8, nombre, 1)
+        pdf.cell(40, 8, carrera, 1)
+        pdf.cell(30, 8, cohorte, 1)
+        pdf.cell(30, 8, modalidad, 1)
         pdf.ln()
 
     pdf_bytes = pdf.output(dest="S")
@@ -883,10 +911,16 @@ def exportar_planes_csv(request):
     response["Content-Disposition"] = 'attachment; filename="planes_pago.csv"'
 
     writer = csv.writer(response, delimiter=";")
-    writer.writerow(["Nombre del Plan", "Carrera", "Cohorte", "Modalidad"])
+    writer.writerow(["Tipo de Plan", "Nombre", "Carrera", "Cohorte", "Modalidad"])
 
+    # Exportar Regularizaciones (nuevos planes)
+    for reg in Regularizacion.objects.filter(estado='A'):
+        tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
+        writer.writerow([tipo, reg.nombre, reg.carrera, reg.cohorte, reg.modalidad])
+
+    # Exportar PlanPago antiguos (si existen)
     for p in PlanPago.objects.filter(estado='A'):
-        writer.writerow([p.nombre, p.carrera, p.cohorte, p.modalidad])
+        writer.writerow(["Plan Antiguo", p.nombre, p.carrera, p.cohorte, p.modalidad])
 
     return response
 
@@ -909,7 +943,7 @@ def exportar_planes_excel(request):
         bottom=Side(style="thin"),
     )
 
-    headers = ["Nombre", "Carrera", "Cohorte", "Modalidad"]
+    headers = ["Tipo de Plan", "Nombre", "Carrera", "Cohorte", "Modalidad"]
     ws.append(headers)
 
     for col, header in enumerate(headers, start=1):
@@ -919,8 +953,14 @@ def exportar_planes_excel(request):
         cell.alignment = center_align
         cell.border = thin_border
 
+    # Exportar Regularizaciones (nuevos planes)
+    for reg in Regularizacion.objects.filter(estado='A'):
+        tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
+        ws.append([tipo, reg.nombre, reg.carrera, reg.cohorte, reg.modalidad])
+
+    # Exportar PlanPago antiguos (si existen)
     for p in PlanPago.objects.filter(estado='A'):
-        ws.append([p.nombre, p.carrera, p.cohorte, p.modalidad])
+        ws.append(["Plan Antiguo", p.nombre, p.carrera, p.cohorte, p.modalidad])
 
     for col in ws.columns:
         max_length = 0
@@ -944,8 +984,31 @@ def exportar_planes_excel(request):
 
 @login_required
 def imprimir_planes(request):
-    planes = PlanPago.objects.filter(estado='A')
-    return render(request, "imprimir_planes.html", {"planes": planes})
+    # Preparar datos de planes con toda la información necesaria
+    planes_data = []
+
+    # Agregar Regularizaciones (nuevos planes)
+    for reg in Regularizacion.objects.filter(estado='A'):
+        tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
+        planes_data.append({
+            'tipo': tipo,
+            'nombre': reg.nombre,
+            'carrera': reg.carrera,
+            'cohorte': reg.cohorte,
+            'modalidad': reg.modalidad
+        })
+
+    # Agregar PlanPago antiguos (si existen)
+    for p in PlanPago.objects.filter(estado='A'):
+        planes_data.append({
+            'tipo': "Plan Antiguo",
+            'nombre': p.nombre,
+            'carrera': p.carrera,
+            'cohorte': p.cohorte,
+            'modalidad': p.modalidad
+        })
+
+    return render(request, "imprimir_planes.html", {"planes": planes_data})
 
 
 # -------------------------------

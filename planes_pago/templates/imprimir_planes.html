@@ -17,6 +17,7 @@
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
+                <th>Tipo de Plan</th>
                 <th>Nombre</th>
                 <th>Carrera</th>
                 <th>Cohorte</th>
@@ -26,6 +27,7 @@
         <tbody>
             {% for p in planes %}
             <tr>
+                <td>{{ p.tipo }}</td>
                 <td>{{ p.nombre }}</td>
                 <td>{{ p.carrera }}</td>
                 <td>{{ p.cohorte }}</td>
