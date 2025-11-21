@@ -33,12 +33,16 @@ from .forms import (
 from .decorators import group_required, can_delete, can_modify
 
 def registrar_accion(usuario, accion, plan=None, regularizacion=None, descripcion=""):
-    HistorialAccion.objects.create(
-        usuario=usuario,
-        accion=accion,
-        plan=plan if plan else regularizacion,
-        descripcion=descripcion
-    )
+    # Solo registrar si es un PlanPago, ya que el modelo HistorialAccion solo acepta PlanPago
+    if plan:
+        HistorialAccion.objects.create(
+            usuario=usuario,
+            accion=accion,
+            plan=plan,
+            descripcion=descripcion
+        )
+    # Si es una regularización, podríamos registrarlo de otra forma o simplemente no registrarlo
+    # por ahora, para evitar errores, no lo registramos
 
 # -------------------------------
 # Clase PDF personalizada
@@ -770,23 +774,44 @@ def regularizacion_clonar(request, pk):
                 )
 
                 # Clonar estructura si existe
-                if hasattr(original, 'estructura') and original.estructura:
+                if hasattr(original, 'reglas_estructura') and original.reglas_estructura.exists():
+                    estructura_original = original.reglas_estructura.first()
                     ReglaEstructura.objects.create(
                         regularizacion=nueva,
-                        pago_incial=original.estructura.pago_incial,
-                        cantidad_cuotas=original.estructura.cantidad_cuotas,
-                        interes=original.estructura.interes,
-                        vencimiento=original.estructura.vencimiento
+                        origen_deuda=estructura_original.origen_deuda,
+                        valor=estructura_original.valor,
+                        tasa=estructura_original.tasa,
+                        pago_incial=estructura_original.pago_incial,
+                        cantidad_de_cuotas=estructura_original.cantidad_de_cuotas,
+                        frecuencia_de_pago=estructura_original.frecuencia_de_pago,
+                        dia_vencimiento=estructura_original.dia_vencimiento
                     )
 
                 # Clonar mora si existe
-                if hasattr(original, 'mora') and original.mora:
+                if hasattr(original, 'reglas_mora') and original.reglas_mora.exists():
+                    mora_original = original.reglas_mora.first()
                     ReglaMora.objects.create(
                         regularizacion=nueva,
-                        tipo_recargo=original.mora.tipo_recargo,
-                        cantidad_recargo=original.mora.cantidad_recargo,
-                        dias_gracia=original.mora.dias_gracia
+                        tipo_de_recargo=mora_original.tipo_de_recargo,
+                        cantidad_recargo=mora_original.cantidad_recargo,
+                        frecuencia_aplicacion=mora_original.frecuencia_aplicacion,
+                        dias_gracia=mora_original.dias_gracia,
+                        veces_aplicacion=mora_original.veces_aplicacion
                     )
+
+                # Clonar cuotas si existen
+                if hasattr(original, 'cuotas') and original.cuotas.exists():
+                    for cuota_original in original.cuotas.all():
+                        CuotaRegularizacion.objects.create(
+                            regularizacion=nueva,
+                            numero_cuota=cuota_original.numero_cuota,
+                            fecha_vencimiento=cuota_original.fecha_vencimiento,
+                            monto_base=cuota_original.monto_base,
+                            monto_interes=cuota_original.monto_interes,
+                            monto_cuota=cuota_original.monto_cuota,
+                            monto_mora=cuota_original.monto_mora,
+                            estado='P'  # Pendiente
+                        )
 
                 # Registrar en historial
                 registrar_accion(
