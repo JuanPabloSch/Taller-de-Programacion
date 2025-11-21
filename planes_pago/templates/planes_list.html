@@ -483,23 +483,57 @@ header.page-head {
                 <button type="button" class="btn-new" style="background-color: #ffffff;" data-bs-toggle="modal" data-bs-target="#modalNuevaRegularizacion" onclick="resetFormularioRegularizacion()">+ Regularización</button>
                 {% endif %}
 
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <h6 class="dropdown-header">Filtros por:</h6>
-                        <li><a class="dropdown-item" href="#">Año</a></li>
-                        <li><a class="dropdown-item" href="#">Carrera</a></li>
-                        <li><a class="dropdown-item" href="#">Modalidad</a></li>
-                        <li><a class="dropdown-item" href="#">Cohorte</a></li>
-                        <li><a class="dropdown-item" href="#">Tipo</a></li>
-                    </ul>
-                </div>
+                <button class="btn btn-outline-secondary" type="button" id="btnToggleFiltros">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
             </div>
         </header>
+
+        <!-- Panel de Filtros (oculto por defecto) -->
+        <div id="panelFiltros" style="display: none; padding: 15px 20px; background-color: #f8f9fa; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="filtroCarrera" class="form-label fw-semibold" style="font-size: 0.9rem;">Carrera</label>
+                    <select class="form-select form-select-sm" id="filtroCarrera">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filtroModalidad" class="form-label fw-semibold" style="font-size: 0.9rem;">Modalidad</label>
+                    <select class="form-select form-select-sm" id="filtroModalidad">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filtroCohorte" class="form-label fw-semibold" style="font-size: 0.9rem;">Cohorte</label>
+                    <select class="form-select form-select-sm" id="filtroCohorte">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="filtroTipo" class="form-label fw-semibold" style="font-size: 0.9rem;">Tipo</label>
+                    <select class="form-select form-select-sm" id="filtroTipo">
+                        <option value="">Todos</option>
+                        <option value="Plan normal">Plan normal</option>
+                        <option value="Regularización">Regularización</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" id="btnAplicarFiltros">
+                        <i class="bi bi-search"></i> Aplicar Filtros
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnLimpiarFiltros">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <br>
-        <hr>
         <table id="tablaPlanes" class="display">
             <thead>
                 <tr>
@@ -996,7 +1030,93 @@ $(function () {
         pageLength: 10
     });
 
-    
+    // Poblar filtros con valores únicos
+    function poblarFiltros() {
+        // Obtener datos de la tabla
+        const data = tabla.rows().data();
+
+        // Arrays para valores únicos
+        const carreras = new Set();
+        const modalidades = new Set();
+        const cohortes = new Set();
+
+        // Recopilar valores únicos
+        data.each(function(row) {
+            if (row.carrera && row.carrera.trim() !== '') {
+                carreras.add(row.carrera);
+            }
+            if (row.modalidad && row.modalidad.trim() !== '') {
+                modalidades.add(row.modalidad);
+            }
+            if (row.cohorte && row.cohorte.toString().trim() !== '') {
+                cohortes.add(row.cohorte.toString());
+            }
+        });
+
+        // Poblar select de Carrera
+        $('#filtroCarrera option:not(:first)').remove();
+        Array.from(carreras).sort().forEach(function(carrera) {
+            $('#filtroCarrera').append(`<option value="${carrera}">${carrera}</option>`);
+        });
+
+        // Poblar select de Modalidad
+        $('#filtroModalidad option:not(:first)').remove();
+        Array.from(modalidades).sort().forEach(function(modalidad) {
+            $('#filtroModalidad').append(`<option value="${modalidad}">${modalidad}</option>`);
+        });
+
+        // Poblar select de Cohorte (ordenado ascendente: años más antiguos primero)
+        $('#filtroCohorte option:not(:first)').remove();
+        Array.from(cohortes).sort((a, b) => a - b).forEach(function(cohorte) {
+            $('#filtroCohorte').append(`<option value="${cohorte}">${cohorte}</option>`);
+        });
+
+        console.log('Filtros poblados:', {
+            carreras: Array.from(carreras),
+            modalidades: Array.from(modalidades),
+            cohortes: Array.from(cohortes)
+        });
+    }
+
+    // Poblar filtros cuando la tabla se carga completamente
+    tabla.on('draw.dt', function() {
+        poblarFiltros();
+    });
+
+    // Toggle panel de filtros
+    $('#btnToggleFiltros').on('click', function() {
+        $('#panelFiltros').slideToggle(300);
+        $(this).toggleClass('active');
+    });
+
+    // Funcionalidad de filtros
+    $('#btnAplicarFiltros').on('click', function() {
+        const carrera = $('#filtroCarrera').val();
+        const modalidad = $('#filtroModalidad').val();
+        const cohorte = $('#filtroCohorte').val();
+        const tipo = $('#filtroTipo').val();
+
+        // Aplicar búsqueda por columna
+        tabla.column(3).search(carrera);  // Columna Carrera
+        tabla.column(5).search(modalidad); // Columna Modalidad
+        tabla.column(4).search(cohorte);   // Columna Cohorte
+        tabla.column(1).search(tipo);      // Columna Tipo
+
+        tabla.draw();
+    });
+
+    $('#btnLimpiarFiltros').on('click', function() {
+        // Limpiar todos los inputs
+        $('#filtroCarrera').val('');
+        $('#filtroModalidad').val('');
+        $('#filtroCohorte').val('');
+        $('#filtroTipo').val('');
+
+        // Limpiar búsquedas de columnas
+        tabla.columns().search('').draw();
+    });
+
+
 // Suspender plan o regularización
 // con SweetAlert2
 $('#tablaPlanes').on('click', '.btn-susp', function () {
