@@ -6,6 +6,8 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 .page-head h2 {
@@ -74,7 +76,7 @@
 }
 
 /* Botón de Imprimir Reporte */
-.btn-print-report {
+.btn-report {
     background-color: #4f87c4; /* Fondo blanco */
     color: #ffffff; /* Color de texto secundario/neutral */
     border: 1px solid #6c757d;
@@ -88,14 +90,15 @@
     cursor: pointer;
     margin-top: 15px; /* Separación de la tabla */
 }
-.btn-print-report:hover {
+.btn-report:hover {
     background-color: #14213d;
     color: #fff;
 }
-.btn-print-report i {
+.btn-report i {
     font-size: 1.1rem;
     margin-right: 5px; /* Espacio entre el icono y el texto */
 }
+
 </style>
 {% endblock %}
 
@@ -122,11 +125,11 @@
     </table>
 
     <div class="report-actions">
-        <button id="btnPrintReport" class="btn-print-report">
+        <button id="btnPrintReport" class="btn-report" onclick="window.print();">
             <i class="bi bi-file-earmark-text"></i> Imprimir reporte completo
         </button>
-    </div>
 
+    </div>
 </main>
 {% endblock %}
 
@@ -137,6 +140,12 @@
 
 <script>
 $(function () {
+
+$('#btnPrintReport').on('click', function() {
+        window.print(); // Abre la ventana de diálogo de impresión del navegador
+    });
+
+
     $("#tablaHistorial").DataTable({
         ajax: "{% url 'historial_ajax' %}",
         columns: [

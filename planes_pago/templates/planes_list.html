@@ -9,241 +9,264 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
 <!-- Bootstrap para el modal -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 
 <style>
-    body {
-        background-color: #d2dde4a2 !important;
-        }
-    .layout {
-        display: flex;
-        min-height: 100vh;
-        background: #ffffff;
-        padding:20px;
-        border-radius: 16px;
-    }
-    /* MAIN CONTENT */
-    .main-content {
-        flex: 1;
-
-    }
-    header.page-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .btn-new {
-        background: #3a86ff;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
-    }
-
-    /* TABLE */
-    table.dataTable {
-        width: 100% !important;
-        margin-top: 20px;
-    }
-    table.dataTable th,
-    table.dataTable td {
-        padding: 10px;
-    }
-
-    /* BOTONES CRUD */
-    .acciones a, .acciones button {
-        margin: 0 2px;
-        border: none;
-        border-radius: 4px;
-        padding: 5px 8px;
-        cursor: pointer;
-        color: #fff;
-        text-decoration: none;
-    }
-    .btn-edit  { background: #3a86ff; }
-    .btn-detail { background: #6c757d; }
-    .btn-clone { background: #8338ec; }
-    .btn-enter { background: #05c995; }
-    .btn-del   { background: #ff006e; }
-    .btn-susp  {background: #eb8939;}
-
-    /* Modal general */
-#regularizacionModal .modal-content {
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  border: none;
-  overflow: hidden;
+/* === AJUSTES GLOBALES DEL LAYOUT === */
+body {
+    background-color: #d2dde4a2 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-#regularizacionModal .modal-header {
-  background: linear-gradient(135deg, #004aad, #007bff);
-  color: white;
-  border-bottom: none;
+/* El .layout ya está en base.html. Aquí ajustamos el contenido principal */
+.main-content {
+    flex: 1;
+    /* Eliminar el padding para que la tabla ocupe todo el ancho del contenedor */
+    padding: 0; 
 }
 
-#regularizacionModal .modal-title {
-  font-weight: 600;
-  letter-spacing: 0.5px;
+/* === ENCABEZADO Y ACCIONES === */
+header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-top: 10px; /* Separación de la parte superior del contenedor */
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.page-head h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #192A41; /* Color de texto oscuro del modelo */
+}
+.page-head span {
+    display: block;
+    color: #6c757d;
+    font-size: 1rem;
 }
 
-#regularizacionModal .btn-close {
-  filter: invert(1);
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-/*Cuerpo del modal*/
-#regularizacionModal .modal-body {
-  background-color: #f8f9fa;
-  padding: 2rem;
+/* Botón Nuevo Plan */
+.btn-new {
+    background-color: #ffffff; /* Fondo blanco */
+    color: #007bff; /* Texto azul de Bootstrap */
+    border: 1px solid #007bff;
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+.btn-new:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+.btn-new i {
+    font-size: 1.1rem;
+    margin-right: 5px;
 }
 
-/* Tarjeta con tabs */
-#regularizacionModal .card {
-  border: none;
-  background-color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-radius: 12px;
+
+/* === ESTILOS DE LA TABLA DATATABLES === */
+/* Contenedor principal de la tabla (para el margen y el separador) */
+.table-container {
+    padding: 20px;
+    padding-top: 0;
 }
 
-#regularizacionModal .card-header {
-  background-color: #f1f4f8;
-  border-bottom: 2px solid #dee2e6;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  padding: 0.5rem;
-}
-#regularizacionModal .nav-tabs {
-  border-bottom: none;
-  justify-content: center;
+/* Encabezado de la tabla (Fondo Azul Oscuro del modelo) */
+#tablaPlanes thead th {
+    background-color: #192A41 !important; /* Azul Oscuro Profundo */
+    color: #ffffff !important;
+    font-weight: 600;
+    border: none;
+    padding: 10px 15px;
 }
 
-#regularizacionModal .nav-tabs .nav-link {
-  border: none;
-  color: #6c757d;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border-radius: 8px 8px 0 0;
+/* Filas de la tabla */
+#tablaPlanes tbody tr {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s;
 }
 
-#regularizacionModal .nav-tabs .nav-link.active {
-  background-color: white;
-  color: #004aad;
-  font-weight: 600;
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+#tablaPlanes tbody tr:hover {
+    background-color: #f8f9fa;
 }
 
-#regularizacionModal .card-body {
-  padding: 2rem;
+#tablaPlanes tbody td {
+    padding: 10px 15px;
+    color: #343a40;
+    vertical-align: middle;
 }
 
-#regularizacionModal h5.card-title {
-  color: #004aad;
-  font-weight: 600;
-  margin-bottom: 1.2rem;
+/* Estilo para los botones de la tabla */
+.acciones {
+    display: flex;
+    gap: 5px;
+}
+.acciones a, .acciones button {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #fff;
+    background-color: #4A86C1;
+    display: flex; 
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.6; /* Opacidad baja por defecto */
+    transition: background-color 0.2s, opacity 0.2s, transform 0.2s; /* Aseguramos la transición suave */
 }
 
-/* Botones modal */
-#regularizacionModal .btn {
-  border-radius: 8px;
-  padding: 0.5rem 1.25rem;
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
+.acciones a i,
+.acciones button i {
+    margin-right: 5px;
 }
 
-#regularizacionModal .btn-primary {
-  background-color: #3cb9c2;
-  border-color: #3cb9c2;
+#tablaPlanes tbody tr:hover .acciones a,
+#tablaPlanes tbody tr:hover .acciones button {
+    opacity: 1.0; /* Opacidad máxima (totalmente opaco) */
 }
 
-#regularizacionModal .btn-primary:hover {
-  background-color: #3cb9c2;
+/* Colores de los botones de la tabla según el modelo 
+.btn-enter { 
+    background-color: #4A86C1; 
+    color: #FFFFFF; 
+}
+.btn-edit { 
+    background-color: #457B9D; 
+    color: #FFFFFF; 
+}
+.btn-clone { 
+    background-color: #7DA7CC; 
+    color: #192A41; 
+}
+.btn-susp {
+    background-color: #243A5E; 
+    color: #FFFFFF; 
+}*/
+
+/* Efectos hover para los botones */
+.acciones a:hover,
+.acciones button:hover {
+    background-color: #192A41;
+    transform: scale(1.1); /* Hace que el botón crezca un 10% */
+    /* Se elimina cualquier regla de background-color para mantener el color base. */
 }
 
-#regularizacionModal .btn-success {
-  background-color: #198754;
+/* Paginación de DataTables con Bootstrap */
+.dataTables_wrapper .pagination .page-item.active .page-link {
+    background-color: #192A41;
+    border-color: #192A41;
+}
+.dataTables_wrapper .pagination .page-link {
+    color: #192A41;
+}
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    padding: 0 20px;
 }
 
-#regularizacionModal .btn-success:hover {
-  background-color: #157347;
+/* === MODAL ESTILOS (Mantenidos y limpiados) === */
+#modalNuevoPlan .modal-content {
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    border: none;
+    overflow: hidden;
 }
 
-#regularizacionModal .btn-danger {
-  background-color: #dc3545;
+#modalNuevoPlan .modal-header {
+    background-color: #192A41; /* Color del sidebar */
+    color: white;
+    border-bottom: none;
 }
 
-#regularizacionModal .btn-danger:hover {
-  background-color: #c82333;
+#modalNuevoPlan .modal-title {
+    font-weight: 600;
 }
 
-/*  Inputs y selects */
-#regularizacionModal input.form-control,
-#regularizacionModal select.form-select {
-  border-radius: 8px;
-  border: 1px solid #ced4da;
-  padding: 0.5rem 0.75rem;
-  transition: all 0.2s ease-in-out;
+#modalNuevoPlan .btn-close {
+    filter: invert(1);
 }
 
-#regularizacionModal input.form-control:focus,
-#regularizacionModal select.form-select:focus {
-  border-color: #3cb9c2;
-  box-shadow: 0 0 0 0.2rem rgba(0,74,173,0.15);
+#modalNuevoPlan .modal-body {
+    background-color: #f8f9fa;
+    padding: 2rem;
 }
 
-/* ===== Validación ===== */
-.was-validated .form-control:invalid,
-.was-validated .form-select:invalid {
-  border-color: #dc3545;
+#modalNuevoPlan .card {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 12px;
 }
 
-.was-validated .form-control:valid,
-.was-validated .form-select:valid {
-  border-color: #198754;
+#modalNuevoPlan .card-header {
+    background-color: #f1f4f8;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.5rem;
+}
+#modalNuevoPlan .nav-tabs {
+    border-bottom: none;
+    justify-content: center;
 }
 
-/* ===== Alertas de visualización ===== */
-#visualizacion-resultados .alert {
-  background-color: #e9f5ff;
-  color: #3cb9c2;
-  border: 1px solid #b6d9ff;
-  border-radius: 8px;
-}
-.tab-pane form p,
-.tab-pane p {
-  margin-bottom: 1rem;
+#modalNuevoPlan .nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
 }
 
-.tab-pane label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.3rem;
+#modalNuevoPlan .nav-tabs .nav-link.active {
+    background-color: white;
+    color: #192A41;
+    font-weight: 600;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
 }
 
-.tab-pane input,
-.tab-pane select,
-.tab-pane textarea {
-  width: 100%;
-  border: 1px solid #ced4da;
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.95rem;
-  box-sizing: border-box;
+/* Botones dentro del modal */
+#modalNuevoPlan .btn-primary {
+    background-color: #7984f1; /* Botón azul principal */
+    border-color: #7984f1;
+}
+#modalNuevoPlan .btn-primary:hover {
+    background-color: #606be4;
+    border-color: #606be4;
 }
 
-.tab-pane input:focus,
-.tab-pane select:focus,
-.tab-pane textarea:focus {
-  outline: none;
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+/* Ajustes de estilo para el form.as_p */
+.tab-pane form p {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
 }
-
+.tab-pane form label {
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+.tab-pane form input,
+.tab-pane form select {
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+}
 </style>
 {% endblock %}
 
@@ -253,7 +276,8 @@
     <main class="main-content">
         <header class="page-head">
             <div>
-                <h2>Planes de Pago</h2>
+                <h2 class="page-title">Planes de Pago</h2>
+                <h5 class="page-subtitle">Activos Recientes</h5>
             </div>
             <div class="actions">
                 <a href="{% url 'exportar_planes_pdf' %}" class="btn btn-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</a>
@@ -262,8 +286,22 @@
                 <a href="{% url 'imprimir_planes' %}" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir</a>
                 {% if user|is_in_groups:"Administrador,Tesorero" %}
                 <button type="button" class="btn-new" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan" onclick="resetFormulario()">+ Nuevo Plan</button>
-                <button type="button" class="btn-new" style="background-color: #ff6b35;" data-bs-toggle="modal" data-bs-target="#modalNuevaRegularizacion" onclick="resetFormularioRegularizacion()">+ Regularización</button>
+                <button type="button" class="btn-new" style="background-color: #ffffff;" data-bs-toggle="modal" data-bs-target="#modalNuevaRegularizacion" onclick="resetFormularioRegularizacion()">+ Regularización</button>
                 {% endif %}
+
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <h6 class="dropdown-header">Filtros por:</h6>
+                        <li><a class="dropdown-item" href="#">Año</a></li>
+                        <li><a class="dropdown-item" href="#">Carrera</a></li>
+                        <li><a class="dropdown-item" href="#">Modalidad</a></li>
+                        <li><a class="dropdown-item" href="#">Cohorte</a></li>
+                        <li><a class="dropdown-item" href="#">Tipo</a></li>
+                    </ul>
+                </div>
             </div>
         </header>
         <br>
@@ -712,15 +750,17 @@ $(function () {
                     let botones = '<div class="acciones">';
 
                     // Botón Entrar (todos pueden ver)
-                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter">Ver Plan</a>`;
+                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter"><i class="bi bi-eye"></i></a>`;
 
                     // Botón Detalle (todos pueden ver)
                     botones += `<button class="btn-detail" data-id="${data.id}" data-action="detalle">Detalle</button>`;
 
                     // Botones de edición (solo Administrador y Tesorero)
                     if (puedeModificar) {
-                        botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">Editar</button>`;
-                        botones += `<button class="btn-clone" data-id="${data.id}" data-action="clonar">Clonar</button>`;
+                        botones += `<button class="btn-edit" data-id="${data.id}" data-action="editar">
+                            <i class="bi bi-pencil-square"></i> Editar</button>`;
+                        botones += `<button class="btn-clone" data-id="${data.id}" data-action="clonar">
+                            <i class="bi bi-files"></i>Clonar</button>`;
                     }
 
                     // Botón Suspender (solo Administrador)
@@ -729,7 +769,7 @@ $(function () {
                         <button class="btn-susp btn btn-warning btn-sm"
                                 data-id="${data.id}"
                                 data-tipo="${data.tipo}">
-                            Suspender
+                            <i class="bi bi-x-circle"></i>  Suspender
                         </button>`;
 
                     }
