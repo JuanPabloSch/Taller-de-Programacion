@@ -1798,6 +1798,9 @@ def usuario_crear(request):
         if len(password) < 6:
             return JsonResponse({"ok": False, "msg": "La contraseña debe tener al menos 6 caracteres"}, status=400)
 
+        if not grupo_id:
+            return JsonResponse({"ok": False, "msg": "Debe seleccionar un rol para el usuario"}, status=400)
+
         # Crear usuario
         with transaction.atomic():
             user = User.objects.create_user(

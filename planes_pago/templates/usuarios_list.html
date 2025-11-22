@@ -416,9 +416,9 @@ header.page-head {
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="grupo" class="form-label">Rol</label>
-                            <select class="form-select" id="grupo" name="grupo">
-                                <option value="">Sin rol asignado</option>
+                            <label for="grupo" class="form-label">Rol <span class="text-danger">*</span></label>
+                            <select class="form-select" id="grupo" name="grupo" required>
+                                <option value="">Seleccione un rol</option>
                                 <option value="1">Administrador</option>
                                 <option value="2">Tesorero</option>
                                 <option value="3">Consulta</option>
@@ -624,6 +624,13 @@ $(document).ready(function() {
 
         if (!username) {
             Swal.fire("Error", "El nombre de usuario es obligatorio", "error");
+            return;
+        }
+
+        // Validar que se haya seleccionado un rol
+        const grupoId = $('#grupo').val();
+        if (!grupoId || grupoId === '') {
+            Swal.fire("Error", "Debe seleccionar un rol para el usuario", "error");
             return;
         }
 
