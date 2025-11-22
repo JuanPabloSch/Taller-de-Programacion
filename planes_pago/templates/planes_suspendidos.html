@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load permisos_tags %}
 
 {% block title %}Planes Suspendidos y Desactivados{% endblock %}
 
@@ -346,6 +347,7 @@ section h4 {
                 <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
                 <td class="text-center"><span class="badge-estado badge-suspendido">Suspendido</span></td>
                 <td>
+                    {% user_role user as rol %}
                     <div class="acciones">
                         <button class="btn-enter btn-ver"
                         data-id="{{ plan.id }}"
@@ -353,6 +355,7 @@ section h4 {
                         title="Ver detalles">
                         <i class="bi bi-eye"></i>
                         </button>
+                        {% if rol != "Consulta" %}
                         <button class="btn-detail btn-desactivar"
                         data-id="{{ plan.id }}"
                         data-tipo="{{ plan.tipo_backend }}"
@@ -365,6 +368,7 @@ section h4 {
                         title="Reactivar">
                         <i class="bi bi-arrow-clockwise"></i> Reactivar
                         </button>
+                        {% endif %}
                     </div>
                 </td>
             </tr>
@@ -410,6 +414,7 @@ section h4 {
                 <td class="text-center">{{ plan.fecha_creacion|date:"d/m/Y H:i" }}</td>
                 <td class="text-center"><span class="badge-estado badge-desactivado">Desactivado</span></td>
                 <td>
+                    {% user_role user as rol %}
                     <div class="acciones">
                         <button class="btn-enter btn-ver"
                         data-id="{{ plan.id }}"
@@ -417,12 +422,14 @@ section h4 {
                         title="Ver detalles">
                         <i class="bi bi-eye"></i>
                         </button>
+                        {% if rol != "Consulta" %}
                         <button class="btn-clone btn-reactivar"
                         data-id="{{ plan.id }}"
                         data-tipo="{{ plan.tipo_backend }}"
                         title="Reactivar">
                         <i class="bi bi-arrow-clockwise"></i> Reactivar
                         </button>
+                        {% endif %}
                     </div>
                 </td>
             </tr>
@@ -472,6 +479,8 @@ section h4 {
 document.addEventListener("DOMContentLoaded", () => {
 
     const csrftoken = "{{ csrf_token }}";
+    {% user_role user as rol %}
+    const userRole = "{{ rol }}";
 
     // Inicializar DataTables para planes suspendidos
     const dtSuspendidos = $('#tablaSuspendidos').DataTable({
@@ -883,7 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 modalBody.innerHTML = contenido;
 
-                // Mostrar botones según el estado
+                // Mostrar botones según el estado y rol del usuario
                 const btnDesactivar = document.querySelector('.btn-modal-desactivar');
                 const btnReactivar = document.querySelector('.btn-modal-reactivar');
 
@@ -891,8 +900,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnDesactivar.classList.add('btn-desactivar-custom');
                 btnReactivar.classList.add('btn-reactivar-custom');
 
-
-                if (plan.estado === 'S') {
+                // Si el usuario es "Consulta", ocultar todos los botones de acción
+                if (userRole === 'Consulta') {
+                    btnDesactivar.style.display = 'none';
+                    btnReactivar.style.display = 'none';
+                } else if (plan.estado === 'S') {
                     btnDesactivar.style.display = 'inline-block';
                     btnReactivar.style.display = 'inline-block';
                     btnDesactivar.onclick = () => {
@@ -901,7 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             titulo: `¿Desactivar el ${tipo} #${id}?`,
                             texto: "Pasará a la sección de desactivados.",
                             confirmText: "Sí, desactivar",
-                            colorConfirm: "#1565c0" 
+                            colorConfirm: "#1565c0"
                         }).then(result => {
                             if (result.isConfirmed) {
                                 desactivarObjeto(id, tipo);

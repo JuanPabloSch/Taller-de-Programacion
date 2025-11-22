@@ -33,16 +33,14 @@ from .forms import (
 from .decorators import group_required, can_delete, can_modify
 
 def registrar_accion(usuario, accion, plan=None, regularizacion=None, descripcion=""):
-    # Solo registrar si es un PlanPago, ya que el modelo HistorialAccion solo acepta PlanPago
-    if plan:
-        HistorialAccion.objects.create(
-            usuario=usuario,
-            accion=accion,
-            plan=plan,
-            descripcion=descripcion
-        )
-    # Si es una regularización, podríamos registrarlo de otra forma o simplemente no registrarlo
-    # por ahora, para evitar errores, no lo registramos
+    # Registrar la acción en el historial
+    # El campo 'plan' puede ser None para acciones generales
+    HistorialAccion.objects.create(
+        usuario=usuario,
+        accion=accion,
+        plan=plan,  # Puede ser None
+        descripcion=descripcion
+    )
 
 # -------------------------------
 # Clase PDF personalizada
@@ -272,6 +270,14 @@ def plan_crear(request):
                             # Si hay error al guardar cuotas, log pero no falla la transacción
                             print(f"Error al guardar cuotas: {e}")
 
+                    # Registrar en historial
+                    registrar_accion(
+                        usuario=request.user,
+                        accion="Creó un plan",
+                        plan=None,
+                        descripcion=f"Plan Normal creado: '{regularizacion.nombre}' - {regularizacion.carrera} ({regularizacion.cohorte}) - Suspendido"
+                    )
+
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'success': True, 'message': 'Plan creado correctamente.'})
 
@@ -364,6 +370,14 @@ def regularizacion_crear(request):
                             # Si hay error al guardar cuotas, log pero no falla la transacción
                             print(f"Error al guardar cuotas: {e}")
 
+                    # Registrar en historial
+                    registrar_accion(
+                        usuario=request.user,
+                        accion="Creó una regularización",
+                        plan=None,
+                        descripcion=f"Regularización creada: '{regularizacion.nombre}' - {regularizacion.carrera} ({regularizacion.cohorte}) - Suspendida"
+                    )
+
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'success': True, 'message': 'Regularización creada correctamente.'})
 
@@ -393,12 +407,18 @@ def regularizacion_crear(request):
 
 
 @login_required
-@group_required('Administrador', 'Tesorero')
 def regularizacion_editar(request, pk):
     """
     Editar una regularización existente con sus reglas de estructura y mora.
     Devuelve los datos del plan en formato JSON para cargar en el modal.
+    Solo Administrador y Tesorero pueden hacer POST (editar).
+    Consulta puede hacer GET (solo lectura).
     """
+    # Verificar permisos para POST (edición)
+    if request.method == 'POST':
+        if not (request.user.is_superuser or request.user.groups.filter(name__in=['Administrador', 'Tesorero']).exists()):
+            return JsonResponse({'ok': False, 'msg': 'No tiene permisos para editar regularizaciones'}, status=403)
+
     regularizacion = get_object_or_404(Regularizacion, pk=pk)
 
     if request.method == 'GET':
@@ -547,12 +567,18 @@ def regularizacion_editar(request, pk):
 
 
 @login_required
-@group_required('Administrador', 'Tesorero')
 def plan_editar(request, pk):
     """
     Editar un plan de pago existente con sus reglas de estructura y mora.
     Devuelve los datos del plan en formato JSON para cargar en el modal.
+    Solo Administrador y Tesorero pueden hacer POST (editar).
+    Consulta puede hacer GET (solo lectura).
     """
+    # Verificar permisos para POST (edición)
+    if request.method == 'POST':
+        if not (request.user.is_superuser or request.user.groups.filter(name__in=['Administrador', 'Tesorero']).exists()):
+            return JsonResponse({'ok': False, 'msg': 'No tiene permisos para editar planes'}, status=403)
+
     regularizacion = get_object_or_404(Regularizacion, pk=pk, tipo='Plan Normal')
 
     if request.method == 'GET':
@@ -1649,10 +1675,12 @@ def reactivar_objeto(request):
 
 
 @login_required
+@group_required('Administrador', 'Tesorero')
 def historial(request):
     return render(request, "historial.html")
 
 @login_required
+@group_required('Administrador', 'Tesorero')
 def historial_ajax(request):
     historial = HistorialAccion.objects.select_related("usuario", "plan").order_by("-fecha")
 
@@ -1660,9 +1688,12 @@ def historial_ajax(request):
     for h in historial:
         fecha_local = timezone.localtime(h.fecha)  # 👈 acá convertimos a tu zona
 
+        # Mostrar nombre y apellido en lugar de username
+        nombre_completo = f"{h.usuario.first_name} {h.usuario.last_name}" if h.usuario else "—"
+
         data.append({
             "fecha": fecha_local.strftime("%d/%m/%Y %H:%M"),
-            "usuario": h.usuario.username if h.usuario else "—",
+            "usuario": nombre_completo,
             "accion": h.accion,
             "plan": str(h.plan) if h.plan else "—",
             "descripcion": h.descripcion,
@@ -1766,6 +1797,9 @@ def usuario_crear(request):
 
         if len(password) < 6:
             return JsonResponse({"ok": False, "msg": "La contraseña debe tener al menos 6 caracteres"}, status=400)
+
+        if not grupo_id:
+            return JsonResponse({"ok": False, "msg": "Debe seleccionar un rol para el usuario"}, status=400)
 
         # Crear usuario
         with transaction.atomic():

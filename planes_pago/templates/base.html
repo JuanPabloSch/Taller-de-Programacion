@@ -206,7 +206,7 @@
                     <li class="nav-item">
                         <span class="navbar-text text-dark me-3">
                             <i class="bi bi-person"></i>
-                            <strong>{{ user.username }}</strong>
+                            <strong>{{ user.first_name }} {{ user.last_name }}</strong>
                             <span class="badge bg-secondary">{{ rol }}</span>
                         </span>
                     </li>
@@ -238,13 +238,14 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"></i> Planes Suspendidos/desactivados</a></li>
                 {% if user|has_group:"Administrador" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_list' %}"><i class="bi bi-people"></i> Usuarios y Roles</a></li>
+                {% endif %}
+                {% if user|is_in_groups:"Administrador,Tesorero" or user.is_superuser %}
                     <li class="nav-item">
-                    <a class="nav-link" href="{% url 'historial' %}">
-                    <i class="bi bi-clock-history"></i> Historial
-                    </a>
-                </li>
-
-                {% endif %} 
+                        <a class="nav-link" href="{% url 'historial' %}">
+                            <i class="bi bi-clock-history"></i> Historial
+                        </a>
+                    </li>
+                {% endif %}
             {% endif %}
         </ul>
     </nav>

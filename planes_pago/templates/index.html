@@ -178,7 +178,7 @@
 <div class="dashboard-container">
 
     <div class="welcome-section">
-        <h1>Hola {{ user.username }} 👋</h1>
+        <h1>Hola {{ user.first_name }} {{ user.last_name }} 👋</h1>
         <p>Bienvenido al sistema de administración de pagos del ISDM.</p>
     </div>
 
@@ -213,6 +213,7 @@
         </div>
         {% endif %}
 
+        {% if user|is_in_groups:"Administrador,Tesorero" or user.is_superuser %}
         <div class="dashboard-card">
             <div class="card-icon">
                 <i class="bi bi-clock-history"></i>
@@ -221,6 +222,7 @@
             <p>Listado completo de actividades del sistema.</p>
             <a class="btn btn-secondary-custom" href="{% url 'historial' %}">Ir al Historial</a>
         </div>
+        {% endif %}
 
     </div>
 </div>

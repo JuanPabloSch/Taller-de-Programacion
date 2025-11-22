@@ -35,8 +35,10 @@ body {
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    margin: 20px;
+    margin: 20px auto;
     padding: 0;
+    max-width: 1400px;
+    width: 90%;
 }
 
 /* === ENCABEZADO Y ACCIONES === */
@@ -94,7 +96,7 @@ header.page-head {
 
 /* === ESTILOS DE LA TABLA DATATABLES === */
 /* Contenedor principal de la tabla (para el margen y el separador) */
-.table-container {
+.table-wrapper {
     padding: 20px;
     padding-top: 0;
 }
@@ -1026,8 +1028,8 @@ $(function () {
 
                         /*ACA LE PUSE ICONITOS Y ESO*/
 
-                    // Botón Entrar (todos pueden ver)
-                    botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter"><i class="bi bi-eye"></i></a>`;
+                    // Botón Entrar (todos pueden ver) - COMENTADO
+                    // botones += `<a href="{% url 'cuotas_list' %}?plan=${data.id}" class="btn-enter"><i class="bi bi-eye"></i></a>`;
 
                     // Botón Detalle (todos pueden ver)
                     botones += `<button class="btn-detail" data-id="${data.id}" data-action="detalle">Detalle</button>`;
@@ -1355,22 +1357,31 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                 } else if (data.estructura && data.mora) {
                     // Si las cuotas no son válidas pero tenemos datos de estructura y mora,
                     // recalcular las cuotas automáticamente
-                    console.log('Cuotas con valores en 0, recalculando automáticamente...');
+                    console.log('Cuotas con valores en 0 (Edición), recalculando automáticamente...');
 
-                    // Esperar un momento para que el modal se muestre
-                    setTimeout(() => {
-                        // Simular el click en el botón de simular
-                        const formElement = document.querySelector('#modalNuevoPlan form');
-                        if (formElement) {
-                            const formData = getFormData(formElement);
-                            const response = calcularCuotas(formData);
+                    // Construir el objeto de datos manualmente desde los valores cargados
+                    const formDataObj = {
+                        'estructura-valor': data.estructura.valor || '0',
+                        'estructura-tasa': data.estructura.tasa || '0',
+                        'estructura-pago_incial': data.estructura.pago_inicial || '0',
+                        'estructura-cantidad_de_cuotas': data.estructura.cantidad_cuotas || '0',
+                        'estructura-frecuencia_de_pago': data.estructura.frecuencia || '',
+                        'estructura-dia_vencimiento': data.estructura.dia_vencimiento || '1',
+                        'mora-tipo_de_recargo': data.mora.tipo_recargo || '',
+                        'mora-cantidad_recargo': data.mora.cantidad || '0',
+                        'mora-dias_gracia': data.mora.dias_gracia || '0',
+                        'estructura-origen_deuda': data.estructura.origen_deuda || ''
+                    };
 
-                            if (response.status === 'ok') {
-                                cuotasSimuladas = response.cuotas;
-                                mostrarCuotasExistentes(response.cuotas);
-                            }
-                        }
-                    }, 500);
+                    const response = calcularCuotas(formDataObj);
+
+                    if (response.status === 'ok') {
+                        cuotasSimuladas = response.cuotas;
+                        window.cuotasExistentes = response.cuotas;
+                        mostrarCuotasExistentes(response.cuotas);
+                    } else {
+                        console.error('Error al calcular cuotas:', response.message);
+                    }
                 } else if (data.cuotas && data.cuotas.length > 0) {
                     // Mostrar las cuotas aunque estén en 0
                     mostrarCuotasExistentes(data.cuotas);
@@ -1716,11 +1727,52 @@ $('#tablaPlanes').on('click', '.btn-susp', function () {
                 // Guardar las cuotas para visualización
                 window.cuotasExistentes = data.cuotas || [];
 
+                // Verificar si las cuotas tienen valores válidos (no todos en 0)
+                let cuotasValidas = false;
                 if (data.cuotas && data.cuotas.length > 0) {
+                    // Verificar si al menos una cuota tiene valores diferentes de 0
+                    cuotasValidas = data.cuotas.some(c =>
+                        parseFloat(c.base) !== 0 ||
+                        parseFloat(c.interes) !== 0
+                    );
+                }
+
+                if (cuotasValidas) {
+                    // Si las cuotas son válidas, mostrarlas
+                    mostrarCuotasExistentes(data.cuotas);
+                } else if (data.estructura && data.mora) {
+                    // Si las cuotas no son válidas pero tenemos datos de estructura y mora,
+                    // recalcular las cuotas automáticamente ANTES de deshabilitar los campos
+                    console.log('Cuotas con valores en 0 (Detalle), recalculando automáticamente...');
+
+                    // Construir el objeto de datos manualmente desde los valores cargados
+                    const formDataObj = {
+                        'estructura-valor': data.estructura.valor || '0',
+                        'estructura-tasa': data.estructura.tasa || '0',
+                        'estructura-pago_incial': data.estructura.pago_inicial || '0',
+                        'estructura-cantidad_de_cuotas': data.estructura.cantidad_cuotas || '0',
+                        'estructura-frecuencia_de_pago': data.estructura.frecuencia || '',
+                        'estructura-dia_vencimiento': data.estructura.dia_vencimiento || '1',
+                        'mora-tipo_de_recargo': data.mora.tipo_recargo || '',
+                        'mora-cantidad_recargo': data.mora.cantidad || '0',
+                        'mora-dias_gracia': data.mora.dias_gracia || '0',
+                        'estructura-origen_deuda': data.estructura.origen_deuda || ''
+                    };
+
+                    const response = calcularCuotas(formDataObj);
+
+                    if (response.status === 'ok') {
+                        window.cuotasExistentes = response.cuotas;
+                        mostrarCuotasExistentes(response.cuotas);
+                    } else {
+                        console.error('Error al calcular cuotas:', response.message);
+                    }
+                } else if (data.cuotas && data.cuotas.length > 0) {
+                    // Mostrar las cuotas aunque estén en 0
                     mostrarCuotasExistentes(data.cuotas);
                 }
 
-                // DESHABILITAR TODOS LOS CAMPOS (modo solo lectura)
+                // DESHABILITAR TODOS LOS CAMPOS (modo solo lectura) - DESPUÉS de calcular
                 $('#modalNuevoPlan input, #modalNuevoPlan select, #modalNuevoPlan textarea').prop('disabled', true);
 
                 // Cambiar el botón "Simular Plan" a "Siguiente" y que vaya a visualización
