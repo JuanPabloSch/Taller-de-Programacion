@@ -407,12 +407,18 @@ def regularizacion_crear(request):
 
 
 @login_required
-@group_required('Administrador', 'Tesorero')
 def regularizacion_editar(request, pk):
     """
     Editar una regularización existente con sus reglas de estructura y mora.
     Devuelve los datos del plan en formato JSON para cargar en el modal.
+    Solo Administrador y Tesorero pueden hacer POST (editar).
+    Consulta puede hacer GET (solo lectura).
     """
+    # Verificar permisos para POST (edición)
+    if request.method == 'POST':
+        if not (request.user.is_superuser or request.user.groups.filter(name__in=['Administrador', 'Tesorero']).exists()):
+            return JsonResponse({'ok': False, 'msg': 'No tiene permisos para editar regularizaciones'}, status=403)
+
     regularizacion = get_object_or_404(Regularizacion, pk=pk)
 
     if request.method == 'GET':
@@ -561,12 +567,18 @@ def regularizacion_editar(request, pk):
 
 
 @login_required
-@group_required('Administrador', 'Tesorero')
 def plan_editar(request, pk):
     """
     Editar un plan de pago existente con sus reglas de estructura y mora.
     Devuelve los datos del plan en formato JSON para cargar en el modal.
+    Solo Administrador y Tesorero pueden hacer POST (editar).
+    Consulta puede hacer GET (solo lectura).
     """
+    # Verificar permisos para POST (edición)
+    if request.method == 'POST':
+        if not (request.user.is_superuser or request.user.groups.filter(name__in=['Administrador', 'Tesorero']).exists()):
+            return JsonResponse({'ok': False, 'msg': 'No tiene permisos para editar planes'}, status=403)
+
     regularizacion = get_object_or_404(Regularizacion, pk=pk, tipo='Plan Normal')
 
     if request.method == 'GET':
