@@ -181,6 +181,7 @@
         </div>
         {% endif %}
 
+        {% if user|is_in_groups:"Administrador,Tesorero" or user.is_superuser %}
         <div class="dashboard-card">
             <a href="{% url 'historial' %}">
             <div class="card-icon">
@@ -190,6 +191,7 @@
             <p>Listado completo de actividades del sistema.</p>
             </a>
         </div>
+        {% endif %}
 
     </div>
 </div>
