@@ -1674,9 +1674,12 @@ def historial_ajax(request):
     for h in historial:
         fecha_local = timezone.localtime(h.fecha)  # 👈 acá convertimos a tu zona
 
+        # Mostrar nombre y apellido en lugar de username
+        nombre_completo = f"{h.usuario.first_name} {h.usuario.last_name}" if h.usuario else "—"
+
         data.append({
             "fecha": fecha_local.strftime("%d/%m/%Y %H:%M"),
-            "usuario": h.usuario.username if h.usuario else "—",
+            "usuario": nombre_completo,
             "accion": h.accion,
             "plan": str(h.plan) if h.plan else "—",
             "descripcion": h.descripcion,
