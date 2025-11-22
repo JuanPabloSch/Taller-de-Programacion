@@ -33,16 +33,14 @@ from .forms import (
 from .decorators import group_required, can_delete, can_modify
 
 def registrar_accion(usuario, accion, plan=None, regularizacion=None, descripcion=""):
-    # Solo registrar si es un PlanPago, ya que el modelo HistorialAccion solo acepta PlanPago
-    if plan:
-        HistorialAccion.objects.create(
-            usuario=usuario,
-            accion=accion,
-            plan=plan,
-            descripcion=descripcion
-        )
-    # Si es una regularización, podríamos registrarlo de otra forma o simplemente no registrarlo
-    # por ahora, para evitar errores, no lo registramos
+    # Registrar la acción en el historial
+    # El campo 'plan' puede ser None para acciones generales
+    HistorialAccion.objects.create(
+        usuario=usuario,
+        accion=accion,
+        plan=plan,  # Puede ser None
+        descripcion=descripcion
+    )
 
 # -------------------------------
 # Clase PDF personalizada
@@ -272,6 +270,14 @@ def plan_crear(request):
                             # Si hay error al guardar cuotas, log pero no falla la transacción
                             print(f"Error al guardar cuotas: {e}")
 
+                    # Registrar en historial
+                    registrar_accion(
+                        usuario=request.user,
+                        accion="Creó un plan",
+                        plan=None,
+                        descripcion=f"Plan Normal creado: '{regularizacion.nombre}' - {regularizacion.carrera} ({regularizacion.cohorte}) - Suspendido"
+                    )
+
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'success': True, 'message': 'Plan creado correctamente.'})
 
@@ -363,6 +369,14 @@ def regularizacion_crear(request):
                         except Exception as e:
                             # Si hay error al guardar cuotas, log pero no falla la transacción
                             print(f"Error al guardar cuotas: {e}")
+
+                    # Registrar en historial
+                    registrar_accion(
+                        usuario=request.user,
+                        accion="Creó una regularización",
+                        plan=None,
+                        descripcion=f"Regularización creada: '{regularizacion.nombre}' - {regularizacion.carrera} ({regularizacion.cohorte}) - Suspendida"
+                    )
 
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return JsonResponse({'success': True, 'message': 'Regularización creada correctamente.'})

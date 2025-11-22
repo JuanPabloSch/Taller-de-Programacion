@@ -2,133 +2,239 @@
 {% load static %}
 {% block title %}Historial de Planes{% endblock %}
 
+{% block navbar %}{% endblock %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+/* === AJUSTES GLOBALES DEL LAYOUT === */
+body {
+    background-color: #d2dde4a2 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif;
+}
+
+.main-content {
+    flex: 1;
+    padding: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* Contenedor de la tabla con fondo blanco */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin: 20px;
+    padding: 20px;
+}
+
+/* === ENCABEZADO Y ACCIONES === */
+header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
 .page-head h2 {
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 700;
     margin-bottom: 5px;
-    color: #192A41; /* Color de texto oscuro del modelo */
+    color: #192A41;
+    letter-spacing: -0.5px;
 }
 
-    .main-content {
-    background-color: #FFFFFF; /* Fondo blanco */
-    border-radius: 20px; /* Suele tener esquinas redondeadas */
-    padding: 20px; /* Un padding interno */
+.page-head span {
+    display: block;
+    color: #6c757d;
+    font-size: 0.95rem;
+    font-weight: 400;
 }
 
-    header.page-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 10px;
-    }
-    .page-title {
-        font-size: 2rem;
-        font-weight: 300;
-        margin-bottom: 0;
-    }
-    .page-subtitle {
-        font-size: 1.2rem;
-        font-weight: 400;
-        color: #555;
-        margin-top: 0;
-    }
+/* === ESTILOS DE LA TABLA === */
+table.dataTable {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    width: 100% !important;
+}
 
-    table.dataTable th {
-        padding: 12px 10px;
-        font-weight: 600;
-        text-align: left;
-        color: #14213d;
-        background-color: #e9ecef;
-    }
+table.dataTable thead th {
+    background-color: #192A41 !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 15px 12px;
+    border: none;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    table.dataTable td {
-        padding: 10px;
-        vertical-align: middle;
-    }
+table.dataTable thead th:first-child {
+    border-top-left-radius: 8px;
+}
 
-    .status-badge {
-        padding: .35em .65em;
-        font-size: .75em;
-        font-weight: 700;
-        border-radius: .25rem;
-        color: white;
-    }
-    .badge-created { background-color: #007bff; }
-    .badge-edited { background-color: #ffc107; color: #000; }
-    .badge-deactivated { background-color: #dc3545; }
+table.dataTable thead th:last-child {
+    border-top-right-radius: 8px;
+}
 
- /* Contenedor para alinear el botón de imprimir a la derecha */
+table.dataTable tbody td {
+    padding: 14px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+}
+
+table.dataTable tbody tr {
+    transition: all 0.2s ease;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.001);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+table.dataTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* === BADGES DE ESTADO === */
+.status-badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    min-width: 140px;
+}
+.badge-created {
+    background-color: #28a745;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+.badge-edited {
+    background-color: #ffc107;
+    color: #000;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+}
+.badge-deactivated {
+    background-color: #dc3545;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+.badge-activated {
+    background-color: #17a2b8;
+    box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
+}
+.badge-cloned {
+    background-color: #6f42c1;
+    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
+}
+
+/* === BOTÓN DE IMPRIMIR === */
 .report-actions {
     display: flex;
-    justify-content: center; /* CAMBIO CLAVE: Centra el contenido horizontalmente */
-    /* Ajustar el padding inferior */
-    padding-bottom: 20px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
 }
 
-/* Botón de Imprimir Reporte */
 .btn-report {
-    background-color: #4f87c4; /* Fondo blanco */
-    color: #ffffff; /* Color de texto secundario/neutral */
-    border: 1px solid #6c757d;
-    padding: 8px 15px;
+    background-color: #ffffff;
+    color: #007bff;
+    border: 1px solid #007bff;
+    padding: 10px 20px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s;
-    display: flex; /* Para alinear el icono y el texto */
+    display: flex;
     align-items: center;
     cursor: pointer;
-    margin-top: 15px; /* Separación de la tabla */
-}
-.btn-report:hover {
-    background-color: #14213d;
-    color: #fff;
-}
-.btn-report i {
-    font-size: 1.1rem;
-    margin-right: 5px; /* Espacio entre el icono y el texto */
 }
 
+.btn-report:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btn-report i {
+    font-size: 1.1rem;
+    margin-right: 8px;
+}
+
+/* === ESTILOS DE DATATABLES (controles) === */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 0 5px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-left: 5px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 6px;
+    margin: 0 2px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #007bff !important;
+    color: white !important;
+    border: 1px solid #007bff !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="main-content">
-    <header class="page-head">
-        <div>
-            <h2 class="page-title">Planes de Pago</h2>
-            <h5 class="page-subtitle">Historial</h5>
+    <div class="table-container">
+        <header class="page-head">
+            <div>
+                <h2>Planes de Pago</h2>
+                <span>Historial</span>
+            </div>
+        </header>
+
+        <table id="tablaHistorial" class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Plan</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="report-actions">
+            <button id="btnPrintReport" class="btn-report">
+                <i class="bi bi-file-earmark-text"></i> Imprimir reporte completo
+            </button>
         </div>
-    </header>
-
-    <table id="tablaHistorial" class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Usuario</th>
-                <th>Acción</th>
-                <th>Plan</th>
-                <th>Descripción</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <div class="report-actions">
-        <button id="btnPrintReport" class="btn-report" onclick="window.print();">
-            <i class="bi bi-file-earmark-text"></i> Imprimir reporte completo
-        </button>
-
     </div>
 </main>
 {% endblock %}
@@ -151,7 +257,7 @@ $('#btnPrintReport').on('click', function() {
         columns: [
             { data: "fecha" },
             { data: "usuario" },
-            { 
+            {
                 data: "accion",
                 render: function(data){
                     if (data.includes("Editó")) {
@@ -162,6 +268,12 @@ $('#btnPrintReport').on('click', function() {
                     }
                     if (data.includes("Creó")) {
                         return `<span class="status-badge badge-created">${data}</span>`;
+                    }
+                    if (data.includes("Reactivó")) {
+                        return `<span class="status-badge badge-activated">${data}</span>`;
+                    }
+                    if (data.includes("Clonó")) {
+                        return `<span class="status-badge badge-cloned">${data}</span>`;
                     }
                     return data;
                 }
