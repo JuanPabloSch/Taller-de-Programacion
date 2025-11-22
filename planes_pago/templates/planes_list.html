@@ -16,9 +16,9 @@
 
 <style>
 /* === AJUSTES GLOBALES DEL LAYOUT === */
-/*AUTONONA, SI SE ME BORRA D NUEVO copiar y pegar todo el style de vuelta*/
+/*AUTONOTA, SI SE ME BORRA D NUEVO copiar y pegar todo el style de vuelta*/
 body {
-    background-color: #d2dde4a2 !important;
+    background-color: #bac7cfa2 !important;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
@@ -26,7 +26,7 @@ body {
 .main-content {
     flex: 1;
     padding: 0;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+   /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);*/
     min-height: 100vh;
 }
 
@@ -34,7 +34,7 @@ body {
 .table-container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.35);
     margin: 20px;
     padding: 0;
 }
@@ -143,13 +143,19 @@ header.page-head {
 }
 
 .badge-regularizacion {
-    background-color: #e3f2fd;
-    color: #1976d2;
+    color: #007b8b;  
+    border: 2px solid #72ccd8; 
+    border-radius: 10px; 
+    padding: 4px 8px;      
+    font-weight: bold;
 }
 
 .badge-plan {
-    background-color: #f3e5f5;
-    color: #7b1fa2;
+    color: #01579b;           /* Azul profundo */
+    border: 2px solid #84b6dd;  
+    border-radius: 10px; 
+    padding: 4px 8px;
+    font-weight: bold;
 }
 
 /* Estilo para los botones de la tabla */
@@ -205,7 +211,8 @@ header.page-head {
 .acciones a:hover,
 .acciones button:hover {
     background-color: #192A41;
-    transform: scale(1.1); /* Hace que el botón crezca un 10% */
+    transform: scale(1.1);
+    color: #ffffff; /* Hace que el botón crezca un 10% */
     /* Se elimina cualquier regla de background-color para mantener el color base. */
 }
 
@@ -436,22 +443,27 @@ header.page-head {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+
+/*CAMBIOS TONALIDADES MAS FRIAS*/
 .btn-danger {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    /* Magenta Frío/Ciruela: Sustituye el rojo */
+    background: linear-gradient(135deg, #e83e8c 0%, #bd2160 100%);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    /* Verde Teal: Sustituye el verde cálido */
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
 }
 
 .btn-primary {
+    /* Azul Cobalto: Se mantiene en un tono azul vibrante y frío */
     background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    /* Gris Azulado: Más frío que el gris puro */
+    background: linear-gradient(135deg, #708090 0%, #546a74 100%);
 }
-
 /* === TABLA MEJORADA === */
 .dataTables_wrapper {
     padding: 20px !important;
