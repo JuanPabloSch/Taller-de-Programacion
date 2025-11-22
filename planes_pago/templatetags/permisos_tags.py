@@ -47,15 +47,16 @@ def can_modify_items(user):
 @register.simple_tag
 def user_role(user):
     """
-    Retorna el rol del usuario basado en sus grupos.
-    Los únicos roles válidos son: Administrador, Tesorero, Consulta
-    Uso en template: {% user_role request.user as rol %}
+    Retorna el rol del usuario basado en su grupo.
     """
     groups = user.groups.values_list('name', flat=True)
+
     if 'Administrador' in groups:
         return "Administrador"
     elif 'Tesorero' in groups:
         return "Tesorero"
+    elif 'Secretaría' in groups:
+        return "Secretaría"
     elif 'Consulta' in groups:
         return "Consulta"
     else:

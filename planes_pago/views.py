@@ -1064,141 +1064,207 @@ def cuota_borrar(request, pk):
 # -------------------------------
 @login_required
 def exportar_planes_pdf(request):
+
+    # Sanitizador seguro
+    def safe(s):
+        return str(s).encode("latin1", "replace").decode("latin1")
+
     pdf = PDF()
     pdf.alias_nb_pages()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+
+    # Márgenes más lindos
+    pdf.set_left_margin(12)
+    pdf.set_right_margin(12)
 
     fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
     usuario = request.user.username
-    pdf.cell(0, 10, f"Listado de Planes de Pago", ln=True, align="C")
-    pdf.set_font("Arial", "I", 10)
-    pdf.cell(0, 10, f"Generado por: {usuario} - Fecha: {fecha}", ln=True, align="C")
-    pdf.ln(10)
 
-    # Headers con anchos ajustados para que quepan en la página
+    # Encabezado lindo
+    pdf.set_fill_color(230, 230, 230)
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 12, safe("Listado de Planes de Pago"), ln=True, align="C", fill=True)
+
+    pdf.set_font("Arial", "I", 9)
+    pdf.cell(0, 6, safe(f"Generado por: {usuario} — Fecha: {fecha}"), ln=True, align="C")
+    pdf.ln(8)
+
+    # Header de tabla
+    pdf.set_fill_color(210, 210, 210)
     pdf.set_font("Arial", "B", 9)
-    pdf.cell(30, 10, "Tipo", 1, 0, "C")
-    pdf.cell(50, 10, "Nombre", 1, 0, "C")
-    pdf.cell(40, 10, "Carrera", 1, 0, "C")
-    pdf.cell(30, 10, "Cohorte", 1, 0, "C")
-    pdf.cell(30, 10, "Modalidad", 1, 1, "C")
+
+    pdf.cell(30, 8, safe("Tipo"), 1, 0, "C", fill=True)
+    pdf.cell(50, 8, safe("Nombre"), 1, 0, "C", fill=True)
+    pdf.cell(40, 8, safe("Carrera"), 1, 0, "C", fill=True)
+    pdf.cell(30, 8, safe("Cohorte"), 1, 0, "C", fill=True)
+    pdf.cell(30, 8, safe("Modalidad"), 1, 1, "C", fill=True)
 
     pdf.set_font("Arial", size=8)
 
-    # Exportar Regularizaciones (nuevos planes)
+    # Alternancia (zebra)
+    fill = False
+
+    # Regularizaciones
     for reg in Regularizacion.objects.filter(estado='A'):
+        pdf.set_fill_color(245, 245, 245) if fill else pdf.set_fill_color(255, 255, 255)
+        fill = not fill
+
         tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
 
-        # Acortar strings si son muy largos
-        tipo_str = str(tipo)[:15] if len(str(tipo)) > 15 else str(tipo)
-        nombre = str(reg.nombre)[:30] if len(str(reg.nombre)) > 30 else str(reg.nombre)
-        carrera = str(reg.carrera)[:25] if len(str(reg.carrera)) > 25 else str(reg.carrera)
-        cohorte = str(reg.cohorte)[:15] if len(str(reg.cohorte)) > 15 else str(reg.cohorte)
-        modalidad = str(reg.modalidad)[:15] if len(str(reg.modalidad)) > 15 else str(reg.modalidad)
+        pdf.cell(30, 8, safe(str(tipo)[:15]), 1, 0, "L", fill)
+        pdf.cell(50, 8, safe(str(reg.nombre)[:30]), 1, 0, "L", fill)
+        pdf.cell(40, 8, safe(str(reg.carrera)[:25]), 1, 0, "L", fill)
+        pdf.cell(30, 8, safe(str(reg.cohorte)[:15]), 1, 0, "L", fill)
+        pdf.cell(30, 8, safe(str(reg.modalidad)[:15]), 1, 1, "L", fill)
 
-        pdf.cell(30, 8, tipo_str, 1)
-        pdf.cell(50, 8, nombre, 1)
-        pdf.cell(40, 8, carrera, 1)
-        pdf.cell(30, 8, cohorte, 1)
-        pdf.cell(30, 8, modalidad, 1)
-        pdf.ln()
-
-    # Exportar PlanPago antiguos (si existen)
+    # Planes antiguos
     for p in PlanPago.objects.filter(estado='A'):
-        nombre = str(p.nombre)[:30] if len(str(p.nombre)) > 30 else str(p.nombre)
-        carrera = str(p.carrera)[:25] if len(str(p.carrera)) > 25 else str(p.carrera)
-        cohorte = str(p.cohorte)[:15] if len(str(p.cohorte)) > 15 else str(p.cohorte)
-        modalidad = str(p.modalidad)[:15] if len(str(p.modalidad)) > 15 else str(p.modalidad)
+        pdf.set_fill_color(245, 245, 245) if fill else pdf.set_fill_color(255, 255, 255)
+        fill = not fill
 
-        pdf.cell(30, 8, "Plan Antiguo", 1)
-        pdf.cell(50, 8, nombre, 1)
-        pdf.cell(40, 8, carrera, 1)
-        pdf.cell(30, 8, cohorte, 1)
-        pdf.cell(30, 8, modalidad, 1)
-        pdf.ln()
+        pdf.cell(30, 8, safe("Plan Antiguo"), 1, 0, "L", fill)
+        pdf.cell(50, 8, safe(str(p.nombre)[:30]), 1, 0, "L", fill)
+        pdf.cell(40, 8, safe(str(p.carrera)[:25]), 1, 0, "L", fill)
+        pdf.cell(30, 8, safe(str(p.cohorte)[:15]), 1, 0, "L", fill)
+        pdf.cell(30, 8, safe(str(p.modalidad)[:15]), 1, 1, "L", fill)
 
-    pdf_bytes = pdf.output(dest="S")
-    response = HttpResponse(bytes(pdf_bytes), content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="planes_pago.pdf"'
+    # Salida final segura
+    raw = pdf.output(dest="S").encode("latin1", "replace")
+
+    response = HttpResponse(raw, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename=\"planes_pago.pdf\"'
     return response
+
 
 
 @login_required
 def exportar_planes_csv(request):
-    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    # Cabecera correcta para Excel (UTF-8 con BOM)
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response.write('\ufeff')  # BOM para Excel
+
     response["Content-Disposition"] = 'attachment; filename="planes_pago.csv"'
 
     writer = csv.writer(response, delimiter=";")
-    writer.writerow(["Tipo de Plan", "Nombre", "Carrera", "Cohorte", "Modalidad"])
 
-    # Exportar Regularizaciones (nuevos planes)
+    # Encabezados
+    writer.writerow([
+        "Tipo de Plan",
+        "Nombre",
+        "Carrera",
+        "Cohorte",
+        "Modalidad"
+    ])
+
+    # Función para limpiar caracteres que Excel no soporta bien
+    def clean(s):
+        return str(s).replace("—", "-").replace("–", "-").strip()
+
+    # Regularizaciones
     for reg in Regularizacion.objects.filter(estado='A'):
-        tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
-        writer.writerow([tipo, reg.nombre, reg.carrera, reg.cohorte, reg.modalidad])
+        tipo = reg.get_tipo_display() if hasattr(reg, "get_tipo_display") else reg.tipo
+        writer.writerow([
+            clean(tipo),
+            clean(reg.nombre),
+            clean(reg.carrera),
+            clean(reg.cohorte),
+            clean(reg.modalidad),
+        ])
 
-    # Exportar PlanPago antiguos (si existen)
+    # Planes antiguos
     for p in PlanPago.objects.filter(estado='A'):
-        writer.writerow(["Plan Antiguo", p.nombre, p.carrera, p.cohorte, p.modalidad])
+        writer.writerow([
+            "Plan Antiguo",
+            clean(p.nombre),
+            clean(p.carrera),
+            clean(p.cohorte),
+            clean(p.modalidad),
+        ])
 
     return response
 
-
 @login_required
 def exportar_planes_excel(request):
-    wb = openpyxl.Workbook()
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.cell.cell import MergedCell
+
+    wb = Workbook()
     ws = wb.active
     ws.title = "Planes de Pago"
 
-    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-
-    bold_font = Font(bold=True, color="FFFFFF")
+    # --- ESTILOS ---
+    header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
-    center_align = Alignment(horizontal="center", vertical="center")
+    center = Alignment(horizontal="center", vertical="center")
     thin_border = Border(
         left=Side(style="thin"),
         right=Side(style="thin"),
         top=Side(style="thin"),
-        bottom=Side(style="thin"),
+        bottom=Side(style="thin")
     )
 
+    # --- HEADERS ---
     headers = ["Tipo de Plan", "Nombre", "Carrera", "Cohorte", "Modalidad"]
     ws.append(headers)
 
-    for col, header in enumerate(headers, start=1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = bold_font
+    # Estilos del encabezado
+    for col, h in enumerate(headers, start=1):
+        cell = ws.cell(1, col, h)
+        cell.font = header_font
         cell.fill = header_fill
-        cell.alignment = center_align
+        cell.alignment = center
         cell.border = thin_border
 
-    # Exportar Regularizaciones (nuevos planes)
+    # --- DATOS ---
     for reg in Regularizacion.objects.filter(estado='A'):
         tipo = reg.get_tipo_display() if hasattr(reg, 'get_tipo_display') else reg.tipo
         ws.append([tipo, reg.nombre, reg.carrera, reg.cohorte, reg.modalidad])
 
-    # Exportar PlanPago antiguos (si existen)
     for p in PlanPago.objects.filter(estado='A'):
         ws.append(["Plan Antiguo", p.nombre, p.carrera, p.cohorte, p.modalidad])
 
-    for col in ws.columns:
-        max_length = 0
-        col_letter = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        ws.column_dimensions[col_letter].width = adjusted_width
+    
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.border = thin_border
 
+    
+    for col in ws.columns:
+        max_len = 0
+
+        
+        first_real = None
+        for c in col:
+            if not isinstance(c, MergedCell):
+                first_real = c
+                break
+
+        if not first_real:
+            continue
+
+        col_letter = first_real.column_letter
+
+        for c in col:
+            if not isinstance(c, MergedCell) and c.value:
+                max_len = max(max_len, len(str(c.value)))
+
+        ws.column_dimensions[col_letter].width = max_len + 3
+
+    
+    ws.auto_filter.ref = f"A1:E{ws.max_row}"
+
+    
+    ws.freeze_panes = "A2"
+
+    
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response["Content-Disposition"] = 'attachment; filename="planes_pago.xlsx"'
     wb.save(response)
     return response
+
 
 
 @login_required

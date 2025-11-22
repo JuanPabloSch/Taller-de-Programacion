@@ -350,24 +350,26 @@ section h4 {
                     {% user_role user as rol %}
                     <div class="acciones">
                         <button class="btn-enter btn-ver"
-                        data-id="{{ plan.id }}"
-                        data-tipo="{{ plan.tipo_backend }}"
-                        title="Ver detalles">
-                        <i class="bi bi-eye"></i>
+                                data-id="{{ plan.id }}"
+                                data-tipo="{{ plan.tipo_backend }}"
+                                title="Ver detalles">
+                            <i class="bi bi-eye"></i>
                         </button>
-                        {% if rol != "Consulta" %}
-                        <button class="btn-detail btn-desactivar"
-                        data-id="{{ plan.id }}"
-                        data-tipo="{{ plan.tipo_backend }}"
-                        title="Desactivar">
-                        Desactivar
-                        </button>
-                        <button class="btn-clone btn-reactivar"
-                        data-id="{{ plan.id }}"
-                        data-tipo="{{ plan.tipo_backend }}"
-                        title="Reactivar">
-                        <i class="bi bi-arrow-clockwise"></i> Reactivar
-                        </button>
+
+                        {% if rol == "Administrador" or rol == "Tesorero" %}
+                            <button class="btn-detail btn-desactivar"
+                                    data-id="{{ plan.id }}"
+                                    data-tipo="{{ plan.tipo_backend }}"
+                                    title="Desactivar">
+                                Desactivar
+                            </button>
+
+                            <button class="btn-clone btn-reactivar"
+                                    data-id="{{ plan.id }}"
+                                    data-tipo="{{ plan.tipo_backend }}"
+                                    title="Reactivar">
+                                <i class="bi bi-arrow-clockwise"></i> Reactivar
+                            </button>
                         {% endif %}
                     </div>
                 </td>
@@ -416,21 +418,25 @@ section h4 {
                 <td>
                     {% user_role user as rol %}
                     <div class="acciones">
+
                         <button class="btn-enter btn-ver"
-                        data-id="{{ plan.id }}"
-                        data-tipo="{{ plan.tipo_backend }}"
-                        title="Ver detalles">
-                        <i class="bi bi-eye"></i>
+                            data-id="{{ plan.id }}"
+                            data-tipo="{{ plan.tipo_backend }}"
+                            title="Ver detalles">
+                            <i class="bi bi-eye"></i>
                         </button>
-                        {% if rol != "Consulta" %}
-                        <button class="btn-clone btn-reactivar"
-                        data-id="{{ plan.id }}"
-                        data-tipo="{{ plan.tipo_backend }}"
-                        title="Reactivar">
-                        <i class="bi bi-arrow-clockwise"></i> Reactivar
-                        </button>
+
+                        {% if rol == "Administrador" or rol == "Tesorero" %}
+                            <button class="btn-clone btn-reactivar"
+                                data-id="{{ plan.id }}"
+                                data-tipo="{{ plan.tipo_backend }}"
+                                title="Reactivar">
+                                <i class="bi bi-arrow-clockwise"></i> Reactivar
+                            </button>
                         {% endif %}
+
                     </div>
+
                 </td>
             </tr>
             {% empty %}
