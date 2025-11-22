@@ -2143,7 +2143,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData();
 
       // Agregar CSRF token
-      const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]");
+      const csrfToken = form.querySelector("[name=csrf_token], [name=csrfmiddlewaretoken]");
+
       if (csrfToken) {
         formData.append('csrfmiddlewaretoken', csrfToken.value);
       }
@@ -2570,5 +2571,69 @@ $(document).ready(function() {
     }
 });
 </script>
+
+<script>
+document.getElementById("btnGuardarRegularizacion").addEventListener("click", function () {
+    let errores = [];
+
+    // === Datos Identificación ===
+    const nombre = document.querySelector("[name='regularizacion-nombre']").value.trim();
+    const carrera = document.querySelector("[name='regularizacion-carrera']").value.trim();
+    const cohorte = document.querySelector("[name='regularizacion-cohorte']").value.trim();
+    const modalidad = document.querySelector("[name='regularizacion-modalidad']").value.trim();
+
+    if (!nombre) errores.push("Debe ingresar un nombre.");
+    if (!cohorte) errores.push("Debe ingresar un cohorte.");
+    if (!carrera) errores.push("Debe seleccionar una carrera.");
+    if (!modalidad) errores.push("Debe seleccionar una modalidad.");
+
+    // === Estructura ===
+    const base = document.querySelector("[name='estructura-valor']").value;
+    const tasa = document.querySelector("[name='estructura-tasa']").value;
+    const matricula = document.querySelector("[name='estructura-pago_incial']").value;
+    const cuotas = document.querySelector("[name='estructura-cantidad_de_cuotas']").value;
+    const frecuencia = document.querySelector("[name='estructura-frecuencia_de_pago']").value;
+    const diaVenc = document.querySelector("[name='estructura-dia_vencimiento']").value;
+
+    if (!base) errores.push("Debe ingresar el precio base.");
+    if (!tasa) errores.push("Debe ingresar una tasa de interés.");
+    if (!matricula) errores.push("Debe ingresar el pago inicial.");
+    if (!cuotas || cuotas <= 0) errores.push("Debe ingresar la cantidad de cuotas. El mínimo es 1.");
+    if (!frecuencia) errores.push("Debe seleccionar una frecuencia de pago.");
+    if (!diaVenc || diaVenc < 1 || diaVenc > 31)
+        errores.push("El día de vencimiento debe estar entre 1 y 31.");
+
+    // === Mora ===
+    const tipoRecargo = document.querySelector("[name='mora-tipo_de_recargo']").value;
+    const cantRecargo = document.querySelector("[name='mora-cantidad_recargo']").value;
+    const frecuenciaAplic = document.querySelector("[name='mora-frecuencia_aplicacion']").value;
+    const diasGracia = document.querySelector("[name='mora-dias_gracia']").value;
+    const veces = document.querySelector("[name='mora-veces_aplicacion']").value;
+
+    if (!tipoRecargo) errores.push("Debe seleccionar un tipo de recargo.");
+    if (!cantRecargo) errores.push("Debe ingresar un recargo.");
+    if (!frecuenciaAplic) errores.push("Debe seleccionar frecuencia de aplicación.");
+    if (diasGracia === "" || diasGracia < 0)
+        errores.push("Debe ingresar un valor en días de gracia. El mínimo es 0.");
+    if (!veces) errores.push("Debe ingresar cuántas veces se aplicará la mora.");
+
+    // Si hay errores → mostrar SweetAlert
+    if (errores.length > 0) {
+        Swal.fire({
+            icon: "error",
+            title: "Error de validación",
+            html:
+                "<p>No se pudo guardar el plan.</p>" +
+                errores.map(e => `• ${e}<br>`).join(""),
+            confirmButtonText: "OK"
+        });
+        return;
+    }
+
+    // Si todo está bien → enviar el formulario
+    document.getElementById("formRegularizacion").submit();
+});
+</script>
+
 
 {% endblock %}
