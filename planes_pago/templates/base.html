@@ -18,17 +18,14 @@
     /* Homogeneizar la fuente a la pila de Bootstrap */
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     
-    /* El font-weight se mantiene en su valor original (400) o el que esté definido en otro sitio */
-    /* Aquí se omiten los font-weight: bold o 700 */
-    
-    /* Se mantienen los estilos originales para no romper el diseño existente */
+
     font-size: 1.2rem;
-    font-weight: 400; /* Mantenemos el peso original de la fuente */
+    font-weight: 400; 
     color: #555;
     margin-top: 0;
 }
 
-    /* === ESTILOS GENERALES Y LAYOUT === */
+    /*  ESTILOS GENERALES Y LAYOUT */
     body {
         background-color: #d2dde4a2 !important;
         padding-top: 56px; /* Altura estándar de navbar en Bootstrap 5 */
@@ -67,32 +64,31 @@
         }
     }
 
-    /* === SIDEBAR - ESTILOS ADAPTADOS AL MODELO (AZUL OSCURO) === */
+    /*  SIDEBAR - ESTILOS */
     #sidebar {
-        /* Ajustamos TOP a 0 para que la barra lateral cubra toda la altura */
         position: fixed;
         top: 0; 
         left: 0;
         height: 100vh;
-        z-index: 1050; /* Aumentado para solaparse sobre el navbar */
+        z-index: 1050; 
         width: 250px;
         position: fixed;
         left: -250px;
-        background-color: #192A41; /* Azul Oscuro Profundo (como el modelo) */
+        background-color: #192A41; 
         transition: all 0.3s;
-        padding-top: 0; /* Aseguramos que el contenido empiece desde arriba */
+        padding-top: 0; 
     }
 
     #sidebar.active {
         left: 0;
     }
 
-    /* Área de usuario en la Sidebar (Simulación del modelo) */
+    
     .sidebar-user-info {
         text-align: center;
-        padding: 40px 0 15px 0; /* Ajustado el padding superior para replicar el modelo */
+        padding: 40px 0 15px 0; 
         border-bottom: 1px solid #2b3e5a;
-        margin-bottom: 30px; /* Más espacio entre info de usuario y menú */
+        margin-bottom: 30px; 
     }
     .sidebar-user-info .bi-person-circle {
         font-size: 3.5rem;
@@ -109,45 +105,45 @@
         color: #adb5bd;
     }
     
-    /* Ocultar el div "Menú" original para reemplazarlo por el área de usuario (si aplica) */
+    
     #sidebar > div.p-3.text-white.fw-bold.border-bottom {
         display: none;
     }
 
-    /* Enlaces de Sidebar: Convertir a botones rectangulares grandes centrados */
+    /* Enlaces de Sidebar */
     #sidebar .nav-item {
-        width: 90%; /* Ancho que se ve en el modelo */
-        margin: 10px auto; /* Centrar y dar margen vertical */
+        width: 90%; 
+        margin: 10px auto; 
     }
     
     #sidebar .nav-link {
-        color: #f8f9fa; /* Texto claro (base para inactivos) */
-        padding: 15px 20px; /* Más padding para que el botón sea alto */
-        display: flex; /* Usamos flex para centrar los iconos/texto si los hay */
+        color: #f8f9fa; 
+        padding: 15px 20px; 
+        display: flex; 
         align-items: center;
-        justify-content: center; /* Centrar el texto/iconos horizontalmente */
+        justify-content: center; 
         border-radius: 4px;
         font-weight: 600;
         transition: background-color 0.2s, color 0.2s;
     }
     
-    /* Estilo para el botón ACTIVO del modelo (Azul claro/lavanda) */
+    /* Estilo para el botón ACTIVO  */
     #sidebar .nav-link.active {
         background-color: #7984f1; 
-        color: #192A41; /* Texto oscuro para el activo */
+        color: #192A41; 
         border: none;
     }
     
-    /* *** CAMBIO SOLICITADO: Texto del <a> activo a color claro al hacer hover *** */
+    
     #sidebar .nav-link.active:hover {
-        background-color: #929cf8; /* Tono más claro para el fondo */
-        color: #ffffff; /* ¡Texto del activo a color CLARO (blanco) al hacer hover! */
+        background-color: #929cf8; 
+        color: #ffffff; 
     }
 
 
     /* Estilo para los botones INACTIVOS */
     #sidebar .nav-link:not(.active) {
-        background-color: #2b3e5a; /* Fondo gris oscuro/azul */
+        background-color: #2b3e5a; 
         color: #ffffff;
         border: 1px solid #4a638a;
     }
@@ -160,14 +156,14 @@
 
     /* Ajuste de iconos dentro del enlace */
     #sidebar .nav-link i {
-        margin-right: 8px; /* Espacio entre el icono y el texto */
+        margin-right: 8px; 
     }
 
     /* Navbar superior (Blanca) */
     .btn-toggle {
         border: none;
         background: none;
-        color: #192A41; /* Color oscuro para el ícono en la navbar blanca */
+        color: #192A41; 
         font-size: 1.8rem;
         margin-left: 10px;
     }
@@ -229,13 +225,13 @@
     </nav>
 
     <nav id="sidebar">
-        <div class="sidebar-user-info">
-            <i class="bi bi-person-circle"></i>
-            <p>Administrador</p>
-            <small>dd/mm/aaa</small>
-        </div>
         <ul class="nav flex-column">
+            <br>
+            <h3 style="color: white; text-align: center;">Menú</h3>
+            <hr style="color:white">
             
+            <br>
+            <br>
             <li class="nav-item"><a class="nav-link active" href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
             {% if user.is_authenticated %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'planes_list' %}"><i ></i> Planes activos</a></li>
@@ -248,7 +244,7 @@
                     </a>
                 </li>
 
-                {% endif %}                    
+                {% endif %} 
             {% endif %}
         </ul>
     </nav>
