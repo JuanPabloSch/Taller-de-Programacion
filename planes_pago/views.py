@@ -1663,10 +1663,12 @@ def reactivar_objeto(request):
 
 
 @login_required
+@group_required('Administrador', 'Tesorero')
 def historial(request):
     return render(request, "historial.html")
 
 @login_required
+@group_required('Administrador', 'Tesorero')
 def historial_ajax(request):
     historial = HistorialAccion.objects.select_related("usuario", "plan").order_by("-fecha")
 

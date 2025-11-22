@@ -213,6 +213,7 @@
         </div>
         {% endif %}
 
+        {% if not user|has_group:"Consulta" %}
         <div class="dashboard-card">
             <div class="card-icon">
                 <i class="bi bi-clock-history"></i>
@@ -221,6 +222,7 @@
             <p>Listado completo de actividades del sistema.</p>
             <a class="btn btn-secondary-custom" href="{% url 'historial' %}">Ir al Historial</a>
         </div>
+        {% endif %}
 
     </div>
 </div>

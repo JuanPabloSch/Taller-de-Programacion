@@ -238,13 +238,14 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'planes_suspendidos' %}"></i> Planes Suspendidos/desactivados</a></li>
                 {% if user|has_group:"Administrador" %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'usuarios_list' %}"><i class="bi bi-people"></i> Usuarios y Roles</a></li>
+                {% endif %}
+                {% if not user|has_group:"Consulta" %}
                     <li class="nav-item">
-                    <a class="nav-link" href="{% url 'historial' %}">
-                    <i class="bi bi-clock-history"></i> Historial
-                    </a>
-                </li>
-
-                {% endif %} 
+                        <a class="nav-link" href="{% url 'historial' %}">
+                            <i class="bi bi-clock-history"></i> Historial
+                        </a>
+                    </li>
+                {% endif %}
             {% endif %}
         </ul>
     </nav>
