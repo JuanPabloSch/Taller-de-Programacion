@@ -213,7 +213,7 @@
         </div>
         {% endif %}
 
-        {% if not user|has_group:"Consulta" %}
+        {% if user|is_in_groups:"Administrador,Tesorero" or user.is_superuser %}
         <div class="dashboard-card">
             <div class="card-icon">
                 <i class="bi bi-clock-history"></i>
